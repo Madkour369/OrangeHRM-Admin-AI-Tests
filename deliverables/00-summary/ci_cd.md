@@ -1,5 +1,9 @@
 # CI/CD — `.github/workflows/playwright.yml`
 
+**Repo:** https://github.com/Madkour369/OrangeHRM-Admin-AI-Tests
+**Actions tab:** https://github.com/Madkour369/OrangeHRM-Admin-AI-Tests/actions
+**This workflow directly:** https://github.com/Madkour369/OrangeHRM-Admin-AI-Tests/actions/workflows/playwright.yml
+
 ## What the workflow does
 
 One job (`test`) on `ubuntu-latest`:
@@ -29,7 +33,7 @@ One job (`test`) on `ubuntu-latest`:
 
 ## How to trigger it manually from the Actions tab
 
-1. Open the repo on GitHub → **Actions** tab.
+1. Open https://github.com/Madkour369/OrangeHRM-Admin-AI-Tests/actions.
 2. Select **Playwright Tests** in the left-hand workflow list.
 3. Click **Run workflow** (top-right of the run list).
 4. Fill in the two optional inputs, or leave both at their defaults:

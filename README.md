@@ -1,10 +1,6 @@
 # OrangeHRM Admin — UI Test Automation
 
-[![Playwright Tests](https://github.com/<OWNER>/<REPO>/actions/workflows/playwright.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/playwright.yml)
-
-> **Note:** this repository has no `git remote` configured yet (verified — `git remote -v`
-> returns nothing). Replace `<OWNER>/<REPO>` above with the actual GitHub path once this
-> project is pushed; a placeholder badge is not invented in its place.
+[![Playwright Tests](https://github.com/Madkour369/OrangeHRM-Admin-AI-Tests/actions/workflows/playwright.yml/badge.svg)](https://github.com/Madkour369/OrangeHRM-Admin-AI-Tests/actions/workflows/playwright.yml)
 
 A gated, Spec-Driven Development QA pipeline for OrangeHRM's Admin module, built entirely
 against the live public demo (`https://opensource-demo.orangehrmlive.com/`), UI only — zero
