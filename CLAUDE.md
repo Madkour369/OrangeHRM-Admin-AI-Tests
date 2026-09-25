@@ -63,6 +63,8 @@ defects get baked into assertions.
 │       ├── plan.md                    # tech plan
 │       └── tasks.md                   # milestone breakdown + DoD
 ├── .claude/commands/                  # /analyze /coverage /code-review /heal
+│                                       # /new-module (added post-G5, runs this whole
+│                                       # cycle for a new module — see its own file)
 ├── deliverables/
 │   ├── 01-prd/prd.md
 │   ├── 02-exploration/exploration.md
@@ -192,6 +194,11 @@ A fix that only adds a hard wait is rejected — escalate to an element-state wa
 `/analyze`, `/coverage`, `/code-review`, `/heal` are defined in `.claude/commands/`.
 Read the command file before executing it. Each produces or updates a named artifact —
 a command that prints to chat only has not run.
+
+`/new-module` (added post-Gate-G5, once this pipeline had a real implementation to
+reuse) runs this entire five-milestone cycle for a new module, reusing everything
+module-agnostic below `src/pages/<module>/` unchanged. See
+`.claude/commands/new-module.md`.
 
 ## 8. WORKING PROTOCOL
 

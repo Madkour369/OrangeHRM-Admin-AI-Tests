@@ -156,9 +156,44 @@ export class OxdTable {
    * Public: list-screen page objects call this from their own `goto()` (after
    * `BasePage.gotoPath()`, which only waits for the sidebar + spinner, not the
    * table's own data) as well as after `clickSearch()`/`clickReset()`.
+   *
+   * Live-diagnosed 2026-09-25 (CI-only, HEAL-023/024/025 — three tests flaky on a
+   * GitHub Actions run, all reading row content immediately after this wait, never
+   * reproduced across three separate 47-test local runs): the record-count header
+   * can itself become visible a beat before the row bodies' own cell text/action
+   * icons finish populating — confirmed by the CI run's raw errors: one test's row
+   * count matched the header's count exactly while every cell came back empty
+   * string, another's action-icon lookup matched zero elements on an otherwise-
+   * present row. The header proves the LIST STATE (has-records vs. empty) settled;
+   * it does not prove the ROW DATA inside each `.oxd-table-row` has. A CI runner's
+   * different CPU/network characteristics apparently widen this specific gap enough
+   * to observe it, where local runs never hit it. Fix: once the header confirms at
+   * least one row is expected, additionally poll the first row's own cell text
+   * until it holds real content before returning — a second, more specific content-
+   * based signal, not a timeout increase.
    */
   async waitForListRendered(): Promise<void> {
     await expect(this.recordCountHeader.or(this.emptyState)).toBeVisible({ timeout: 20_000 });
+    // Both the empty-state check and the row-content check are INSIDE the retried
+    // predicate, re-evaluated on every attempt — not checked once up front. A search
+    // that is genuinely about to resolve to zero results can still show a stale
+    // (pre-search) record-count header at the instant the assertion above passes;
+    // checking emptyState only once here would then commit this call to waiting for
+    // row content that a legitimate empty result will never produce, hanging for the
+    // full timeout instead of recognizing the list settled on "no records" a moment
+    // later. Found live 2026-09-25 (post-HEAL-023/024/025 regression check): searches
+    // for an already-deleted/nonexistent username hit exactly this hang.
+    await expect(async () => {
+      if (await this.emptyState.isVisible().catch(() => false)) return;
+      const firstRow = this.rows.first();
+      if ((await firstRow.count()) === 0) {
+        throw new Error('list is not in the empty state but no row is attached yet');
+      }
+      const texts = await this.cellTexts(firstRow);
+      if (!texts.some((t) => t.trim().length > 0)) {
+        throw new Error('first row is attached but its cells have not populated yet');
+      }
+    }).toPass({ timeout: 20_000 });
   }
 
   async clickSearch(): Promise<void> {

@@ -1,13 +1,16 @@
 # Specification — OrangeHRM Web UI (Feature 001: Admin Module)
 
-Produced under Constitution v1.0 · Scope: **UI only** · Target:
-`https://opensource-demo.orangehrmlive.com/`
+Produced under Constitution v1.0 (amended to v1.1 at Gate G2) · Scope: **UI only** ·
+Target: `https://opensource-demo.orangehrmlive.com/`
 
-Status: **M2 exploration complete** for both scenarios previously marked *observation
-scenario* (Work Shift overnight ordering, Nationality in-use deletion) — both are now
-asserted scenarios below, one of them (Nationalities) annotated as a known defect
-(BUG-001). See `deliverables/02-exploration/exploration.md` and
-`deliverables/01-prd/prd.md` §13.1 for the full audit trail.
+Status (updated 2026-09-25): **all five milestones complete, Gate G5 reached.** The two
+scenarios originally marked *observation scenario* (Work Shift overnight ordering,
+Nationality in-use deletion) were resolved during M2 — both are asserted scenarios below,
+one of them (Nationalities) annotated as a known defect (BUG-001) — and every `US-nn-yy`
+story below now has automated coverage for its Wave 1 cases under `tests/admin/`. See
+`deliverables/02-exploration/exploration.md` and `deliverables/01-prd/prd.md` §13.1 for
+the M2 audit trail, and `deliverables/00-summary/final_review.md` for the end-of-project
+review.
 
 ---
 

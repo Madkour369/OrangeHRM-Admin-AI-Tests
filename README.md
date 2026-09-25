@@ -27,8 +27,16 @@ module's cycle — run via `/new-module` — reuses it unchanged.
 | g | Automation suite, execution report, healing log | `src/`, `tests/admin/*.spec.ts`, `deliverables/05-automation/automation_execution_report.html`, `deliverables/05-automation/healing_process.md` (+ `code_review.md`) |
 
 Also in `deliverables/00-summary/`: `prompts_used.md` / `prompts_used.xlsx` (the full
-chronological prompt archive that drove this project) and `ci_cd.md` (this repo's GitHub
-Actions workflow, explained).
+chronological prompt archive that drove this project), `ci_cd.md` (this repo's GitHub
+Actions workflow, explained), and `final_review.md` (an outside-reviewer-style audit of
+the whole project, with every finding and fix).
+
+**On scope:** `test_design.csv` designs 203 cases, 136 of which are `needs automation =
+Yes`. Only **47 (Wave 1)** are built in `tests/admin/` this cycle — the other **89 (Wave
+2)** are deliberately **scheduled, not forgotten**: every Wave-2 row already carries
+`needs automation = Yes` and an `Automation_ID`, and `test_design_coverage.md`'s
+"Execution sequencing" section explains the wave split and why ~76% of Wave 2 is pure
+parameter variants against Wave-1 page objects that already exist, not new code.
 
 ## Repository layout
 

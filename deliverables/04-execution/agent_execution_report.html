@@ -180,6 +180,33 @@
   function sevClass(sev) {
     return 'sev-' + String(sev).toLowerCase().replace(/\s+/g,'-');
   }
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  /**
+   * Added 2026-09-25 (final_review.md finding): evidence filenames were previously
+   * rendered as inert text, even though every one of them resolves to a real file on
+   * disk. M2-era filenames (no TC_ID prefix, e.g. adm05-nationalities-list.png) live
+   * under 02-exploration/evidence/; M4-era filenames (TC_ADM_*, STOPCONDITION-*) live
+   * alongside this report under 04-execution/evidence/ — both confirmed for every
+   * filename this report currently references (10/10 resolved, checked at review time).
+   */
+  function evidencePath(filename) {
+    return /^(TC_ADM_|STOPCONDITION)/.test(filename)
+      ? 'evidence/' + filename
+      : '../02-exploration/evidence/' + filename;
+  }
+  function evidenceHtml(raw) {
+    if (!raw || raw === '—') return '';
+    return raw.split(',').map(function(part) {
+      var trimmed = part.trim().replace(/`/g, '');
+      var m = trimmed.match(/([\w.-]+\.png)(\s*\([^)]*\))?$/);
+      if (!m) return escapeHtml(trimmed);
+      var filename = m[1], suffix = m[2] || '';
+      var prefix = trimmed.slice(0, trimmed.length - m[0].length);
+      return escapeHtml(prefix) + '<a href="' + evidencePath(filename) + '" target="_blank" rel="noopener">' + escapeHtml(filename) + '</a>' + escapeHtml(suffix);
+    }).join(', ');
+  }
 
   // ---- Title / subtitle (module-agnostic: derived entirely from meta) ----
   document.title = meta.productName + ' — ' + meta.moduleName + ' Module — Agent Execution Report';
@@ -298,7 +325,10 @@
     });
     document.getElementById('results-count').textContent = filtered.length + ' of ' + results.length + ' cases shown';
     filtered.forEach(function(r) {
-      var noteText = [r.evidence && r.evidence !== '—' ? ('Evidence: ' + r.evidence) : '', r.notes || ''].filter(Boolean).join(' — ');
+      var noteHtml = [
+        r.evidence && r.evidence !== '—' ? ('Evidence: ' + evidenceHtml(r.evidence)) : '',
+        r.notes ? escapeHtml(r.notes) : ''
+      ].filter(Boolean).join(' — ');
       var tr = el('tr', {}, [
         el('td', {html: '<code>' + r.tcId + '</code>'}),
         el('td', {text: r.subModule}),
@@ -307,7 +337,7 @@
         el('td', {text: r.priority}),
         el('td', {html: '<span class="badge ' + badgeClass(r.status) + '">' + r.status + '</span>'}),
         el('td', {text: r.actual}),
-        el('td', {text: noteText})
+        el('td', {html: noteHtml})
       ]);
       tbody.appendChild(tr);
     });
@@ -351,7 +381,7 @@
       card.appendChild(el('div', {class:'bug-field'}, [el('span',{class:'k',text:'Linked test case(s)'}), pills]));
     }
     if (b.evidence && b.evidence.length) {
-      card.appendChild(el('div', {class:'bug-field'}, [el('span',{class:'k',text:'Evidence'}), el('div',{class:'evidence-list', text:b.evidence.join('; ')})]));
+      card.appendChild(el('div', {class:'bug-field'}, [el('span',{class:'k',text:'Evidence'}), el('div',{class:'evidence-list', html:b.evidence.map(evidenceHtml).join('; ')})]));
     }
     bugCards.appendChild(card);
   });

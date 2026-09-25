@@ -27,9 +27,11 @@ Full milestone content and Definition-of-Done checklists live in
 this table exists here only so this plan's own structure section (§2) doesn't read in
 isolation from the pipeline it implements.
 
-This plan currently executes **M5, Phase 2** (page objects + tests for
-`automation_wave = W1`). M1–M4 are complete (G1–G4 signed off); Phase 1 (foundation)
-of M5 is complete and reconciled here.
+**Status (2026-09-25): all five milestones complete, Gate G5 reached.** M1–M5 are done
+(G1–G5 all signed off); M5's three build phases (foundation → page objects/tests →
+`/code-review`/full-suite runs/`/heal`) all completed, CI is live and green on GitHub
+Actions, and the project has been published. See §7 for what happened in each phase and
+what came after G5.
 
 ## 2. Repository Conventions
 
@@ -59,27 +61,36 @@ src/
     base/
       BasePage.ts          shared nav/breadcrumb/idle-wait, zero screen mentions
       LoginPage.ts          does NOT extend BasePage (unauthenticated, no sidebar)
-    admin/                 one page object per screen (Phase 2)
+    admin/                 one page object per screen (13, built in Phase 2)
   fixtures/
     auth.fixture.ts         worker-scoped real UI login, storageState reuse, re-auth-on-expiry
     page.fixture.ts          module-agnostic authenticated page, lands on dashboard
     data.fixture.ts          TestDataRegistry — e2e_-prefixed data, LIFO teardown, best-effort on failure
     index.ts                 single import point for tests
-  data/                    (reserved; not yet needed by W1)
+  data/
+    fixtures/                static binary upload fixtures (e2e_wrongtype.txt,
+                              e2e_oversized.png) used by Corporate Branding's upload
+                              tests — in active use, not reserved/unused
 tests/
-  admin/                   one spec per W1 TC_ID (Phase 2)
+  admin/                   one spec per W1 TC_ID (47, built in Phase 2)
 playwright.config.ts
 .specify/
   memory/constitution.md
   specs/001-admin-ui/{spec.md, plan.md, tasks.md}
 .claude/commands/          analyze.md, coverage.md, code-review.md, heal.md (CLAUDE.md's
-                            custom four) plus the stock SpecKit commands, untouched
+                            original custom four), new-module.md (added post-G5, runs
+                            this whole cycle for a new module) — plus the stock SpecKit
+                            commands, untouched
+.github/workflows/playwright.yml   CI, added post-G5 — see deliverables/00-summary/ci_cd.md
 deliverables/
+  00-summary/{implementation_summary.xlsx, solution_flow.html, prompts_used.{md,xlsx},
+              ci_cd.md, final_review.md}   — added post-G5
   01-prd/prd.md
   02-exploration/{exploration.md, evidence/}
   03-test-design/{test_design.csv, test_design_coverage.md}
   04-execution/{agent_execution_report.html, evidence/, PROGRESS.md}
-  05-automation/{healing_process.md (Phase 3), PROGRESS.md}
+  05-automation/{healing_process.md, code_review.md, automation_execution_report.html,
+                 PROGRESS.md}
 ```
 
 The pre-existing root-level `pages/`, `tests/`, `utils/` scaffold referenced by this
@@ -161,12 +172,28 @@ gone, not "existing structure to preserve," and must not be recreated.
 | R2 — rate limiting / shared demo | `workers: 2`; every test creates and tears down only its own `e2e_`-prefixed data; never asserts on a record it did not create, since real concurrent third-party activity on this account was directly observed throughout M4 |
 | R3 — blast radius | Configuration > Modules' mutation, LDAP Configuration's Enable/Test/Save, and Corporate Branding's Publish/Reset are `valid in scope = No` in the CSV and are not automated at all, not merely tag-excluded |
 
-## 7. Next Actions
+## 7. Status — all phases complete
 
 1. ~~M1–M4~~ — complete, all gates signed off.
-2. ~~M5 Phase 1 (foundation)~~ — complete, this file reconciled to match it.
-3. **M5 Phase 2 (current)** — page objects under `src/pages/admin/`, one per screen,
-   then tests under `tests/admin/`, one per W1 `TC_ID` (47 total). Build order: USR,
-   JOB, QUA, NAT, ORG, BRD, CFG, NAV — run each screen's tests as it's finished.
-4. M5 Phase 3 — `/code-review`, full suite run, `/heal` triage, 3 consecutive green
-   runs.
+2. ~~M5 Phase 1 (foundation)~~ — complete.
+3. ~~M5 Phase 2~~ — complete. 13 page objects under `src/pages/admin/`, 47 tests under
+   `tests/admin/`, one per W1 `TC_ID`. Built in order USR, JOB, QUA, NAT, ORG, BRD, CFG,
+   NAV, running each screen's tests as it finished. A gap-accounting pass mid-Phase-2
+   found 2 W1 cases missed by an incomplete initial query (Pay Grades, Work Shifts) and
+   closed them, reaching the true 47/47.
+4. ~~M5 Phase 3~~ — complete. `/code-review` (verdict: APPROVED, 1 Blocker + 8 Major
+   fixed), three consecutive official full-suite runs (all green; one run's single
+   flaky test diagnosed as `ENV_INSTABILITY` per `/heal` and recorded, not code-patched),
+   `healing_process.md` written (22 entries covering the whole of M5's Phases 1–3).
+   **Gate G5 reached.**
+5. ~~Post-G5~~ — complete. CI added (`.github/workflows/playwright.yml`), published to
+   GitHub, and a final outside-reviewer-style audit run
+   (`deliverables/00-summary/final_review.md`) — that audit found a real CI-only
+   flake (3 tests, all racing the same table-render timing gap under CI's specific
+   network/CPU characteristics, never reproduced locally) and fixed it at the
+   component layer (`OxdTable.waitForListRendered()`); see `HEAL-023`/`024`/`025`.
+
+**Next actions for a future cycle**, not this one: build Wave 2's 89 scheduled cases
+(mostly parameter variants against Wave 1's existing page objects, per
+`test_design_coverage.md`'s reuse-ratio analysis), or run `/new-module` to start the same
+cycle for a different OrangeHRM module.

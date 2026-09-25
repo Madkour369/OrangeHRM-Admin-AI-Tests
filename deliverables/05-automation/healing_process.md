@@ -321,13 +321,80 @@ Prevention rule: A single `flaky`-flagged test in an official multi-run pass, on
 
 ---
 
+## Post-G5: CI-only flakiness found during the final review (2026-09-25)
+
+The first two GitHub Actions runs after publishing both showed job-level `success`, but
+per this project's own rule a retry-only pass is a healing candidate, not a clean pass —
+the final review (`deliverables/00-summary/final_review.md`) checked the raw
+`playwright-json-results` artifact rather than trusting the green badge alone, and found
+3 tests, all in `usr.spec.ts`, that failed once then passed on retry in the second CI
+run (`run 36171143468`). None of these ever flaked across three separate official local
+47-test runs (Phase 3) or the two dedicated report-build runs. All three share one root
+cause and one fix, logged as three entries per `heal.md`'s "one entry per failure" rule.
+
+### HEAL-023 | 2026-09-25 ~21:15 UTC (found via CI JSON artifact, diagnosed against a local repro)
+Test:            TC_ADM_USR_013 (search filter Username = Admin returns a consistent result set)
+Symptom:         CI attempt 1 failed asserting row content immediately after a search; attempt 2 (automatic retry) passed
+Raw error:       `Error: expect(received).toContain(expected) // indexOf` — `Expected substring: "Admin"`, `Received string: ""` — at `tests/admin/usr.spec.ts:170`, inside the loop `for (const row of rows) { expect(row.username).toContain('Admin'); }`, called after `collectAllUserRows(userPage)` → `userPage.allRowValues()`
+Attempts:        1 CI failure observed (GitHub Actions run `36171143468`, attempt 0: failed 4.4s; attempt 1: passed 5.5s). Not reproduced across 3 official local full-suite runs, 3 isolated local reruns of this exact test post-fix, nor the two local report-build runs — genuinely CI-environment-specific, never seen locally
+Hypothesis:      `rows.length` matched `expectedCount` (that assertion did not fail), but the row's own `username` cell text came back empty — the row element existed but its cell text had not populated yet at read time, a beat later than the list-state signal (`waitForListRendered()`'s record-count header) that gated the read
+Root cause:      TIMING — confirmed by the error shape itself: a present-but-empty row is the exact signature of reading a row's cell text before it populates, not of a missing/wrong locator (which would show 0 rows or a thrown "not found", not an empty string) and not of stale/wrong data (which would show a *different* value, not blank)
+Fix layer:       component (`src/components/OxdTable.ts`, `waitForListRendered()`) — generic, benefits every list screen and every caller, not just this test
+Change:          `waitForListRendered()` now additionally polls the first row's own cell text (via the existing `cellTexts()` helper) until at least one cell holds real content, after confirming the header/empty-state — a second, more specific content-based signal on top of the existing one, not a timeout increase. **This introduced a real regression, caught by this project's own full-suite verification step before it shipped — see HEAL-026 for the self-caught bug and its correction.** See HEAL-024/025 for the same fix's effect on the other two symptoms it covers
+Verification:    3 consecutive local clean runs of `TC_ADM_USR_013`/`018`/`024` together, then a full local 47-test suite run — which is what surfaced HEAL-026's regression on 3 *other* tests. Final verification (post-HEAL-026 correction): 3 consecutive clean runs of the full `usr.spec.ts` file (9/9 each, 0 retries) plus a full 47-test suite run — see HEAL-026. CI-level confirmation is still pending the next real GitHub Actions trigger
+Prevention rule: A content-based wait that confirms *list state* (has-records vs. empty) is not automatically proof that *row data* has rendered — when a component serves both a "is there anything to read" check and callers that then read row content, the wait must confirm both, and this gap can stay invisible on a fast local machine while a slower/higher-latency CI runner exposes it
+
+---
+
+### HEAL-024 | 2026-09-25 ~21:15 UTC (same CI run, same root cause as HEAL-023)
+Test:            TC_ADM_USR_018 (edit a system user's role)
+Symptom:         CI attempt 1 failed on the post-edit verification read; attempt 2 passed
+Raw error:       `Error: expect(received).toBe(expected) // Object.is equality` — `Expected: "Admin"`, `Received: undefined` — at `tests/admin/usr.spec.ts:205`, `expect(row?.role).toBe('Admin')`, where `row` came from `rows.find((r) => r.username === username)` against `userPage.allRowValues()`'s output
+Attempts:        1 CI failure (same run as HEAL-023; attempt 0: failed 16.2s; attempt 1: passed 24.1s). Not reproduced locally, before or after the fix (3/3 clean post-fix)
+Hypothesis:      Same call path as HEAL-023 (`searchByUsername` → `clickSearch` → `waitForListRendered()` → `allRowValues()`) — if the just-edited row's cell text had not populated yet, `.find()` matching on `r.username === username` would find nothing (empty string never equals the real username), giving `undefined`, exactly as observed — not a case of the edit itself failing, since the save's own toast (`Successfully Updated`) was already asserted and passed earlier in the same test
+Root cause:      TIMING — same signature and same evidence class as HEAL-023; the `undefined` here is `find()`'s own failure-to-match behavior on the identical empty-cell-text race, not a second, independent defect
+Fix layer:       component (`src/components/OxdTable.ts`, `waitForListRendered()`) — same change as HEAL-023, one fix for both
+Change:          See HEAL-023
+Verification:    See HEAL-023 (same combined local verification run)
+Prevention rule: See HEAL-023
+
+---
+
+### HEAL-025 | 2026-09-25 ~21:15 UTC (same CI run, same root cause as HEAL-023)
+Test:            TC_ADM_USR_024 (row action icons are ordered delete-then-edit — FIND-004 regression guard)
+Symptom:         CI attempt 1 failed reading the first row's action-icon order; attempt 2 passed
+Raw error:       `Error: expect(received).toEqual(expected) // deep equality` — `Expected: ["bi-trash", "bi-pencil-fill"]`, `Received: []` — at `tests/admin/usr.spec.ts:311`, `expect(order).toEqual(['bi-trash', 'bi-pencil-fill'])`, where `order` came from `firstRowActionIconOrder()` → `table.actionIconOrder(rows.first())`
+Attempts:        1 CI failure (same run as HEAL-023/024; attempt 0: failed 28.8s; attempt 1: passed 15.1s). Not reproduced locally, before or after the fix (3/3 clean post-fix)
+Hypothesis:      Same call path up to `searchByUsername`, but the read here is the row's *action icons*, not its cell text — an empty array means the row's `<i class="bi-...">` elements had not mounted yet, the same "row exists, its inner content doesn't yet" moment as HEAL-023/024, just observed through a different sub-element of the same unfinished render
+Root cause:      TIMING — same underlying race; cell text and action icons mount together as part of the same row's reactive render pass, so a fix that waits for cell text to populate is evidence the whole row (icons included) has finished, not just the text nodes specifically — confirmed by this symptom disappearing under the same fix with no icon-specific change needed
+Fix layer:       component (`src/components/OxdTable.ts`, `waitForListRendered()`) — same change as HEAL-023
+Change:          See HEAL-023
+Verification:    See HEAL-023 (same combined local verification run)
+Prevention rule: See HEAL-023
+
+---
+
+### HEAL-026 | 2026-09-25 ~21:40 UTC (self-caught regression from HEAL-023/024/025's own fix, found by this project's own verification step)
+Test:            TC_ADM_USR_003, TC_ADM_USR_020, TC_ADM_USR_022 (all in `usr.spec.ts`) — none of the three tests HEAL-023/024/025 were diagnosed against
+Symptom:         The full-suite verification run required by `heal.md` §5 after HEAL-023/024/025's fix (mandatory before accepting any heal) came back with 3 *different* tests newly flaky, each failing on a 20s timeout, each also failing its own test-data cleanup with the identical error
+Raw error:       `Error: first row is attached but its cells have not populated yet` — `Call Log: Timeout 20000ms exceeded while waiting on the predicate` — at `src/components/OxdTable.ts:184` (`waitForListRendered`), reached via `searchByUsername` from three different call sites: `TC_ADM_USR_003`'s probe search for a nonexistent username, `TC_ADM_USR_020`'s post-delete verification search, `TC_ADM_USR_022`'s bulk-delete cleanup search — each additionally threw a second error, `TestDataRegistry.teardownAll`'s "One or more test-data cleanups failed", for the identical reason
+Attempts:        1 failure observed (this project's own mandatory post-fix full-suite run), reproduced by inspection of the code path rather than by re-running blind — the bug was legible directly from the error shape and the new code, see Hypothesis
+Hypothesis:      HEAL-023/024/025's fix checked `this.emptyState.isVisible()` exactly ONCE, immediately after the header-or-empty-state assertion passed, then committed to polling row cell text if that one check came back false — it never re-checked emptyState on subsequent poll attempts. A search that is genuinely about to resolve to ZERO results (an already-deleted or nonexistent username — exactly what a delete-verification or existence-probe search does by design) can still show a stale, pre-search, non-zero header at the exact instant the initial assertion passes, before the empty-state div has actually swapped in. The fix then spent its full 20s polling `rows.first()`'s cell text, which a genuinely empty result set will never produce, instead of ever re-checking whether the list had since settled on empty — a hang, not a race resolved
+Root cause:      TEST_LOGIC — specifically, a logic defect in the healing fix's own retry predicate (not a new product/timing discovery): the predicate captured a decision ("are rows expected?") outside the retry loop instead of re-evaluating it on every attempt, which is exactly the bug class a `toPass()`-style poll exists to avoid
+Fix layer:       component (`src/components/OxdTable.ts`, `waitForListRendered()`) — same method, corrected
+Change:          Moved the `emptyState` check inside the retried predicate (re-evaluated every attempt, not once before the loop), and added an explicit `firstRow.count() === 0` check with its own distinct error message, so a search settling on genuinely zero results returns immediately on the next poll instead of waiting out the full timeout
+Verification:    3 consecutive clean runs of the full `usr.spec.ts` file (9/9 tests each — all 6 tests touched by HEAL-023/024/025 and HEAL-026 combined — 0 retries, ~2.0–2.1 min each), then a full 47-test suite run: 47/47, 0 retries, 7.7 min
+Prevention rule: A `toPass()`/manual-poll predicate must re-derive every piece of state it depends on INSIDE the retried function, every attempt — never check a condition once outside the loop and then assume it still holds on a later attempt. This applies to any future fix in this project written in the same style, not just this one
+
+---
+
 ## Summary by root-cause class
 
 | Class | Count | Entries |
 |---|---|---|
-| TIMING | 8 | HEAL-001, 006, 010, 012, 013, 014, 015, 019 |
+| TIMING | 11 | HEAL-001, 006, 010, 012, 013, 014, 015, 019, 023, 024, 025 |
 | LOCATOR_DRIFT | 10 | HEAL-002, 003, 004, 005, 007, 008, 009, 017, 018, 021 |
-| TEST_LOGIC | 3 | HEAL-011, 016, 020 |
+| TEST_LOGIC | 4 | HEAL-011, 016, 020, 026 |
 | ENV_INSTABILITY | 1 | HEAL-022 |
 | STATE_POLLUTION | 0 | — |
 | PRODUCT_BUG | 0 (by design — see below) | — |
@@ -354,6 +421,28 @@ failure signature matches this shared demo's own documented instability
 
 ## Residual risk
 
+- **HEAL-023/024/025/026's fix is not yet CI-confirmed.** It is verified locally (3
+  consecutive clean runs of the full `usr.spec.ts` file, plus a full local suite pass)
+  and is reasoned from the exact CI error shapes, but the original flake never
+  reproduced locally in the first place — local runs cannot serve as proof the fix
+  holds under CI's specific environment, only that it introduces no new local
+  regression. The next real push/`workflow_dispatch` run is what actually confirms it;
+  if the same or a new set of tests flake again post-fix, escalate per `heal.md` §7
+  ("if the same test heals twice for the same class, stop patching: raise a design
+  defect and fix the pattern framework-wide") rather than patching
+  `waitForListRendered` a third time.
+- **HEAL-026 is itself evidence that a mandatory full-suite verification pass after a
+  heal is load-bearing, not a formality.** HEAL-023/024/025's first fix attempt looked
+  correct in isolation (it resolved exactly the 3 tests it was diagnosed against, 3/3
+  clean) and would have shipped a real, previously-nonexistent regression on 3 *other*
+  tests if the required full-suite re-run had been skipped or trusted on the strength
+  of the targeted reruns alone.
+- **Local-vs-CI environment divergence is itself a residual risk class**, distinct from
+  HEAL-022's shared-demo instability: HEAL-023/024/025's race was invisible across every
+  local run this project has ever done and only appeared on a GitHub Actions runner.
+  Any future local-clean/CI-flaky test should be suspected of the same class of gap
+  (a wait that is a beat too early, exposed only by CI's different CPU/network
+  characteristics) before being written off as pure ENV_INSTABILITY.
 - **Shared-demo instability (HEAL-022's class) is not eliminated by any fix and
   cannot be** — CLAUDE.md §5.3 documents this as an accepted characteristic of
   testing against a live, shared, public demo with real concurrent users. A future
