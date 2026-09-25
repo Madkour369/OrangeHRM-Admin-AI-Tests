@@ -186,6 +186,103 @@ now stands at 203 rows.
 
 ---
 
+## 8. Priority Model (added 2026-09-26, in response to review)
+
+**Trigger:** a reviewer of the distribution then in force — 5 P0 / 95 P1 / 67 P2 / 36 P3 —
+asked why several security- and integrity-critical cases (invalid-credential rejection,
+duplicate-username prevention, mandatory-field enforcement on user creation, delete-
+confirmation) sat at P1 rather than P0. The instruction was explicit: do not mass-reassign
+to make the distribution look more defensible — define the model first, then check the
+existing P0 set and every named candidate against it, and promote only what genuinely
+qualifies. What follows is that model, applied evenly to both.
+
+### 8.1 Definitions, in this project's own business terms
+
+| Priority | Definition for this project |
+|---|---|
+| **P0 — Availability- or Access/Identity-Integrity-Critical** | A failure here means one of: **(A)** the Admin module (or the app) is globally unusable — nobody can get in at all; **(B)** a control that determines whether a *specific* person can authenticate, what authority they hold once authenticated, or whether their account exists at all (its creation, modification, or removal) is compromised — access could be granted, retained, escalated, or misdirected to the wrong identity without an explicit, correct admin decision; or **(C)** the case is the sole regression guard for a **confirmed High- or Critical-severity product defect** (`exploration.md` §5 Bug Register) — if it silently regresses, a known defect resumes reaching production undetected. This is reserved for a systemic, security- or defect-shaped consequence, not merely "an important feature is broken." |
+| **P1 — High** | Core, frequently-exercised business/data-integrity operations whose failure blocks a real admin workflow or lets bad data enter the system, but does **not** itself grant, retain, escalate, or misdirect access, and is not a confirmed High/Critical-severity regression guard. Most CRUD happy paths, most validation, and most negative cases on frequently-used screens live here. |
+| **P2 — Medium** | Secondary CRUD on non-identity reference data (Job Titles, Skills, Locations, Nationalities, etc.), UI/UX consistency checks, search/pagination/reset mechanics, low-severity regression guards. |
+| **P3 — Low** | Cosmetic, rarely-exercised, or boundary/edge-case checks on low-blast-radius screens (colour pickers, informational-only screens, length-boundary probes with no security implication). |
+
+Criterion (B) is deliberately about the **access/identity lifecycle** — authenticate, hold
+authority, exist as an account — not about every field or workflow that merely touches the
+Users screen. This is what keeps the model from swallowing the whole User Management
+sub-module: a case must touch *that specific lifecycle*, not just live on that screen.
+
+### 8.2 The existing 5 P0 cases, checked against the model
+
+| TC_ID | Criterion | Verdict |
+|---|---|---|
+| `TC_ADM_NAV_001` (successful login) | (A) — if broken, nobody reaches the Admin module at all | **Fits. Keep.** |
+| `TC_ADM_USR_001` (add a valid user) | (B) — account creation is the *grant* point of the access lifecycle; without it, no new access can ever be correctly provisioned | **Fits. Keep.** |
+| `TC_ADM_USR_018` (edit a user's role) | (B) — directly changes *what authority* an authenticated person holds (ESS ↔ Admin) | **Fits. Keep.** |
+| `TC_ADM_USR_020` (delete a user) | (B) — account removal is the *revoke* point of the same lifecycle | **Fits. Keep.** |
+| `TC_ADM_NAT_010` (BUG-001 known defect) | **(C), not (B)** — this case does not touch authentication, authority, or account existence; it is the regression guard for `BUG-001`, a confirmed **High**-severity defect | **Fits under a different criterion than the other four. Keep, with this now stated explicitly rather than left implicit — a documented model defends this case on its own terms instead of quietly borrowing criterion (B)'s justification.** |
+
+All 5 are correct under the model; none is removed. The one honest wrinkle — `NAT_010`
+riding on (C) rather than (B) — is exactly the kind of thing a reviewer should be able to
+see stated plainly, not reverse-engineer.
+
+### 8.3 Candidates checked against the model
+
+**Promoted (12 cases, all P1 → P0):**
+
+| TC_ID | Title | Criterion | Rationale |
+|---|---|---|---|
+| `TC_ADM_NAV_002` | Invalid credentials rejected (wrong password) | (B) | Tests the authentication decision itself — the negative complement of `NAV_001`'s positive case, same gate |
+| `TC_ADM_NAV_003` | Invalid credentials rejected (nonexistent username) | (B) | Same gate, enumeration-adjacent input |
+| `TC_ADM_NAV_004` | Invalid credentials rejected (username case mismatch) | (B) | Same gate — and is the live regression guard for `BUG-003` (case-insensitive login), a confirmed authentication anomaly not yet linked in the CSV's `Linked_Bug` column (a separate gap, noted but not fixed here — out of scope for a priority review) |
+| `TC_ADM_NAV_007` | Deep link while unauthenticated redirects to login | (B) | The literal route-guard boundary — classic broken-access-control territory |
+| `TC_ADM_NAV_015` | Logout invalidates the session | (B) | The *exit* side of the same authentication boundary — a session that survives "logout" is a live access-integrity failure |
+| `TC_ADM_NAV_016` | Back-navigation after logout doesn't expose authenticated screens | (B) | Client-side complement to `NAV_015`; stale authenticated screens post-logout is a standard, real security check |
+| `TC_ADM_USR_002` | Username uniqueness enforced | (B) | Two accounts sharing one identifier makes accounts confusable — an admin (or the login flow itself) could act against the wrong identity |
+| `TC_ADM_USR_003` | Mandatory: User Role empty | (B) | Role is literally *what authority* the account holds; an account with no Role assigned exists in an undefined authority state |
+| `TC_ADM_USR_005` | Mandatory: Status empty | (B) | Status (Enabled/Disabled) gates *whether the account can authenticate at all* |
+| `TC_ADM_USR_006` | Mandatory: Username empty | (B) | Username is the account's authentication identifier; a blank one breaks reliable identification at the point of creation |
+| `TC_ADM_USR_007` | Mandatory: Password empty | (B) | Password is the credential itself — a skippable password is a direct authentication-integrity failure |
+| `TC_ADM_USR_022` | Bulk delete via header checkbox | (B) | Bulk *revoke*, same lifecycle point as `USR_020`, at scale — a broken bulk-delete could revoke the wrong set of accounts or fail silently |
+
+**Checked and deliberately left at their current priority** (named so the "why not this one
+too" question is answered here, not left for a reviewer to wonder about):
+
+| TC_ID | Title | Why it does not meet the model |
+|---|---|---|
+| `TC_ADM_NAV_005` / `NAV_006` | Login form required-field validation (Username/Password left empty) | Tests basic client-side form-completeness, one layer in front of the actual authentication decision (which `NAV_002`–`004` test directly) — a defense-in-depth backstop, not the decision itself. Stays P1. |
+| `TC_ADM_USR_004` | Mandatory: Employee Name empty | Links a system-user account to a real employee for data-completeness/audit-trail purposes; it does not itself grant, deny, or change access. Stays P1. |
+| `TC_ADM_USR_008` | Employee Name must come from the hint list, not free text | Same reasoning as `USR_004` — traceability, not access. Stays P1. |
+| `TC_ADM_USR_012` | Confirm Password mismatch is rejected | A data-entry safety net (catches a mistyped password before submit); the account still ends up with *some* working password either way, so this isn't itself an access decision. Stays P1. |
+| `TC_ADM_USR_021` | Cancelling the delete dialog preserves the record | Generic UI-safety-net pattern identical to every other screen's delete-cancel case (`JOB_009`, `QUA_009`, etc.) — the risk being guarded against (accidental data loss) isn't specific to accounts being an identity/access concern. Stays P1, consistent with its siblings elsewhere in the CSV. |
+| `TC_ADM_JOB_008`, `JOB_021`, `JOB_033`, `JOB_043`, `JOB_052`, `TC_ADM_ORG_013`, `TC_ADM_QUA_008/018/027/036/045`, `TC_ADM_NAT_008` | Delete-with-confirmation on *reference-data* screens (Job Titles, Pay Grades, Locations, Skills, Nationalities, etc.) | These delete rows of reference data, not user accounts — none of them touch authentication, authority, or account existence. `USR_020`/`USR_022` (deleting *accounts*) are the only delete-confirmation cases this model promotes; the pattern name "delete confirmation" is not itself a promotion trigger. Stay at their current priority. |
+
+### 8.4 Net effect
+
+Distribution changes from **5 P0 / 95 P1 / 67 P2 / 36 P3** to **17 P0 / 83 P1 / 67 P2 / 36
+P3** (203 total, unchanged). 12 cases moved, all P1 → P0, all individually justified above;
+0 cases moved into or out of P2/P3; the 5 original P0 cases are unchanged in count and
+membership. `test_design.csv`'s `Priority` column has been updated to match; no other
+column (`valid in scope`, `needs automation`, `automation_wave`, `Automation_ID`) was
+touched by this change.
+
+> **Note for `test_design.csv` readers:** the "Execution sequencing" section immediately
+> below was written when P0 meant the original 5 cases (2026-09-23) and Wave 1 was built
+> against that set (2026-09-24/25). Its own text is left as the accurate historical record
+> of what Wave 1's selection rule actually was at build time — it is not restated here.
+> All 12 newly-promoted P0 cases already carry real `Automation_ID`s and `automation_wave`
+> values from that earlier design, checked directly against the CSV rather than assumed:
+> **7 are already `W1`** (built and green — `TC_ADM_NAV_002`, `NAV_007`, `NAV_015`,
+> `NAV_016`, `TC_ADM_USR_002`, `USR_003`, `USR_022`, all in `tests/admin/`), and **5 are
+> still `W2`, scheduled but not yet automated** (`TC_ADM_NAV_003`, `NAV_004` — the `BUG-003`
+> regression guard — and `TC_ADM_USR_005`, `USR_006`, `USR_007`). This is a real, honest
+> consequence of the promotion, not a gap this document is hiding: 5 of this project's
+> now-17 P0 cases, including the one that would catch a confirmed authentication anomaly
+> if it regressed, do not yet have an automated test. Re-running Wave 1's selection rule
+> against today's Priority column to decide whether these 5 should move into Wave 1 is a
+> real decision for a future automation cycle, not made unilaterally here — this section is
+> additive (a priority correction), not a re-sequencing.
+
+---
+
 # Execution sequencing (Wave 1 / Wave 2)
 
 > Unchanged from the prior turn — reproduced here for continuity. Wave assignment logic and
