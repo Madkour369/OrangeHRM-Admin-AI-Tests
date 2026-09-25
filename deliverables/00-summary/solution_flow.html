@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrangeHRM Admin QA Pipeline — Solution Flow</title>
+<meta name="description" content="Reusable SpecKit pipeline: M1-M5 milestones, gates, feedback loops, and framework layering for the OrangeHRM UI test automation project.">
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --border: #d7deea;
+    --text: #1a2233;
+    --muted: #5b6472;
+    --accent: #2f4f9e;
+    --accent-bg: #e8edfb;
+    --m1: #2f6fed; --m1-bg: #e8f0fe;
+    --m2: #7a3fd6; --m2-bg: #f1e9fc;
+    --m3: #0f8f6b; --m3-bg: #e4f7f0;
+    --m4: #c4780f; --m4-bg: #fbf0dd;
+    --m5: #c4304a; --m5-bg: #fbe6ea;
+    --gate: #414a5c;
+    --gate-bg: #eef1f6;
+    --code-bg: #eef1f7;
+    --loop: #b35c00;
+    --shadow: 0 1px 3px rgba(20,30,60,0.08), 0 1px 2px rgba(20,30,60,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10141d;
+      --panel: #171d29;
+      --border: #2b3448;
+      --text: #e7ecf5;
+      --muted: #9aa5b8;
+      --accent: #7fa0ff;
+      --accent-bg: #1c2740;
+      --m1: #7fa0ff; --m1-bg: #17223f;
+      --m2: #c199f2; --m2-bg: #241c3b;
+      --m3: #5fd6ac; --m3-bg: #123328;
+      --m4: #f0b256; --m4-bg: #3a2a10;
+      --m5: #f2879a; --m5-bg: #3a1620;
+      --gate: #c7cfde;
+      --gate-bg: #1d2434;
+      --code-bg: #1c2333;
+      --loop: #f0a94e;
+      --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10141d; --panel: #171d29; --border: #2b3448; --text: #e7ecf5; --muted: #9aa5b8;
+    --accent: #7fa0ff; --accent-bg: #1c2740;
+    --m1: #7fa0ff; --m1-bg: #17223f; --m2: #c199f2; --m2-bg: #241c3b;
+    --m3: #5fd6ac; --m3-bg: #123328; --m4: #f0b256; --m4-bg: #3a2a10;
+    --m5: #f2879a; --m5-bg: #3a1620; --gate: #c7cfde; --gate-bg: #1d2434;
+    --code-bg: #1c2333; --loop: #f0a94e;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 0 16px 48px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header { padding: 28px 0 18px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .subtitle { color: var(--muted); font-size: 14.5px; margin: 0; max-width: 820px; }
+  h2 { font-size: 19px; margin: 40px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+  h3 { font-size: 15.5px; margin: 0 0 8px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+  }
+  .note {
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--accent-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 10px 0;
+  }
+  .note.warn { background: var(--m4-bg); }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+  .path { background: var(--code-bg); border-radius: 4px; padding: 1px 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
+  svg { width: 100%; height: auto; display: block; }
+  .svg-scroll { overflow-x: auto; }
+  .svg-scroll svg { min-width: 900px; }
+
+  /* Milestone detail cards */
+  .m-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .m-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .m-card .m-head {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+  }
+  .m-card .m-body { padding: 14px 16px; }
+  .m-card dl { margin: 0; }
+  .m-card dt { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-top: 12px; font-weight: 600; }
+  .m-card dt:first-child { margin-top: 0; }
+  .m-card dd { margin: 4px 0 0; font-size: 13.5px; }
+  .m-card dd.steps { font-size: 13px; }
+  .m-card dd.steps ol { margin: 4px 0 0; padding-left: 18px; }
+  .m-card dd.steps li { margin-bottom: 4px; }
+  .cmd-pill {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 2px 7px;
+    margin: 2px 4px 2px 0;
+  }
+  .m1 .m-head { background: var(--m1); } .m1 { border-top: 3px solid var(--m1); }
+  .m2 .m-head { background: var(--m2); } .m2 { border-top: 3px solid var(--m2); }
+  .m3 .m-head { background: var(--m3); } .m3 { border-top: 3px solid var(--m3); }
+  .m4 .m-head { background: var(--m4); } .m4 { border-top: 3px solid var(--m4); }
+  .m5 .m-head { background: var(--m5); } .m5 { border-top: 3px solid var(--m5); }
+
+  /* Reuse panel */
+  .reuse-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 14px;
+  }
+  @media (max-width: 640px) { .reuse-grid { grid-template-columns: 1fr; } }
+  .reuse-col { border-radius: 10px; padding: 16px 18px; border: 1px solid var(--border); }
+  .reuse-col.changes { background: var(--m5-bg); }
+  .reuse-col.reused { background: var(--m3-bg); }
+  .reuse-col h3 { margin-bottom: 10px; }
+  .reuse-col ul { margin: 0; padding-left: 20px; }
+  .reuse-col li { margin-bottom: 6px; font-size: 13.5px; }
+
+  footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>OrangeHRM Admin QA Pipeline — Solution Flow</h1>
+  <p class="subtitle">
+    A reusable 5-milestone Spec-Driven Development pipeline (M1&ndash;M5), gated
+    G1&ndash;G5, that turned <span class="mono">.specify/specs/001-admin-ui/spec.md</span>
+    into a governance-compliant Playwright + TypeScript UI suite for OrangeHRM's Admin
+    module. Every artifact named below exists on disk in this repository.
+  </p>
+</header>
+
+<!-- ============================================================ -->
+<!-- 1. END-TO-END PIPELINE DIAGRAM -->
+<!-- ============================================================ -->
+<h2>1&nbsp;&middot;&nbsp;End-to-end pipeline</h2>
+<p style="color:var(--muted); font-size:13.5px; margin-top:-4px;">
+  Milestone <em>N+1</em> may not begin until milestone <em>N</em>'s artifact exists on disk,
+  is non-empty, and passes its Definition of Done (<span class="mono">.specify/specs/001-admin-ui/tasks.md</span>).
+  A gate box below is only "open" once that DoD is met.
+</p>
+<div class="panel svg-scroll">
+<svg viewBox="0 0 1180 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pipeline diagram, M1 through M5, with gates between each">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--gate)"></path>
+    </marker>
+  </defs>
+
+  <!-- flow line -->
+  <line x1="40" y1="150" x2="1140" y2="150" stroke="var(--border)" stroke-width="2"></line>
+
+  <!-- M1 -->
+  <g>
+    <rect x="20" y="100" width="170" height="100" rx="10" fill="var(--m1-bg)" stroke="var(--m1)" stroke-width="1.6"></rect>
+    <text x="105" y="126" text-anchor="middle" font-size="14" font-weight="700" fill="var(--m1)">M1 &middot; PRD</text>
+    <text x="105" y="146" text-anchor="middle" font-size="10.5" fill="var(--text)">in: constitution.md</text>
+    <text x="105" y="160" text-anchor="middle" font-size="10.5" fill="var(--text)">+ live app inventory</text>
+    <text x="105" y="180" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text)">out: prd.md</text>
+    <text x="105" y="193" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text)">+ spec.md</text>
+  </g>
+
+  <!-- Gate G1 -->
+  <g>
+    <rect x="205" y="128" width="60" height="44" rx="6" fill="var(--gate-bg)" stroke="var(--gate)"></rect>
+    <text x="235" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="var(--gate)">G1</text>
+    <text x="235" y="159" text-anchor="middle" font-size="8.5" fill="var(--muted)">DoD met</text>
+  </g>
+
+  <!-- M2 -->
+  <g>
+    <rect x="280" y="100" width="170" height="100" rx="10" fill="var(--m2-bg)" stroke="var(--m2)" stroke-width="1.6"></rect>
+    <text x="365" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="var(--m2)">M2 &middot; Exploration</text>
+    <text x="365" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">in: prd.md / spec.md</text>
+    <text x="365" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">(manual UI only)</text>
+    <text x="365" y="180" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text)">out: exploration.md</text>
+    <text x="365" y="193" text-anchor="middle" font-size="10.5" fill="var(--text)">+ evidence/*.png</text>
+  </g>
+
+  <!-- Gate G2 -->
+  <g>
+    <rect x="465" y="128" width="60" height="44" rx="6" fill="var(--gate-bg)" stroke="var(--gate)"></rect>
+    <text x="495" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="var(--gate)">G2</text>
+    <text x="495" y="159" text-anchor="middle" font-size="8.5" fill="var(--muted)">DoD met</text>
+  </g>
+
+  <!-- M3 -->
+  <g>
+    <rect x="540" y="100" width="170" height="100" rx="10" fill="var(--m3-bg)" stroke="var(--m3)" stroke-width="1.6"></rect>
+    <text x="625" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="var(--m3)">M3 &middot; Test Design</text>
+    <text x="625" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">in: exploration.md</text>
+    <text x="625" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">(/coverage audited)</text>
+    <text x="625" y="180" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text)">out: test_design.csv</text>
+    <text x="625" y="193" text-anchor="middle" font-size="10.5" fill="var(--text)">203 rows, 186 in-scope</text>
+  </g>
+
+  <!-- Gate G3 -->
+  <g>
+    <rect x="725" y="128" width="60" height="44" rx="6" fill="var(--gate-bg)" stroke="var(--gate)"></rect>
+    <text x="755" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="var(--gate)">G3</text>
+    <text x="755" y="159" text-anchor="middle" font-size="8.5" fill="var(--muted)">DoD met</text>
+  </g>
+
+  <!-- M4 -->
+  <g>
+    <rect x="800" y="100" width="170" height="100" rx="10" fill="var(--m4-bg)" stroke="var(--m4)" stroke-width="1.6"></rect>
+    <text x="885" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="var(--m4)">M4 &middot; Execution</text>
+    <text x="885" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">in: test_design.csv</text>
+    <text x="885" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">(manual, 186 cases)</text>
+    <text x="885" y="180" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text)">out: agent_execution_</text>
+    <text x="885" y="193" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text)">report.html</text>
+  </g>
+
+  <!-- Gate G4 -->
+  <g>
+    <rect x="985" y="128" width="60" height="44" rx="6" fill="var(--gate-bg)" stroke="var(--gate)"></rect>
+    <text x="1015" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="var(--gate)">G4</text>
+    <text x="1015" y="159" text-anchor="middle" font-size="8.5" fill="var(--muted)">DoD met</text>
+  </g>
+
+  <!-- M5 -->
+  <g>
+    <rect x="1060" y="90" width="110" height="120" rx="10" fill="var(--m5-bg)" stroke="var(--m5)" stroke-width="1.6"></rect>
+    <text x="1115" y="110" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m5)">M5</text>
+    <text x="1115" y="124" text-anchor="middle" font-size="11" font-weight="700" fill="var(--m5)">Automation</text>
+    <text x="1115" y="142" text-anchor="middle" font-size="9.5" fill="var(--text)">in: exploration.md</text>
+    <text x="1115" y="154" text-anchor="middle" font-size="9.5" fill="var(--text)">+ CSV Wave 1</text>
+    <text x="1115" y="176" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--text)">out: src/ + tests/</text>
+    <text x="1115" y="190" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--text)">47/47 green</text>
+  </g>
+
+  <!-- Gate G5 -->
+  <g>
+    <rect x="1085" y="220" width="60" height="40" rx="6" fill="var(--gate-bg)" stroke="var(--m5)" stroke-width="1.6"></rect>
+    <text x="1115" y="237" text-anchor="middle" font-size="11" font-weight="700" fill="var(--m5)">G5</text>
+    <text x="1115" y="250" text-anchor="middle" font-size="8" fill="var(--muted)">release</text>
+  </g>
+  <line x1="1115" y1="210" x2="1115" y2="220" stroke="var(--m5)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+
+  <!-- connecting arrows along the spine -->
+  <line x1="190" y1="150" x2="203" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+  <line x1="265" y1="150" x2="278" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+  <line x1="450" y1="150" x2="463" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+  <line x1="525" y1="150" x2="538" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+  <line x1="710" y1="150" x2="723" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+  <line x1="785" y1="150" x2="798" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+  <line x1="970" y1="150" x2="983" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+  <line x1="1045" y1="150" x2="1058" y2="150" stroke="var(--gate)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+
+  <text x="590" y="35" text-anchor="middle" font-size="11" fill="var(--muted)">Manual-first rule: M2 and M4 are human-style UI exploration/execution &mdash; no *.spec.ts is written before M4 is signed off</text>
+</svg>
+</div>
+
+<!-- ============================================================ -->
+<!-- 2. PER-MILESTONE DETAIL -->
+<!-- ============================================================ -->
+<h2>2&nbsp;&middot;&nbsp;Per-milestone detail</h2>
+<div class="m-grid">
+
+  <div class="m-card m1">
+    <div class="m-head">M1 &middot; PRD</div>
+    <div class="m-body">
+      <dl>
+        <dt>Inputs</dt>
+        <dd><span class="path">.specify/memory/constitution.md</span> Articles I&ndash;II, live demo inventory across all 12 modules, 4 governing personas.</dd>
+        <dt>Steps</dt>
+        <dd class="steps"><ol>
+          <li>Inventory all 12 UI modules, classify P0&ndash;P2.</li>
+          <li>Write Admin deep-dive: 8 Epics &rarr; 33 User Stories &rarr; Gherkin AC.</li>
+          <li>Seed traceability ids (EPIC &rarr; US &rarr; TC &rarr; Automation_ID &rarr; BUG).</li>
+          <li>Write unresolved behaviour as Article V "observation scenarios," never guessed.</li>
+        </ol></dd>
+        <dt>Commands used</dt>
+        <dd><span class="cmd-pill">/specify</span> for <span class="path">spec.md</span>'s Epic/Story/Gherkin structure.</dd>
+        <dt>Artifact produced</dt>
+        <dd><span class="path">deliverables/01-prd/prd.md</span> + <span class="path">.specify/specs/001-admin-ui/spec.md</span></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="m-card m2">
+    <div class="m-head">M2 &middot; Exploration</div>
+    <div class="m-body">
+      <dl>
+        <dt>Inputs</dt>
+        <dd><span class="path">prd.md</span> / <span class="path">spec.md</span>'s 5 in-scope Open Questions; CLAUDE.md §5 oxd survival guide.</dd>
+        <dt>Steps</dt>
+        <dd class="steps"><ol>
+          <li>Walk all 7 Admin sub-modules (23 screens) live, no automation code.</li>
+          <li>Full 11-scenario CRUD battery on one reference screen per shared-pattern group.</li>
+          <li>Record every validation message/toast verbatim; resolve OQ-01..05.</li>
+          <li>Build the locator risk register and flakiness log as you go.</li>
+        </ol></dd>
+        <dt>Commands used</dt>
+        <dd><span class="cmd-pill">/analyze</span> &mdash; locator stability audit, feeds the risk register.</dd>
+        <dt>Artifact produced</dt>
+        <dd><span class="path">deliverables/02-exploration/exploration.md</span> + 34 evidence screenshots</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="m-card m3">
+    <div class="m-head">M3 &middot; Test Design</div>
+    <div class="m-body">
+      <dl>
+        <dt>Inputs</dt>
+        <dd><span class="path">exploration.md</span>'s resolved behaviour; CLAUDE.md §6's exact 18-column CSV header.</dd>
+        <dt>Steps</dt>
+        <dd class="steps"><ol>
+          <li>Author 203 cases across all 33 stories (positive/negative/boundary).</li>
+          <li>Run <span class="cmd-pill">/coverage</span>; close 5 structural gaps, fix 1 duplicate id.</li>
+          <li>Classify <span class="mono">valid in scope</span> / <span class="mono">needs automation</span>, reason on every "No".</li>
+          <li>Sequence 136 "Yes" cases into Wave 1 (47) / Wave 2 (89) &mdash; scheduled, not descoped.</li>
+        </ol></dd>
+        <dt>Commands used</dt>
+        <dd><span class="cmd-pill">/coverage</span></dd>
+        <dt>Artifact produced</dt>
+        <dd><span class="path">deliverables/03-test-design/test_design.csv</span> + <span class="path">test_design_coverage.md</span></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="m-card m4">
+    <div class="m-head">M4 &middot; Execution &amp; Reporting</div>
+    <div class="m-body">
+      <dl>
+        <dt>Inputs</dt>
+        <dd><span class="path">test_design.csv</span>'s 186 <span class="mono">valid in scope = Yes</span> rows.</dd>
+        <dt>Steps</dt>
+        <dd class="steps"><ol>
+          <li>Execute every case manually, in strictly sequential batches by sub-module.</li>
+          <li>Screenshot every Fail/Blocked/defect case.</li>
+          <li>Spot-verify at least one flagged claim per batch before accepting it.</li>
+          <li>File new bugs/findings live; re-verify any changed symptom (e.g. BUG-002).</li>
+        </ol></dd>
+        <dt>Commands used</dt>
+        <dd style="color:var(--muted); font-style:italic;">none of the 4 named commands &mdash; M4 is manual-only by the pipeline's own rule.</dd>
+        <dt>Artifact produced</dt>
+        <dd><span class="path">deliverables/04-execution/agent_execution_report.html</span> (186/186 executed: 182 pass, 2 fail, 2 blocked)</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="m-card m5">
+    <div class="m-head">M5 &middot; Automation</div>
+    <div class="m-body">
+      <dl>
+        <dt>Inputs</dt>
+        <dd><span class="path">exploration.md</span>'s locator register; <span class="path">test_design.csv</span> Wave 1 (47 cases).</dd>
+        <dt>Steps</dt>
+        <dd class="steps"><ol>
+          <li>Phase 1: foundation (fixtures/components/base), verified against a real login.</li>
+          <li>Phase 2: 8 screens built in order, fixes folded back into shared code.</li>
+          <li>Phase 3: <span class="cmd-pill">/code-review</span> &rarr; fix Blockers/Majors &rarr; 3 full-suite runs &rarr; <span class="cmd-pill">/heal</span> every failure &rarr; log.</li>
+        </ol></dd>
+        <dt>Commands used</dt>
+        <dd><span class="cmd-pill">/code-review</span> <span class="cmd-pill">/heal</span> <span class="cmd-pill">/coverage</span> <span style="color:var(--muted); font-size:12px;">(re-run at G5 per coverage.md's own G5 clause)</span></dd>
+        <dt>Artifact produced</dt>
+        <dd><span class="path">src/</span> POM suite + <span class="path">tests/admin/*.spec.ts</span> (47/47 green) + <span class="path">code_review.md</span> + <span class="path">healing_process.md</span> + <span class="path">automation_execution_report.html</span></dd>
+      </dl>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. FEEDBACK LOOPS -->
+<!-- ============================================================ -->
+<h2>3&nbsp;&middot;&nbsp;Feedback loops</h2>
+<p style="color:var(--muted); font-size:13.5px; margin-top:-4px;">
+  What makes this a pipeline rather than a one-way checklist: later milestones correct
+  earlier artifacts, and the correction is recorded at its source, not silently absorbed.
+</p>
+<div class="panel svg-scroll">
+<svg viewBox="0 0 1180 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback loop diagram: M2 corrects M1, M5 corrects M3 and M2, heal feeds prevention rules back">
+  <defs>
+    <marker id="arrowLoop" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--loop)"></path>
+    </marker>
+  </defs>
+
+  <!-- top row: milestone nodes (same x as pipeline diagram, condensed) -->
+  <g>
+    <rect x="20" y="50" width="150" height="56" rx="8" fill="var(--m1-bg)" stroke="var(--m1)" stroke-width="1.4"></rect>
+    <text x="95" y="83" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m1)">M1 prd.md</text>
+  </g>
+  <g>
+    <rect x="245" y="50" width="150" height="56" rx="8" fill="var(--m2-bg)" stroke="var(--m2)" stroke-width="1.4"></rect>
+    <text x="320" y="83" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m2)">M2 exploration.md</text>
+  </g>
+  <g>
+    <rect x="470" y="50" width="150" height="56" rx="8" fill="var(--m3-bg)" stroke="var(--m3)" stroke-width="1.4"></rect>
+    <text x="545" y="83" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m3)">M3 test_design.csv</text>
+  </g>
+  <g>
+    <rect x="695" y="50" width="150" height="56" rx="8" fill="var(--m4-bg)" stroke="var(--m4)" stroke-width="1.4"></rect>
+    <text x="770" y="83" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m4)">M4 execution</text>
+  </g>
+  <g>
+    <rect x="920" y="50" width="150" height="56" rx="8" fill="var(--m5-bg)" stroke="var(--m5)" stroke-width="1.4"></rect>
+    <text x="995" y="83" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m5)">M5 automation</text>
+  </g>
+  <!-- forward spine (thin, dotted, de-emphasized since diagram 1 already shows it) -->
+  <line x1="170" y1="78" x2="245" y2="78" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="3,3"></line>
+  <line x1="395" y1="78" x2="470" y2="78" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="3,3"></line>
+  <line x1="620" y1="78" x2="695" y2="78" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="3,3"></line>
+  <line x1="845" y1="78" x2="920" y2="78" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="3,3"></line>
+
+  <!-- loop 1: M2 -> M1, 7 corrections -->
+  <path d="M 320,50 C 320,16 95,16 95,46" fill="none" stroke="var(--loop)" stroke-width="1.8" marker-end="url(#arrowLoop)"></path>
+  <text x="207" y="12" text-anchor="middle" font-size="10.5" fill="var(--loop)">7 corrections back-propagated (prd.md §13.1)</text>
+
+  <!-- loop 2: M5 -> M3 (CSV corrections) -->
+  <path d="M 995,140 C 995,195 545,195 545,110" fill="none" stroke="var(--loop)" stroke-width="1.8" marker-end="url(#arrowLoop)"></path>
+  <!-- loop 3: M5 -> M2 (locator register corrections) -->
+  <path d="M 960,140 C 960,235 320,235 320,110" fill="none" stroke="var(--loop)" stroke-width="1.8" marker-end="url(#arrowLoop)"></path>
+  <text x="640" y="212" text-anchor="middle" font-size="10.5" fill="var(--loop)">5 CSV cells corrected (USR_018, NAV_008, BRD_001, ORG_006, USR_022)</text>
+  <text x="475" y="252" text-anchor="middle" font-size="10.5" fill="var(--loop)">Locator risk register: "M5 locator corrections" note (exploration.md §6)</text>
+
+  <!-- loop 4: /heal -> framework (self loop on M5) -->
+  <path d="M 1070,106 C 1120,130 1120,160 1070,170 C 1030,178 1000,160 995,140" fill="none" stroke="var(--loop)" stroke-width="1.8" marker-end="url(#arrowLoop)"></path>
+  <text x="1075" y="270" text-anchor="middle" font-size="10.5" fill="var(--loop)">/heal: 22 entries, each</text>
+  <text x="1075" y="283" text-anchor="middle" font-size="10.5" fill="var(--loop)">ending in a prevention rule</text>
+  <text x="1075" y="296" text-anchor="middle" font-size="10.5" fill="var(--loop)">folded into components/utils</text>
+</svg>
+</div>
+<div class="note">
+  These three loops are recorded, not silent: prd.md §13.1 lists all 7 M2&rarr;M1
+  corrections by requirement and cause; exploration.md's §6 "M5 locator corrections" note
+  and this project's M5 progress log list every M5&rarr;M2/M3 correction by cell/finding;
+  <span class="path">healing_process.md</span>'s 22 entries each end in a named
+  "Prevention rule," several of which became new <span class="path">fieldFactory.ts</span>
+  or component exports rather than one-off patches.
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. FRAMEWORK LAYER DIAGRAM -->
+<!-- ============================================================ -->
+<h2>4&nbsp;&middot;&nbsp;Framework layering</h2>
+<div class="panel svg-scroll">
+<svg viewBox="0 0 920 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Framework dependency layers: test to fixture to page to component to util, arrows pointing downward only">
+  <defs>
+    <marker id="arrowDown" markerWidth="9" markerHeight="9" refX="4" refY="7" orient="auto">
+      <path d="M0,0 L8,0 L4,8 z" fill="var(--gate)"></path>
+    </marker>
+  </defs>
+
+  <!-- module-agnostic bracket zone -->
+  <rect x="440" y="86" width="270" height="300" rx="10" fill="none" stroke="var(--m3)" stroke-width="1.4" stroke-dasharray="5,4"></rect>
+  <text x="575" y="76" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--m3)">module-agnostic (zero "Admin" knowledge)</text>
+
+  <!-- test layer -->
+  <rect x="60" y="30" width="320" height="56" rx="8" fill="var(--m5-bg)" stroke="var(--m5)" stroke-width="1.6"></rect>
+  <text x="220" y="55" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m5)">tests/admin/*.spec.ts</text>
+  <text x="220" y="72" text-anchor="middle" font-size="10" fill="var(--text)">module-specific &middot; 47 tests, one per Wave-1 TC_ID</text>
+  <line x1="220" y1="86" x2="220" y2="106" stroke="var(--gate)" stroke-width="1.8" marker-end="url(#arrowDown)"></line>
+
+  <!-- fixture layer -->
+  <rect x="460" y="106" width="230" height="52" rx="8" fill="var(--m2-bg)" stroke="var(--m2)" stroke-width="1.6"></rect>
+  <text x="575" y="128" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--m2)">src/fixtures/</text>
+  <text x="575" y="144" text-anchor="middle" font-size="9.5" fill="var(--text)">auth, page, data fixtures</text>
+  <line x1="460" y1="132" x2="240" y2="132" stroke="var(--gate)" stroke-width="1.4"></line>
+  <line x1="220" y1="86" x2="220" y2="132" stroke="transparent"></line>
+  <line x1="575" y1="158" x2="575" y2="176" stroke="var(--gate)" stroke-width="1.8" marker-end="url(#arrowDown)"></line>
+
+  <!-- page layer (split: base agnostic, admin/* module-specific) -->
+  <rect x="460" y="176" width="110" height="60" rx="8" fill="var(--m3-bg)" stroke="var(--m3)" stroke-width="1.6"></rect>
+  <text x="515" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="var(--m3)">pages/base/</text>
+  <text x="515" y="215" text-anchor="middle" font-size="9" fill="var(--text)">BasePage</text>
+  <text x="515" y="227" text-anchor="middle" font-size="9" fill="var(--text)">LoginPage</text>
+
+  <rect x="580" y="176" width="130" height="60" rx="8" fill="var(--m5-bg)" stroke="var(--m5)" stroke-width="1.6"></rect>
+  <text x="645" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="var(--m5)">pages/admin/*</text>
+  <text x="645" y="215" text-anchor="middle" font-size="9" fill="var(--text)">13 page objects</text>
+  <text x="645" y="227" text-anchor="middle" font-size="9" fill="var(--text)">(module-specific)</text>
+
+  <line x1="575" y1="236" x2="575" y2="254" stroke="var(--gate)" stroke-width="1.8" marker-end="url(#arrowDown)"></line>
+
+  <!-- component layer -->
+  <rect x="460" y="254" width="230" height="52" rx="8" fill="var(--m3-bg)" stroke="var(--m3)" stroke-width="1.6"></rect>
+  <text x="575" y="276" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--m3)">src/components/</text>
+  <text x="575" y="292" text-anchor="middle" font-size="9.5" fill="var(--text)">Dropdown, Table, Toast, Dialog, Checkbox&hellip;</text>
+  <line x1="575" y1="306" x2="575" y2="324" stroke="var(--gate)" stroke-width="1.8" marker-end="url(#arrowDown)"></line>
+
+  <!-- util layer -->
+  <rect x="460" y="324" width="230" height="52" rx="8" fill="var(--m3-bg)" stroke="var(--m3)" stroke-width="1.6"></rect>
+  <text x="575" y="346" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--m3)">src/utils/</text>
+  <text x="575" y="362" text-anchor="middle" font-size="9.5" fill="var(--text)">fieldFactory, data factory, waits</text>
+
+  <text x="220" y="400" font-size="11" fill="var(--muted)">Dependency rule (code_review.md §A): test &rarr; fixture &rarr; page &rarr; component &rarr; util. No upward imports.</text>
+  <text x="220" y="416" font-size="11" fill="var(--muted)">fieldFactory.ts (a util) instantiating component classes is the one sanctioned exception &mdash; CLAUDE.md §5.1's own worked example.</text>
+</svg>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. REUSE FOR A NEW MODULE -->
+<!-- ============================================================ -->
+<h2>5&nbsp;&middot;&nbsp;Reuse for a new module</h2>
+<div class="note">
+  <strong><span class="cmd-pill">/new-module &lt;MODULE_CODE&gt; &lt;Module Name&gt;</span></strong>
+  (<span class="path">.claude/commands/new-module.md</span>) runs this whole cycle for a
+  new module, reusing everything built for Admin. It reuses the constitution, plan.md's
+  stack/layers/report schema, and <span class="cmd-pill">/analyze</span>
+  <span class="cmd-pill">/coverage</span> <span class="cmd-pill">/code-review</span>
+  <span class="cmd-pill">/heal</span> unchanged; it writes only a new spec chapter,
+  <span class="path">src/pages/&lt;module&gt;/</span>, <span class="path">tests/&lt;module&gt;/</span>,
+  and module-suffixed deliverables. A change it finds itself needing below
+  <span class="path">src/pages/</span> is treated as a framework gap &mdash; fixed
+  generically, never patched with a module-specific branch &mdash; and its own closing
+  "Reuse report" states new-vs-reused lines and names any such gap explicitly rather than
+  letting it pass silently.
+</div>
+<div class="reuse-grid">
+  <div class="reuse-col changes">
+    <h3>Created new (per <span class="path">new-module.md</span>)</h3>
+    <ul>
+      <li>prd.md's existing Tier-3 chapter for the module, promoted to Tier 1 <em>in place</em> (full field tables, BR-nn-referencing rules, <span class="mono">US-&lt;code&gt;-nn-yy</span> stories with inline Gherkin) &mdash; not a new PRD document.</li>
+      <li><span class="path">.specify/specs/00N-&lt;code&gt;-ui/spec.md</span> (N = next free number), mirroring prd.md's new ids.</li>
+      <li>M2: <span class="path">exploration-&lt;code&gt;.md</span> + <span class="path">evidence-&lt;code&gt;/</span> &mdash; deltas against the existing locator risk register only, not a re-walk from zero.</li>
+      <li>M3: <span class="path">test_design-&lt;code&gt;.csv</span>, same byte-exact header, ids <span class="mono">TC_&lt;code&gt;_&lt;sub&gt;_nnn</span>.</li>
+      <li>M4: <span class="path">agent_execution_report-&lt;code&gt;.html</span> &mdash; same template, only the injected data object changes.</li>
+      <li>M5: <span class="path">src/pages/&lt;code&gt;/</span> and <span class="path">tests/&lt;code&gt;/</span> only, plus <span class="path">healing_process-&lt;code&gt;.md</span>.</li>
+      <li>Any genuinely new oxd primitive &rarr; a new, generic class in <span class="path">src/components/</span> &mdash; built once, for every module, never module-specific.</li>
+    </ul>
+  </div>
+  <div class="reuse-col reused">
+    <h3>Reused unchanged &mdash; DO NOT rewrite</h3>
+    <ul>
+      <li><span class="cmd-pill">/new-module &lt;CODE&gt; &lt;Name&gt;</span> itself &mdash; the same command drives every future module's cycle.</li>
+      <li><span class="path">.specify/memory/constitution.md</span> &mdash; same rules, same gates G1&ndash;G5.</li>
+      <li><span class="path">.specify/specs/001-admin-ui/plan.md</span> &mdash; same stack, layers, report schema.</li>
+      <li>All 4 pipeline commands: <span class="cmd-pill">/analyze</span> <span class="cmd-pill">/coverage</span> <span class="cmd-pill">/code-review</span> <span class="cmd-pill">/heal</span> &mdash; already module-agnostic.</li>
+      <li><span class="path">src/components/</span>, <span class="path">src/fixtures/</span>, <span class="path">src/utils/</span>, <span class="path">src/pages/base/</span> &mdash; the framework. A module that seems to need a change here is a <strong>framework gap</strong>, fixed generically and recorded, never a module-specific branch.</li>
+      <li><span class="path">deliverables/04-execution/agent_execution_report.html</span> &mdash; template plus data object; only the data changes.</li>
+    </ul>
+  </div>
+</div>
+<p class="note">
+  This is what CLAUDE.md §4 means by "swapping the module under test must require only a
+  new <span class="path">spec.md</span> + new <span class="path">src/pages/&lt;module&gt;/</span>
+  + new <span class="path">tests/&lt;module&gt;/</span>" &mdash; and it is why 76.4% of this
+  project's own Wave 2 (68 of 89 scheduled cases) is pure parameter variants against an
+  already-built page object, not new interaction code (test_design_coverage.md, "Execution
+  sequencing" section).
+</p>
+
+<footer>
+  Generated from artifacts on disk in this repository, 2026-09-25 &mdash; every figure and
+  path above traces to a specific file cited inline. No number in this page was estimated.
+</footer>
+
+</div>
+</body>
+</html>

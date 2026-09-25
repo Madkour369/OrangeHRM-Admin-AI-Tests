@@ -1,0 +1,130 @@
+name: Playwright Tests
+
+# Manual dispatch (workflow_dispatch) is the PRIMARY way to run this suite — see
+# deliverables/00-summary/ci_cd.md for how to trigger it and where to find the report.
+#
+# Deliberately NO schedule/cron trigger. This suite runs UI-only against OrangeHRM's
+# shared PUBLIC demo (https://opensource-demo.orangehrmlive.com/), an instance this
+# project does not own and that real concurrent third parties also use. An unattended,
+# recurring job hitting someone else's public demo without a human initiating each run
+# is not appropriate here — every run must be a deliberate push/PR or a manual click.
+on:
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        description: 'Test file, directory, or a --grep pattern (e.g. tests/admin/usr.spec.ts, or TC_ADM_NAT for a substring match). Default runs the full Wave-1 suite.'
+        required: false
+        default: 'tests/admin'
+      workers:
+        description: 'Parallel workers. Capped at 2 regardless of this input — see the "Resolve run parameters" step.'
+        required: false
+        default: '2'
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        # Chromium only, matching playwright.config.ts's own chromium-only project:
+        # every observation this project has ever made (M2 manual exploration, M4
+        # manual execution) was against Chromium — installing Firefox/WebKit here
+        # would exercise browsers nobody has ever actually observed this app under.
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve run parameters
+        id: params
+        env:
+          INPUT_WORKERS: ${{ github.event.inputs.workers }}
+          INPUT_FILTER: ${{ github.event.inputs.test_filter }}
+        run: |
+          # Constitution Article VI.2 / Risk R2: workers are capped at 2 against the
+          # shared public demo (observed rate limiting under parallel execution).
+          # This cap is enforced here unconditionally — never raised in CI, even if a
+          # manual dispatch input asks for more — because push/pull_request runs don't
+          # go through this input at all and would otherwise silently default to
+          # whatever a stray config change set.
+          WORKERS="${INPUT_WORKERS:-2}"
+          if [ "$WORKERS" -gt 2 ] 2>/dev/null; then
+            echo "::warning::Requested workers ($WORKERS) exceeds the shared-demo cap of 2 (Constitution Article VI.2) — clamping to 2."
+            WORKERS=2
+          fi
+          echo "workers=$WORKERS" >> "$GITHUB_OUTPUT"
+          echo "filter=${INPUT_FILTER:-tests/admin}" >> "$GITHUB_OUTPUT"
+
+      - name: Run Playwright tests
+        env:
+          # The demo credentials are public and already hardcoded as the fallback in
+          # playwright.config.ts itself (ORANGEHRM_USER/PASSWORD default to
+          # Admin/admin123 — see that file). Reading them from env here matches that
+          # existing pattern; it is not secret scaffolding, and this workflow needs
+          # zero GitHub Secrets to run. Override via repository/environment Variables
+          # (not Secrets) only if pointing this workflow at a different instance.
+          ORANGEHRM_USER: ${{ vars.ORANGEHRM_USER || 'Admin' }}
+          ORANGEHRM_PASSWORD: ${{ vars.ORANGEHRM_PASSWORD || 'admin123' }}
+          # JSON reporter writes here instead of stdout; HTML reporter's own default
+          # output dir (playwright-report/) is left as-is. CI=true is set automatically
+          # by GitHub Actions runners, which is what keeps the HTML reporter from
+          # trying to open a browser window after the run.
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
+        run: >
+          npx playwright test ${{ steps.params.outputs.filter }}
+          --workers=${{ steps.params.outputs.workers }}
+          --reporter=html,json
+        # continue-on-error is deliberately NOT set. playwright.config.ts already
+        # configures retries: 2 in CI (process.env.CI ? 2 : 1) — a test that fails
+        # once and passes on retry is reported as "flaky" in both the HTML and JSON
+        # output, not silently folded into a plain "passed", and the job still exits
+        # green. A test that fails on every retry still fails the job, correctly.
+        # See deliverables/05-automation/healing_process.md for how this project
+        # already treats "flaky" as a healing candidate, never a free pass.
+
+      # A CI job can be killed mid-run (cancelled, timeout, runner eviction) after a
+      # test has created its e2e_-prefixed data but before its own cleanup step runs.
+      # Every test's teardown is registered via the data fixture and runs even on a
+      # normal test failure, but a hard job kill can still orphan e2e_ records on the
+      # shared demo. This is a known, accepted risk of running any UI suite against a
+      # shared public instance in CI — not something this workflow can fully prevent —
+      # and is why workers stay capped and no unattended schedule exists (see the
+      # top-of-file comment). Orphans are self-identifying by their e2e_ prefix and
+      # unique suffix if manual cleanup is ever needed.
+
+      - name: Upload Playwright HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload JSON results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-json-results
+          path: results.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload failure evidence (traces, screenshots, videos)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-evidence
+          path: test-results/
+          retention-days: 30
+          if-no-files-found: ignore

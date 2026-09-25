@@ -1,0 +1,19 @@
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+/.auth-state/
+/.playwright-mcp/
+
+# Logs
+*.log
+
+# Environment / secrets (this project's demo credentials have a public fallback in
+# playwright.config.ts and need no .env — this entry exists so one is never committed
+# if a local override is ever added)
+.env
+.env.*

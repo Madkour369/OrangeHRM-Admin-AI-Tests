@@ -1,0 +1,3223 @@
+# Prompts Used — OrangeHRM Admin QA Automation Pipeline
+
+## Structure of this project
+
+- **`CLAUDE.md`** (repo root) is the standing system prompt: it governs every session in
+  this workspace and is re-injected as context on every turn. It is not one of the prompts
+  below — it is the constant background the prompts below all operate under.
+- **`.specify/`** holds the governing documents the prompts below produced and referenced:
+  `memory/constitution.md` (the highest-authority rules) and `specs/001-admin-ui/`
+  (`spec.md`, `plan.md`, `tasks.md`).
+- **`.claude/commands/`** holds the reusable commands (`/analyze`, `/coverage`,
+  `/code-review`, `/heal`, `/new-module`) that several of the prompts below invoke by name
+  rather than restate.
+- **This file** is the third layer: the actual per-milestone, per-gate, corrective and
+  resume prompts a human sent, in the order they were sent, that drove the pipeline above
+  to produce everything in `deliverables/`.
+
+## Sourcing note
+
+Every prompt below was recovered directly from this project's session transcripts
+(`~/.claude/projects/.../*.jsonl`, 6 files spanning 2026-09-19 through 2026-09-25), not
+from memory or from the compacted conversation summaries handed between sessions — those
+summaries paraphrase, and paraphrase was explicitly ruled out for this document. 45
+candidate human-authored turns were found; **2 were excluded**: Claude Code's own
+auto-generated "this session is being continued from a previous conversation" compaction
+summaries, which are system-generated context injections, not something the user typed,
+and including them here would misrepresent an artifact of the session-continuity mechanism
+as a prompt someone sent. The remaining **43** are reproduced below.
+
+Where a message was an IDE notification (`<ide_opened_file>`, `<ide_selection>`) wrapping
+a real instruction, the notification tag itself is stripped as non-instructional metadata;
+every word of the actual human-authored text inside and after it is reproduced unchanged.
+One prompt (**#28**) is only partially recoverable — the transcript entry itself cuts off
+mid-sentence — and is marked `[partial]` with a note on what is known to be missing, per
+the instruction not to invent what wasn't recoverable.
+
+---
+
+
+## Pre-M1 — Project Origin
+
+### #1 — 2026-09-19T21:40:06Z — Gate —
+
+**Purpose:** Project origin prompt — before the SpecKit pipeline existed
+
+```
+Create Page Object Model and Playwright E2E tests for OrangeHRM Admin Module (https://opensource-demo.orangehrmlive.com/). Include tests for admin login, searching users, and creating a new user using TypeScript.
+```
+
+**Produced:** An initial ad-hoc Playwright POM suite (later deleted at the G2 reconciliation, since it predated the pipeline and lived at the repo root, not under src/).
+
+---
+
+## M1 — PRD
+
+### #2 — 2026-09-19T22:13:10Z — Gate G1
+
+**Purpose:** Kickoff of the SpecKit workspace and Milestone 1
+
+````
+# Specification — OrangeHRM Web UI (Feature 001: Admin Module)
+
+Produced under Constitution v1.0 · Scope: **UI only** · Target:
+`https://opensource-demo.orangehrmlive.com/`
+
+---
+
+## 1. Product Vision
+
+OrangeHRM is a web-based HRMS. Administrators configure the organisation's reference data,
+identity, and branding; employees and managers consume it. This specification defines the
+**testable UI behaviour** of the product, with an executable deep-dive on the Admin module.
+
+## 2. Personas
+
+| Persona | Needs from the UI |
+|---|---|
+| **System Administrator** (primary) | Create/maintain users, jobs, org structure, qualifications, branding; expects validated forms, clear errors, reliable search. |
+| ESS User | Read-only exposure to configuration through their own screens. |
+| Hiring / HR Manager | Consumes Admin reference data in PIM, Leave, Recruitment. |
+| QA Engineer | Deterministic, addressable UI with stable semantics. |
+
+## 3. Scope
+
+**In scope** — everything reachable and operable through the rendered web interface:
+navigation, forms, validation, search/filter, pagination, tables, modals, toasts, session
+behaviour, responsive layout, keyboard/accessibility basics.
+
+**Out of scope (explicit)** — REST/API testing, backend/database verification, performance and
+load testing, security penetration testing, email delivery verification, mobile-native apps,
+integrations to third-party identity providers beyond the UI form behaviour.
+
+## 4. UI Module Inventory (full product breadth)
+
+| # | Module | UI surface | Priority for this cycle |
+|---|---|---|---|
+| 1 | **Admin** | User Management, Job, Organization, Qualifications, Nationalities, Corporate Branding, Configuration | **P0 — deep dive** |
+| 2 | PIM | Employee list, Add Employee, config tabs, reports | P1 — inventory only |
+| 3 | Leave | Apply, My Leave, Entitlements, Reports, Configure, Leave List, Assign | P1 |
+| 4 | Time | Timesheets, Attendance, Reports, Project Info | P1 |
+| 5 | Recruitment | Candidates, Vacancies, candidate workflow | P1 |
+| 6 | My Info | Personal/Contact/Emergency/Dependents/Immigration/Job/Salary/Report-to/Qualifications/Memberships tabs | P1 |
+| 7 | Performance | KPIs, Trackers, My Trackers, Employee Trackers, Reviews | P2 |
+| 8 | Dashboard | Widgets: Time at Work, My Actions, Quick Launch, Buzz feed, Employees on Leave | P2 |
+| 9 | Directory | Search by employee/job title/location, card grid | P2 |
+| 10 | Maintenance | Access/Purge Employee Records (password-gated) | P2 |
+| 11 | Claim | Submit/My Claims/Employee Claims, expenses, configuration | P2 |
+| 12 | Buzz | Post, share, like, comment, photo/video posts | P2 |
+
+Cross-cutting UI surfaces: Login/Forgot-password, top bar user dropdown, sidebar
+search & collapse, breadcrumb, global toast layer, session timeout, 404/route guard.
+
+---
+
+## 5. ADMIN MODULE — DEEP DIVE
+
+### Epic map
+
+| Epic | Title | Sub-module |
+|---|---|---|
+| EPIC-ADM-01 | System User Management | Admin → User Management → Users |
+| EPIC-ADM-02 | Job Configuration | Job Titles, Pay Grades, Employment Status, Job Categories, Work Shifts |
+| EPIC-ADM-03 | Organization Management | General Information, Locations, Structure |
+| EPIC-ADM-04 | Qualifications Management | Skills, Education, Licenses, Languages, Memberships |
+| EPIC-ADM-05 | Nationalities | Admin → Nationalities |
+| EPIC-ADM-06 | Corporate Branding | Admin → Corporate Branding |
+| EPIC-ADM-07 | Configuration | Email Configuration, Email Subscriptions, Localization, Language Packages, Modules, Social Media Authentication, Register OAuth Client |
+| EPIC-ADM-00 | Access, Navigation & Session (cross-cutting) | Login, sidebar, breadcrumbs, session |
+
+---
+
+### EPIC-ADM-00 — Access, Navigation & Session
+
+**US-00-01** As an administrator I want to log in so that I can reach the Admin module.
+
+```gherkin
+Feature: Administrator authentication
+
+  Scenario: Successful login routes to Dashboard
+    Given I am on the OrangeHRM login page
+    When I enter username "Admin" and password "admin123"
+    And I click "Login"
+    Then I am routed to the Dashboard
+    And the top bar shows the logged-in user's name
+
+  Scenario Outline: Invalid credentials are rejected without leaking which field is wrong
+    Given I am on the login page
+    When I log in with "<username>" and "<password>"
+    Then an alert "Invalid credentials" is displayed
+    And I remain on the login page
+    Examples:
+      | username | password   |
+      | Admin    | wrongPass  |
+      | ghost    | admin123   |
+      | ADMIN    | admin123   |
+
+  Scenario Outline: Required-field validation
+    Given I am on the login page
+    When I leave "<field>" empty and submit
+    Then the message "Required" is shown under "<field>"
+    Examples:
+      | field    |
+      | Username |
+      | Password |
+
+  Scenario: Deep link while unauthenticated redirects to login
+    Given I am not authenticated
+    When I navigate directly to "/web/index.php/admin/viewSystemUsers"
+    Then I am redirected to the login page
+```
+
+**US-00-02** As an administrator I want the Admin menu to expose its sub-modules.
+
+```gherkin
+  Scenario Outline: Admin top-tabs navigate to the correct screen
+    Given I am authenticated and on the Admin module
+    When I open the "<tab>" tab
+    Then the "<heading>" screen is displayed
+    And the breadcrumb reads "Admin"
+    Examples:
+      | tab             | heading            |
+      | User Management | System Users       |
+      | Job             | Job Titles         |
+      | Organization    | General Information|
+      | Qualifications  | Skills             |
+      | Nationalities   | Nationalities      |
+      | Corporate Branding | Corporate Branding |
+      | Configuration   | Email Configuration|
+```
+
+**US-00-03** Session behaviour: logout invalidates the session; back-navigation after logout
+must not expose authenticated screens.
+
+---
+
+### EPIC-ADM-01 — System User Management
+
+| Story | Statement |
+|---|---|
+| US-01-01 | As an admin I want to search system users by username, role, employee name and status. |
+| US-01-02 | As an admin I want to add a system user with role, employee, status, username, password. |
+| US-01-03 | As an admin I want to edit an existing system user. |
+| US-01-04 | As an admin I want to delete users individually and in bulk, with confirmation. |
+| US-01-05 | As an admin I want the user list to paginate and report record counts accurately. |
+| US-01-06 | As an admin I want password rules enforced with clear, real-time feedback. |
+
+```gherkin
+Feature: System user management
+
+  Background:
+    Given I am logged in as an administrator
+    And I am on Admin > User Management > Users
+
+  Scenario: Add a valid ESS user
+    When I select User Role "ESS"
+    And I type "a" into Employee Name and select a suggested employee
+    And I select Status "Enabled"
+    And I enter Username "e2e_user_<unique>"
+    And I enter Password "Passw0rd!2025" and the same Confirm Password
+    And I click "Save"
+    Then a success toast "Successfully Saved" is displayed
+    And the user "e2e_user_<unique>" appears in the search results
+
+  Scenario: Username uniqueness is enforced
+    Given a system user "e2e_dup_<unique>" exists
+    When I attempt to add another user with username "e2e_dup_<unique>"
+    Then the field error "Already exists" is shown under Username
+    And no success toast is displayed
+
+  Scenario Outline: Mandatory fields block submission
+    When I submit the Add User form with "<field>" left empty
+    Then "Required" is displayed under "<field>"
+    And the record is not created
+    Examples:
+      | field           |
+      | User Role       |
+      | Employee Name   |
+      | Status          |
+      | Username        |
+      | Password        |
+
+  Scenario: Employee Name must be chosen from the hint list
+    When I type "zzzznotarealemployee" into Employee Name
+    And I click "Save"
+    Then the field error "Invalid" is shown under Employee Name
+
+  Scenario Outline: Password policy feedback
+    When I enter Password "<password>"
+    Then the validation message "<message>" is displayed
+    Examples:
+      | password      | message                                        |
+      | abc           | Should have at least 8 characters               |
+      | alllowercase1 | Your password must contain minimum 1 upper-case letter |
+      | Password      | Your password must contain minimum 1 number     |
+
+  Scenario: Confirm Password mismatch
+    When I enter Password "Passw0rd!2025" and Confirm Password "Passw0rd!2026"
+    And I click "Save"
+    Then "Passwords do not match" is displayed
+
+  Scenario Outline: Search filters return a consistent result set
+    When I search users by "<filter>" with value "<value>"
+    Then every result row satisfies the filter
+    And the record count header matches the number of rows across all pages
+    Examples:
+      | filter        | value   |
+      | Username      | Admin   |
+      | User Role     | ESS     |
+      | Status        | Enabled |
+
+  Scenario: Search with no match shows the empty state
+    When I search Username "e2e_nonexistent_<unique>"
+    Then "No Records Found" is displayed
+    And the results table body contains zero rows
+
+  Scenario: Reset clears all filters
+    Given I have applied a Username and a User Role filter
+    When I click "Reset"
+    Then all filter fields return to their default values
+    And the unfiltered result set is restored
+
+  Scenario: Edit a system user's role
+    Given a system user "e2e_edit_<unique>" with role "ESS" exists
+    When I open it for edit, change User Role to "Admin" and save
+    Then a success toast is displayed
+    And the list shows "Admin" for that user
+
+  Scenario: Password is optional on edit
+    Given I am editing an existing system user
+    Then the password fields are hidden until "Change Password" is enabled
+
+  Scenario: Delete a single user with confirmation
+    Given a system user "e2e_del_<unique>" exists
+    When I click its delete icon
+    Then a confirmation dialog appears
+    When I confirm with "Yes, Delete"
+    Then a success toast "Successfully Deleted" is displayed
+    And the user no longer appears in search results
+
+  Scenario: Cancelling the delete dialog preserves the record
+    When I open the delete dialog and press "No, Cancel"
+    Then the dialog closes and the record still exists
+
+  Scenario: Bulk delete via header checkbox
+    Given at least two "e2e_" users exist in the current page
+    When I select them with the row checkboxes and click "Delete Selected"
+    And I confirm the dialog
+    Then all selected users are removed
+    And the record count decreases by the number selected
+
+  Scenario: Pagination integrity
+    Given the result set spans more than one page
+    When I navigate to page 2
+    Then a different set of records is displayed
+    And no record appears on both pages
+```
+
+---
+
+### EPIC-ADM-02 — Job Configuration
+
+Applies to five CRUD screens. Each is specified by the **shared CRUD contract** below plus
+its screen-specific fields.
+
+```gherkin
+Feature: Reference-data CRUD contract (applies to every Job/Qualifications/Nationalities screen)
+
+  Scenario Outline: Create a record
+    Given I am on the "<screen>" screen
+    When I click "Add", complete the mandatory fields with unique values and save
+    Then a success toast is displayed
+    And the record appears in the list
+
+  Scenario Outline: Mandatory validation
+    When I save "<screen>" with the mandatory field empty
+    Then "Required" is displayed and no record is created
+
+  Scenario Outline: Duplicate name rejection
+    When I create a "<screen>" record with a name that already exists
+    Then a duplicate/"Already exists" error is displayed
+
+  Scenario Outline: Field length boundary
+    When I enter a name of 51 characters on "<screen>"
+    Then the input is truncated at its maximum or an explicit length error is displayed
+
+  Scenario Outline: Edit a record
+    When I edit an existing "<screen>" record and save
+    Then a success toast is displayed and the list reflects the change
+
+  Scenario Outline: Delete with confirmation
+    When I delete a "<screen>" record and confirm
+    Then a success toast is displayed and the record is gone
+
+  Scenario Outline: Cancel discards changes
+    When I fill the "<screen>" form and press "Cancel"
+    Then I return to the list and no record is created
+
+    Examples:
+      | screen            |
+      | Job Titles        |
+      | Pay Grades        |
+      | Employment Status |
+      | Job Categories    |
+      | Work Shifts       |
+      | Skills            |
+      | Education         |
+      | Licenses          |
+      | Languages         |
+      | Memberships       |
+      | Nationalities     |
+```
+
+**Screen-specific stories**
+
+- **US-02-01 Job Titles** — fields: Job Title*, Job Description, Job Specification (file
+  upload, ≤1MB), Note. Covers file attach, replace, delete attachment, unsupported type.
+- **US-02-02 Pay Grades** — create grade, then add **currencies** with Minimum/Maximum
+  salary; validate min ≤ max, numeric-only, duplicate currency rejection, currency dropdown
+  search.
+- **US-02-03 Employment Status** — simple name CRUD; verify the new status becomes selectable
+  in PIM Job tab (UI cross-module check, read-only navigation).
+- **US-02-04 Job Categories** — simple name CRUD.
+- **US-02-05 Work Shifts** — fields: Shift Name*, From/To time, assigned Employees
+  (multi-autocomplete). Validate time ordering, duplicate employee assignment, removal chips.
+
+```gherkin
+  Scenario: Pay grade salary boundary
+    Given I am adding a currency to pay grade "e2e_pg_<unique>"
+    When I enter Minimum Salary "5000" and Maximum Salary "1000"
+    Then a validation error indicating the maximum must exceed the minimum is displayed
+
+  Scenario: Work shift time ordering
+    When I create a work shift From "18:00" To "09:00"
+    Then the behaviour is recorded: either rejected with a validation error,
+      or accepted as an overnight shift — the observed behaviour is documented in exploration.md
+```
+
+> Note: the second scenario above is intentionally written as an **observation scenario**. Per
+> Constitution Article V, the expected result is finalised only after manual exploration (M2).
+
+---
+
+### EPIC-ADM-03 — Organization Management
+
+**US-03-01 General Information** — view and edit organisation name, registration number, tax
+id, phone/fax/email, address block, country dropdown, notes. Edit is gated by a toggle.
+
+```gherkin
+  Scenario: Fields are read-only until Edit is toggled
+    Given I am on Admin > Organization > General Information
+    Then all inputs are disabled
+    When I toggle "Edit"
+    Then the inputs become editable and "Save" is enabled
+
+  Scenario Outline: Field validation on save
+    When I toggle Edit, set "<field>" to "<value>" and save
+    Then "<outcome>" is observed
+    Examples:
+      | field      | value              | outcome                          |
+      | Email      | not-an-email       | "Expected format: admin@example.com" |
+      | Phone      | abc!!              | invalid-characters error         |
+      | Organization Name | (empty)     | "Required"                        |
+
+  Scenario: Changes persist across reload
+    When I save a modified Note and reload the page
+    Then the saved value is displayed
+```
+
+**US-03-02 Locations** — searchable list (City, Country); add/edit/delete location with
+Name*, Country*, Province, City, Address, Zip, Phone, Fax, Notes; "Number of Employees"
+column is read-only and links to the employee list.
+
+**US-03-03 Structure** — hierarchical unit tree; toggle Edit mode to add child units
+(Name*, Unit Id, Description); delete a unit with confirmation; verify child nodes are
+removed with the parent; expand/collapse behaviour.
+
+```gherkin
+  Scenario: Add a child organisation unit
+    Given I am on Admin > Organization > Structure in Edit mode
+    When I add a child unit "e2e_unit_<unique>" under the root
+    Then a success toast is displayed
+    And the node appears beneath the root when the root is expanded
+
+  Scenario: Deleting a parent unit warns about its children
+    Given "e2e_unit_<unique>" has at least one child
+    When I delete the parent and confirm
+    Then the parent and its descendants are no longer present in the tree
+```
+
+---
+
+### EPIC-ADM-04 — Qualifications
+
+Screens: Skills (Name*, Description), Education (Level*), Licenses (Name*),
+Languages (Name*), Memberships (Name*). All follow the shared CRUD contract, plus:
+
+```gherkin
+  Scenario: Skill description accepts long text within its limit
+    When I create a skill with a 400-character description
+    Then the record saves and the full description is retained on edit
+
+  Scenario: Bulk delete from the qualifications list
+    Given at least two "e2e_" skills exist
+    When I select them and use "Delete Selected" and confirm
+    Then both are removed and the record count updates
+```
+
+---
+
+### EPIC-ADM-05 — Nationalities
+
+Shared CRUD contract. Additional:
+
+```gherkin
+  Scenario: A nationality in use cannot be silently removed
+    Given a nationality is assigned to an employee in PIM
+    When I attempt to delete it
+    Then the resulting behaviour (blocked with an error, or cascaded) is recorded as a finding
+```
+
+---
+
+### EPIC-ADM-06 — Corporate Branding
+
+**US-06-01** Upload client logo / login banner / login page background; reset to default.
+**US-06-02** Change primary, secondary and text colours; observe live preview.
+**US-06-03** Social media link fields validate URL format.
+
+```gherkin
+  Scenario: Upload a logo of an unsupported type
+    When I attach a ".txt" file to "Client Logo"
+    Then a file-type validation error is displayed and no upload occurs
+
+  Scenario: Oversized image is rejected
+    When I attach an image larger than the stated size limit
+    Then a size validation error naming the limit is displayed
+
+  Scenario: Reset to default restores the stock branding
+    Given branding has been modified
+    When I click "Reset to Default" and confirm
+    Then the default OrangeHRM branding is restored after reload
+```
+
+> Constitution VI.3: branding tests must revert their own changes; on the shared demo,
+> colour-picker cases are expected to be marked `needs automation = No`.
+
+---
+
+### EPIC-ADM-07 — Configuration
+
+| Story | Screen | UI behaviour under test |
+|---|---|---|
+| US-07-01 | Email Configuration | Mail sending method radio (Sendmail/SMTP/Secure SMTP), conditional SMTP fields, port numeric validation, "Send Test Email" toggle. **Observation only — do not send.** |
+| US-07-02 | Email Subscriptions | Toggle subscription on/off, add/remove subscribers, email format validation. |
+| US-07-03 | Localization | Language dropdown, date format dropdown, persistence after reload, effect on a date-bearing screen. |
+| US-07-04 | Language Packages | List rendering, download/empty state. |
+| US-07-05 | Modules | Enable/disable module toggles and the resulting sidebar change. **High blast radius — revert immediately; likely `valid in scope = No` on shared demo.** |
+| US-07-06 | Social Media Authentication | Add provider form validation (Name*, Provider URL*, client id/secret), URL format. |
+| US-07-07 | Register OAuth Client | Client Name*, Redirect URI*, Client ID, confidential toggle; CRUD + duplicate name. |
+
+```gherkin
+  Scenario: SMTP fields appear only for the SMTP method
+    Given I am on Admin > Configuration > Email Configuration
+    When I select mail sending method "SMTP"
+    Then SMTP Host, Port, Username, Password and Authentication fields become visible
+    When I select "Sendmail"
+    Then those fields are hidden
+
+  Scenario: Localization date format persists
+    When I change the date format and save
+    And I reload the page
+    Then the selected format is still displayed
+```
+
+---
+
+## 6. Non-Functional UI Requirements
+
+| Id | Requirement | How it is tested (UI only) |
+|---|---|---|
+| NFR-01 | Every destructive action is confirmed by a modal | Dialog present, cancel is non-destructive |
+| NFR-02 | Every save produces an explicit success or error toast | Toast presence + variant class |
+| NFR-03 | Validation errors are field-adjacent and human-readable | Error text under the field, no raw codes |
+| NFR-04 | Pages render usably at 1920×1080, 1366×768 and 768×1024 | Viewport-parameterised layout checks |
+| NFR-05 | No client-side console errors during happy-path navigation | Console listener assertion (observability, not API) |
+| NFR-06 | Primary flows are keyboard-reachable; controls have accessible names | `getByRole` resolvability + tab-order spot checks |
+| NFR-07 | Session expiry returns the user to login without a broken screen | Observed during long runs |
+| NFR-08 | Screens render within a reasonable perceived time (spinner clears < 10s) | `waitForIdle()` timeout budget |
+
+## 7. Assumptions & Risks
+
+- **A1** Demo data resets periodically; no test may depend on pre-existing records.
+- **A2** The demo is shared and mutated concurrently by other users.
+- **R1** Known product defects exist; distinguishing them from flakiness is M2's job.
+- **R2** Rate limiting under parallel execution → workers capped at 2.
+- **R3** Some Configuration screens have global blast radius → default to observe-only.
+
+## 8. Traceability Seed
+
+`EPIC-ADM-0x` → `US-0x-yy` → `TC_ADM_xx_nnn` → `Automation_ID` → `BUG-nnn`.
+Ids assigned here are authoritative and must be reused verbatim downstream.
+"Please act as the Principal QA Architect. Read the Master System Prompt rules we discussed. Create all the required SpecKit workspace files (.specify/memory/constitution.md, .specify/specs/001-admin-ui/spec.md, plan.md, tasks.md, and .claude/commands/) directly on disk yourself. Do not ask me to create any files manually. Once you generate the workspace setup, execute Milestone 1 (deliverables/01-prd/prd.md)."
+````
+
+**Produced:** Instruction to create .specify/memory/constitution.md, spec.md, plan.md, tasks.md, .claude/commands/, and begin prd.md.
+
+**Notes:** Most of the message body is a pasted draft of spec.md's own content (evidently drafted earlier in the same working session as reference material); the new instruction is the final paragraph.
+
+---
+### #3 — 2026-09-19T22:47:55Z — Gate G1
+
+**Purpose:** PRD scope refinement — expand from Admin-only to all 12 modules
+
+````
+تمام — غيّرت الـ scope بحيث الـ PRD يغطي التطبيق كله (١٢ موديول + الشاشات المشتركة زي اللوجين والسيشن)، مع إبقاء الـ Admin كأعمق فصل لأنه هو الموديول اللي دورة الاختبار الحالية (M2–M5) شغالة عليه.
+
+نقطة مهمة ضفتها في البرومبت: فيه فرق دلوقتي بين **Product Scope** (الموقع كله — ده الـ PRD) و**Current QA Cycle Scope** (الأدمن بس — ده الـ test_design.csv والتنفيذ). لو مفصلناش ده بوضوح، الإيجنت هيروح يولّد تيست كيسيز لـ ١٢ موديول في M3 ويكسر الـ gates بتاعتك. البرومبت بيجبره يكتب الفرق ده صراحةً.
+
+---
+
+# MASTER PROMPT — Transform `deliverables/01-prd/prd.md` into a Full-Product Functional PRD (All Modules)
+
+## ROLE
+
+You are acting as a **Lead Product Analyst** working alongside a **Senior QA Automation Architect**. Your deliverable is a **business-facing Functional Product Requirements Document for the entire OrangeHRM web application**, not a test strategy.
+
+Product Owners, Business Analysts, and HR stakeholders must be able to read it end to end and understand *what the product does and why* — without needing to know that Playwright exists. All technical automation rules remain in force for the project, but inside this document they are **subordinate context**, confined to the appendix.
+
+## OBJECTIVE
+
+Rewrite `deliverables/01-prd/prd.md` **in place**, converting it from a technical, Admin-only test-strategy artifact into a formal **Functional PRD covering the complete OrangeHRM UI** as observable on the public live demo at `https://opensource-demo.orangehrmlive.com/`.
+
+Write the complete file to `deliverables/01-prd/prd.md`. Do not print the document to the terminal instead of writing it. Do not create a parallel file.
+
+## THE SCOPE CHANGE — READ THIS FIRST
+
+The previous revision of this PRD was scoped to the **Admin module only**. That was too narrow. The product scope is now the **entire application**.
+
+However, the *QA execution cycle* (Milestones 2–5, `test_design.csv`, `agent_execution_report.html`, the Playwright suite) remains scoped to **Admin only**. These are now two different scopes, and the document must make that distinction explicit and unmissable, in its own section:
+
+| Scope type | Covers | Governs |
+|---|---|---|
+| **Product Scope** | All 12 modules + cross-cutting surfaces | This PRD |
+| **Current QA Cycle Scope** | Admin module only | M2–M5 artifacts, gates G2–G5 |
+
+Non-Admin modules are **specified but not yet tested**. Every non-Admin chapter must carry a visible marker: `QA CYCLE: not in current cycle — specification only`. This prevents Milestone 3 from generating twelve modules' worth of test cases and blowing the existing gate definitions.
+
+## PRE-WORK (mandatory, before writing a single line)
+
+1. Read the current `deliverables/01-prd/prd.md` in full.
+2. Read `.specify/memory/constitution.md` and `.specify/specs/001-admin-ui/spec.md`.
+3. Produce a **preservation list**: every existing `EPIC-ADM-*`, `US-nn-yy`, `NFR-nn`, and `BO-nn` id. These are **immutable** — never renumber, rename, or delete. Downstream artifacts already reference them and must continue to resolve.
+4. Note which existing sections are technical-execution material to be **relocated to the appendix**, not deleted.
+5. State how you will extend the id scheme for the eleven newly-specified modules without colliding with existing ids (see the ID SCHEME section below).
+
+Only after this inventory, begin writing.
+
+## ID SCHEME (extension rules)
+
+- **Admin keeps its legacy ids unchanged**: `EPIC-ADM-00` … `EPIC-ADM-07`, and stories in the existing `US-nn-yy` form. Do not touch them.
+- **New modules use a module-prefixed scheme** so collision is impossible:
+  - Epics: `EPIC-<MOD>-nn`
+  - Stories: `US-<MOD>-nn-yy`
+- Module codes: `ADM` Admin · `PIM` PIM · `LEV` Leave · `TIM` Time · `REC` Recruitment · `MYI` My Info · `PRF` Performance · `DSH` Dashboard · `DIR` Directory · `MNT` Maintenance · `CLM` Claim · `BUZ` Buzz · `COR` cross-cutting (login, navigation, session).
+- Add a short **ID conventions** note in Document Control explaining that Admin uses the legacy unprefixed story form for backward compatibility, and everything else is prefixed.
+- Business rules `BR-nn`, business objectives `BO-nn`, and NFRs `NFR-nn` remain global and continue the existing numbering.
+
+## SCOPE CONSTRAINTS (strict, non-negotiable)
+
+**In scope**
+- The **entire OrangeHRM web application**, exercised **exclusively through the rendered user interface**.
+- Observable functional behaviour: navigation, forms, field validation, inline error messages, search and filter, pagination, tables, modal dialogs, toast notifications, file upload, workflow state transitions, session behaviour, layout, and basic accessibility.
+
+**Out of scope — state explicitly in the document as a rule, not a footnote**
+- API / REST / HTTP-level testing or specification of any kind.
+- Backend logic, database schema, or data-layer verification.
+- Third-party integrations beyond the behaviour of their **configuration forms** inside the UI (no verification of actual email delivery, no OAuth round-trip against a live provider, no social-login handshake).
+- Performance/load testing, penetration testing, mobile-native applications.
+
+If a requirement cannot be verified by a person looking at the screen, it does not belong in this PRD.
+
+## REQUIRED DOCUMENT STRUCTURE
+
+### 1. Document Control
+Table: title, version (increment; mark as a scope-expansion rewrite), status, owner role, last updated, source system and URL, governing constitution version, ID conventions note, and a one-line change summary versus the prior revision.
+
+### 2. Table of Contents
+
+### 3. Executive Summary
+Four to six paragraphs of business prose. What OrangeHRM *is* as an HRIS: a single system of record spanning identity and configuration, employee master data, absence, time and attendance, hiring, performance, expense claims, and internal communication. Explain the platform's central dependency — Admin holds the reference data that every other module consumes, so configuration errors propagate silently downstream. Written for a stakeholder who has never opened the application.
+
+### 4. Business Objectives & Success Criteria
+Table: `BO-nn | Business Objective | Business Value | Observable Success Indicator | Primary Modules`. Cover at minimum: controlled system access and role separation; accurate organisational and job reference data; complete and maintainable employee master data; compliant absence management; accurate time capture and project costing; an efficient hiring funnel; structured performance management; controlled expense claiming; and coherent corporate identity. Success indicators phrased in business terms, never as test pass rates.
+
+### 5. System Actors & Personas
+Full persona treatment for each, with responsibilities, frequency of use, expertise level, friction tolerance, and the business cost of failure:
+- **System Administrator** — configuration and identity control plane.
+- **HR Manager / HR Admin** — employee master data, absence policy, reporting.
+- **Line Manager / Supervisor** — approvals (leave, timesheets, claims), team visibility, performance reviews.
+- **ESS Employee** — self-service: own data, leave requests, timesheets, claims, Buzz.
+- **Recruiter / Hiring Manager** — vacancies and candidate pipeline.
+- **Auditor** — read-only consumer of records and reports.
+
+Include an **actor × module access matrix** showing which personas reach which modules, and note where the demo's role model actually constrains visibility.
+
+### 6. Scope Statement
+Two tables (in scope / out of scope) exactly as defined above, plus the **Product Scope vs Current QA Cycle Scope** table from the SCOPE CHANGE section, plus a boundary-rationale paragraph explaining why the UI-only line was drawn.
+
+### 7. Product Map & Cross-Module Data Flow
+
+This section is the reason a whole-product PRD is worth more than twelve separate ones. Produce:
+
+- A **module inventory table**: `Module | Epic prefix | Primary actor | Business purpose (one line) | Depth tier | QA cycle status`.
+- A **reference-data dependency map** in prose plus a table, tracing how configuration flows: Admin job titles, employment statuses, pay grades, locations and organisational units feed PIM employee records → PIM employee records feed Leave entitlements, Time timesheets, Performance reviews, Claim submissions and Directory → Leave types and holidays configured in Leave govern what an employee can request → Recruitment's hire action creates a PIM record. Name each dependency and state the business consequence of it being wrong.
+- An **end-to-end business journey** walked across modules: *hire to productive employee* — vacancy created in Recruitment → candidate progresses through the pipeline → hired → employee record created in PIM → system user provisioned in Admin → employee completes My Info → leave entitlement assigned → first timesheet submitted and approved. Reference the epics each step touches.
+
+### 8. Functional Breakdown — All Modules
+
+The core of the document. Use an **identical internal template** for every module chapter so the document reads consistently:
+
+> **8.x `<Module name>`**
+> Epic ids · QA cycle status marker · Navigation path · **Business purpose** (a paragraph, not a sentence) · Primary and secondary actors · **Sub-module / screen inventory** · **Field inventory table** (`Field | Type | Mandatory | Constraint / allowed values | Business meaning`) for the principal forms · **Operations supported** (create, read, search, update, delete, bulk, upload, approve/reject, state transition) · **Module-specific business rules** (referencing the global `BR-nn` contract rather than repeating it) · **Upstream dependencies / downstream consumers** · **Known behavioural uncertainties** (see HONESTY RULE).
+
+**Depth tiers** — apply deliberately and declare the tier in each chapter header:
+
+- **Tier 1 — Exhaustive (Admin only).** Every one of the seven sub-modules fully specified at field level, with complete business rules and full Gherkin coverage including negative and boundary cases. This is the module the current QA cycle executes against, so its specification must be assertion-grade.
+- **Tier 2 — Full functional (PIM, Leave, Time, Recruitment, My Info, Claim).** Complete screen and sub-module inventory, field tables for the principal forms, all operations and workflow states, module business rules, and user stories with Gherkin for the primary happy paths plus the most business-critical edge cases. Not exhaustive at every field.
+- **Tier 3 — Functional overview (Performance, Dashboard, Directory, Maintenance, Buzz, cross-cutting).** Purpose, screen inventory, operations, key business rules, and user stories with Gherkin for the primary flows.
+
+Chapters to produce, with the surfaces each must cover:
+
+1. **Admin** *(Tier 1)* — System User Management (roles, status, employee-name autocomplete as a binding constraint, username uniqueness, password policy and its user-facing messages, password handling at create vs edit); Job Configuration (Job Titles with specification attachment, Pay Grades with per-currency min/max bands and the min ≤ max rule, Employment Status, Job Categories, Work Shifts); Organization (General Information and its read-only-by-default edit toggle, Locations with employee counts, Structure hierarchy and parent-delete cascade); Qualifications (Skills, Education, Licenses, Languages, Memberships); Nationalities; Corporate Branding (logos, banner, background, theme colours with live preview, reset to default); Configuration (Email Configuration with conditional SMTP field set, Email Subscriptions, Localization with system-wide date format effect, Language Packages, Modules toggles, Social Media Authentication, Register OAuth Client). For every Configuration screen state the **blast radius** in business terms.
+2. **PIM** *(Tier 2)* — Configuration (Optional Fields, Custom Fields, Data Import, Reporting Methods, Termination Reasons); Employee List with its filters; Add Employee including login-creation option; the employee record tab set (Personal Details, Contact Details, Emergency Contacts, Dependents, Immigration, Job, Salary, Report-to, Qualifications, Memberships); employee termination and reactivation; PIM Reports definition and generation.
+3. **Leave** *(Tier 2)* — Apply; My Leave; Entitlements (Add Entitlements, Employee Entitlements, My Entitlements); Reports (Leave Entitlements and Usage); Configure (Leave Period, Leave Types, Work Week, Holidays); Leave List; Assign Leave. Specify the **leave request state machine** (Pending Approval → Scheduled → Taken / Rejected / Cancelled) and who may perform each transition, plus the balance-sufficiency rule and overlap prevention.
+4. **Time** *(Tier 2)* — Timesheets (My Timesheets, Employee Timesheets) and the timesheet **state machine** (Not Submitted → Submitted → Approved / Rejected); Attendance (My Records, Punch In/Out, Employee Records, Configuration and whether employees may edit their own attendance); Reports (Project, Employee, Attendance Summary); Project Info (Customers, Projects and activities). Cover the punch-in/punch-out pairing rule.
+5. **Recruitment** *(Tier 2)* — Vacancies (with hiring manager assignment); Candidates with search and filters; resume upload; the **candidate pipeline state machine** (Application Initiated → Shortlisted → Interview Scheduled → Interview Passed/Failed → Job Offered → Offer Declined / Hired) and the actions available at each state; the hire action's effect on PIM.
+6. **My Info** *(Tier 2)* — the ESS view of the employee record and its full tab set; what the employee may edit versus view; attachment handling; the self-service boundary as a business rule.
+7. **Performance** *(Tier 3)* — Configure (KPIs bound to job titles, Trackers); Manage Reviews (Manage Reviews, My Reviews, Employee Reviews) and the review lifecycle; My Trackers and Employee Trackers with tracker log entries.
+8. **Dashboard** *(Tier 3)* — the widget set (Time at Work, My Actions, Quick Launch, Buzz Latest Posts, Employees on Leave Today, Employee Distribution by Sub Unit and by Location), what each surfaces, its data source module, and widget configuration.
+9. **Directory** *(Tier 3)* — employee search by name, job title and location; the result card grid; the empty state.
+10. **Maintenance** *(Tier 3)* — the password re-authentication gate; Access Employee Records; Purge Employee Records and its irreversibility. Flag the whole module as destructive-by-design and therefore observe-only on a shared demo instance.
+11. **Claim** *(Tier 3)* — Submit Claim, My Claims, Employee Claims; expense line items against configured Events and Expense Types; the **claim state machine** (Initiated → Submitted → Approved / Rejected / Paid) and attachment handling; Configuration (Events, Expense Types).
+12. **Buzz** *(Tier 3)* — Newsfeed with sort options; create text, photo and video posts; like, comment, share, edit and delete own post; My Photos, My Videos, Most Liked Posts; content ownership and moderation rules.
+13. **Cross-Cutting Surfaces** *(Tier 3, `COR`)* — Login and forgot-password flow; unauthenticated deep-link redirect; top bar user dropdown (About, Support, Change Password, Logout); sidebar search and collapse; breadcrumbs; the global toast layer; session timeout and post-logout back-navigation; 404 and route guarding; localization effects on date and language rendering.
+
+### 9. Business Rules & Data Integrity — The Global CRUD Contract
+
+Define **once**, as a normative table with ids (`BR-nn`), the behaviour every data-maintenance screen across the product must satisfy; module chapters then reference these ids instead of repeating them. Each rule gets: id, rule statement, business rationale, user-visible evidence, and the modules it governs.
+
+Cover: mandatory-field enforcement with no partial record creation · field-adjacent inline validation in plain language · duplicate prevention on business keys · length, numeric, email, URL, time and date format boundaries · conjunctive search and filter semantics with a working reset · explicit empty-state messaging · pagination integrity (declared count matches reality, no record on two pages, no record lost, count updates after create and delete) · a success or failure notification for every save, update and delete, with silence treated as a defect · confirmation dialogs on all destructive actions, with cancel non-destructive · cancel-discards-input semantics · referential integrity when deleting a reference value that is in use · file upload type and size validation · **workflow state-transition integrity** (only permitted transitions are offered, and only to actors entitled to perform them) · **approval authority** (no actor approves their own submission) · **data visibility boundaries** (an ESS user sees only their own records).
+
+### 10. User Stories & Acceptance Criteria
+
+- Preserve every existing `US-nn-yy` id and meaning. Add new stories under the prefixed scheme.
+- Full form for each: `**US-<MOD>-nn-yy** — As a <persona>, I want <capability>, so that <business outcome>.` followed by priority, module, QA cycle status, dependent business rules, and acceptance criteria.
+- Acceptance criteria in **Gherkin** (`Feature` / `Background` / `Scenario` / `Scenario Outline` with `Examples`), fenced as ```gherkin.
+- **Gherkin must be written in domain language.** "The supervisor approves the timesheet", "a confirmation message is displayed" — never CSS selectors, never `oxd-` class names, never Playwright API calls, never element ids. If a criterion cannot be expressed without naming a selector, it is an implementation detail and belongs in the appendix.
+- Coverage by tier: Tier 1 — happy path, mandatory-empty, duplicate, boundary, invalid format, cancel, delete-confirm and delete-cancel, empty search, pagination. Tier 2 — happy path, the critical negative case, and every workflow state transition. Tier 3 — happy path and the primary negative case.
+- Group stories under their epics, and epics under their module chapter, so the document reads `Module → Epic → Stories → Criteria`.
+
+### 11. Non-Functional & UX Requirements (UI level)
+
+Continue existing `NFR-nn` numbering. Table: `Id | Requirement | Business rationale | Observable acceptance condition | Applies to`. Cover:
+
+- **Form accessibility** — visible labels and accessible names on every control; mandatory fields visually marked; errors programmatically associated with their field; primary flows keyboard-completable; focus order follows visual order; colour never the sole carrier of meaning.
+- **Perceived responsiveness** — navigation completes and clears its loading indicator within a stated budget; long operations show progress rather than appearing frozen; large lists remain usable.
+- **Viewport responsiveness** — usable, non-overlapping, non-horizontally-scrolling layout at **1920×1080**, **1366×768**, and **768×1024**, with per-viewport expectations for the sidebar, data tables, modal dialogs, and the Buzz feed.
+- **Session handling** — expiry returns cleanly to login rather than a half-rendered page; unauthenticated deep links redirect; post-logout back-navigation does not expose authenticated content; unsaved-work loss is communicated rather than silent.
+- **Error and empty-state quality** — actionable messages, free of internal error codes or stack traces.
+- **Consistency** — terminology, button placement, table behaviour, and confirmation patterns uniform across all modules; deviations are defects.
+- **Localization integrity** — the configured language and date format render consistently wherever dates appear.
+
+### 12. Assumptions, Constraints, Dependencies & Risks
+Separate tables. Must include: the shared public demo environment and its periodic data reset; concurrent mutation by other anonymous users; pre-existing product defects in the demo build; screens whose blast radius makes them observe-only on a shared instance (Admin Configuration Modules, Maintenance Purge); and the fact that some role-gated behaviour cannot be fully observed from a single Admin account on the demo. Risks carry impact, likelihood, and mitigation.
+
+### 13. Open Questions
+Numbered register of behaviours requiring confirmation through manual exploration before they can be stated as requirements. Each with the question, the module, why it matters, and how it will be resolved.
+
+### Appendix A — Automation Alignment & Quality Metrics
+
+The **only** place technical execution material may live. Keep it compact and clearly subordinate.
+
+- Restate the **Product Scope vs Current QA Cycle Scope** distinction and its consequence: Milestone 3 generates `TC_ADM_xx_nnn` cases for Admin only; non-Admin stories carry `TC: pending future cycle`.
+- Map quality gates **G1–G5** to the business milestones they protect, phrased as what each gate guarantees the business.
+- **Traceability matrix**: `BO-nn → Module → EPIC-<MOD>-nn → US-<MOD>-nn-yy → TC_ADM_xx_nnn (M3) → Automation_ID (M5)`. Where downstream ids do not yet exist, write `pending M3`, `pending M5`, or `pending future cycle` — never invent an id.
+- Quality metrics as business outcomes: requirement coverage, critical-path coverage, defect density per module, and the proportion of stories with automated regression protection.
+- A **future-cycle roadmap** table proposing module sequencing for subsequent QA cycles, with a rationale for the order (suggested: Admin → PIM → Leave → Time → Recruitment → remainder), noting that the framework is module-agnostic by constitutional requirement so each new cycle needs only a new spec, new page objects, and new tests.
+- A pointer note stating that all implementation-level rules — Page Object Model standards, locator strategy, wait strategy, healing process, and the UI-only technical prohibitions — remain governed by `.specify/memory/constitution.md` and `.specify/specs/001-admin-ui/plan.md` and are deliberately not restated here.
+
+### Appendix B — Glossary
+Business and product terms across the whole platform: ESS, system user vs employee record, pay grade, employment status, organisational unit / sub unit, leave period, leave entitlement vs balance, work week, timesheet period, project activity, vacancy, candidate pipeline, KPI, tracker, claim event, expense type, reference data, blast radius, toast notification.
+
+## WRITING STANDARDS
+
+- **Clean Markdown.** ATX headings with strict hierarchical nesting, consistent numbering, tables for every structured set, fenced `gherkin` blocks for acceptance criteria, blockquotes reserved for normative callouts. No raw HTML.
+- **Visual hierarchy.** Every module chapter opens with prose before its first table. A reader must be able to navigate by heading alone.
+- **Business register.** Write for a Product Owner. Explain *why* before *what*. Technical vocabulary only where it is genuinely the business's vocabulary.
+- **Consistency across chapters is mandatory** — with thirteen chapters, a drifting template makes the document unusable. Same section order, same table columns, same heading depth everywhere.
+- **Length.** Substance over brevity; this is a specification, not a summary. But every paragraph must carry information — no filler, no restating the heading. Manage total length through the depth tiers, not by thinning Tier 1.
+
+## HONESTY RULE (non-negotiable)
+
+Do not invent application behaviour. Where you cannot confirm how the live demo actually behaves — exact validation message wording, precise field length limits, the date format in use, referential-integrity behaviour on delete, file type and size limits, which workflow transitions a given role is actually offered, whether a module is enabled on the demo build — you must **not** guess a value and present it as a requirement.
+
+Write the requirement at the level you can defend, and mark the unknown explicitly:
+
+> **TO CONFIRM (Exploration):** exact maximum length of the Job Title field; record the observed limit here once verified.
+
+Add every marker to the Open Questions register in §13. Be especially disciplined in Tier 2 and Tier 3 chapters, where the temptation to fill gaps from general HRIS knowledge is strongest — you are specifying *this build of this demo*, not HRIS software in general. An invented constant is worse than an acknowledged gap, because it will be silently encoded into test assertions two milestones later.
+
+Preserve any "observation scenario" already present in the source documents — acceptance criteria whose expected result is pending manual verification. Keep them flagged; do not resolve them by assumption.
+
+## COMPLETION CHECKLIST
+
+Verify and report each line before declaring done:
+
+- [ ] `deliverables/01-prd/prd.md` written in place; no duplicate or parallel file created.
+- [ ] Every pre-existing `EPIC-ADM-*`, `US-nn-yy`, `NFR-nn`, `BO-nn` id still present and unchanged in meaning.
+- [ ] All 12 modules plus the cross-cutting chapter present, each following the identical template.
+- [ ] Depth tier declared in every chapter header; Admin is Tier 1 and demonstrably the deepest.
+- [ ] Product Scope vs Current QA Cycle Scope stated in §6 and restated in Appendix A; every non-Admin chapter carries the `not in current cycle` marker.
+- [ ] Cross-module data flow map and the end-to-end hire journey present in §7.
+- [ ] All four workflow state machines specified (Leave request, Timesheet, Candidate pipeline, Claim).
+- [ ] Zero API, REST, HTTP, database, or backend requirements anywhere in the body.
+- [ ] Zero CSS selectors, `oxd-` class names, or Playwright references outside Appendix A.
+- [ ] Every business rule has an id, rationale, user-visible evidence, and the modules it governs.
+- [ ] Every user story has Gherkin criteria at the coverage depth its tier requires.
+- [ ] All three viewports named explicitly in §11.
+- [ ] Traceability appendix present; unassigned downstream ids marked `pending`, never fabricated.
+- [ ] Every unverified constant carries a `TO CONFIRM` marker and appears in Open Questions.
+- [ ] Markdown renders cleanly; tables well-formed; table of contents matches the headings.
+
+Report: the checklist results, counts of modules / epics / stories / business rules produced, the number of `TO CONFIRM` markers raised, and a short diff summary versus the previous revision.
+
+---
+````
+
+**Produced:** Revised PRD scope: full 12-module product breadth with Admin as the deep-dive tier.
+
+**Notes:** Written in Arabic (Egyptian dialect), as sent.
+
+---
+### #4 — 2026-09-19T23:06:02Z — Gate G1
+
+**Purpose:** Milestone-by-milestone kickoff: the actual M1 PRD-writing brief
+
+````
+تمام، فاهم. هنمشي **ميلستون ميلستون** — أديك برومبت، تشغّله، تقوللي خلص، أديك اللي بعده.
+
+قبل ما نبدأ، تلات حاجات لازم تعرفها دلوقتي مش بعدين:
+
+**التاسك طالبة UI و API.** انت قررت UI بس. ده يخصم من التقييم لأن الميلستونز مكتوبة `UI Module/s and API endpoint/s`. لو ناوي تسيبها UI، لازم الـ PRD نفسه يكتب سطر صريح إن الـ API scope مؤجّل بقرار واعي — أحسن من إن المصحّح يفتكرها نسيان. لو غيّرت رأيك، قوللي وأضيف API track موازي.
+
+**التاسك بتقول IntelliJ في ميلستون ٥،** مش VS Code. الكود نفسه واحد (Playwright TS)، بس لازم تفتح البروجكت في IntelliJ وتاخد سكرين شوتس من هناك للتسليم.
+
+**فيه ديليفرابلز مش موجودة في الـ pack:** الـ Excel summary (`a`) والـ flowchart HTML (`b`). دول هنعملهم في ميلستون سادس بعد M5 — أنا حاططهم في دماغي.
+
+---
+
+## الإعداد (مرة واحدة، قبل M1)
+
+في روت الريبو:
+
+```
+cp MASTER_SYSTEM_PROMPT.md CLAUDE.md
+```
+
+اتأكد إن `.specify/` و `.claude/commands/` مكانهم. بعد كده افتح session جديدة والزق البرومبت اللي تحت.
+
+**قرار أخدته عنك** عشان مانعطّلش: الموديولات غير الأدمن هتبقى **Tier 3** (توصيف وظيفي مختصر)، والأدمن **Tier 1** (عمق كامل). ده متسق مع إن التنفيذ أدمن بس، وبيخلّي الـ PRD في حجم معقول. لو عايزهم أعمق قوللي قبل ما تشغّل.
+
+---
+
+## 🟢 MILESTONE 1 — PRD Generation
+
+الزق ده في Claude Code:
+
+```
+# MILESTONE 1 — Generate the Product Requirements Document
+
+## Context
+You are operating the SpecKit pipeline defined in CLAUDE.md, under the rules of
+.specify/memory/constitution.md. This is Milestone 1 (Gate G1).
+
+Assignment input:  project URL — https://opensource-demo.orangehrmlive.com/
+Assignment output: a PRD markdown file.
+
+## Pre-work (do this before writing anything)
+1. Read .specify/memory/constitution.md in full.
+2. Read .specify/specs/001-admin-ui/spec.md and .specify/specs/001-admin-ui/tasks.md (Milestone 1 + its DoD).
+3. Restate in one line: the scope restriction, and the Gate G1 exit condition.
+4. List every existing EPIC-ADM-*, US-*, NFR-*, BO-* id found in spec.md.
+   These ids are IMMUTABLE — reuse them verbatim, never renumber or rename.
+
+## Role
+Act as a Lead Product Analyst. The output is a business-facing Functional PRD that a
+Product Owner or HR stakeholder can read end to end. It is NOT a test strategy document.
+
+## THE TWO SCOPES — state both explicitly in the document
+
+| Scope type              | Covers                                    | Governs              |
+|-------------------------|-------------------------------------------|----------------------|
+| Product Scope           | The entire OrangeHRM web application      | This PRD             |
+| Current QA Cycle Scope  | Admin module only                         | Milestones 2–5       |
+
+Every non-Admin chapter must carry the marker:
+`QA CYCLE: not in current cycle — specification only`
+
+This prevents Milestone 3 from generating test cases for twelve modules.
+
+## Scope constraints (strict)
+IN:  The whole application, exercised exclusively through the rendered web UI.
+OUT: API/REST specification or testing; backend/database logic; performance, load and
+     security testing; native mobile apps; verification of third-party integrations
+     beyond the behaviour of their configuration forms inside the UI.
+
+Record in the Assumptions section, as a deliberate decision and not an omission:
+"API endpoint coverage is deferred to a future cycle; this cycle is UI-only by design."
+
+If a requirement cannot be verified by a person looking at the screen, it does not belong here.
+
+## Depth tiers — declare the tier in every chapter header
+- Tier 1 — Admin (exhaustive): all 7 sub-modules at field level, complete business rules,
+  full Gherkin including negative and boundary cases. This is the module the QA cycle
+  executes against, so its specification must be assertion-grade.
+- Tier 3 — all other modules (functional overview): purpose, screen inventory, operations,
+  key business rules, workflow state machines where they exist, and Gherkin for primary
+  flows plus one critical negative case.
+
+## ID scheme
+- Admin keeps its legacy ids unchanged: EPIC-ADM-00…07, US-nn-yy.
+- New modules use a prefixed scheme to guarantee no collision:
+  Epics `EPIC-<MOD>-nn`, Stories `US-<MOD>-nn-yy`.
+  Codes: PIM LEV TIM REC MYI PRF DSH DIR MNT CLM BUZ, and COR for cross-cutting surfaces.
+- Business rules BR-nn, objectives BO-nn and NFR-nn remain global and continue existing numbering.
+
+## Required structure
+1.  Document Control (version, owner, source URL, constitution version, ID conventions)
+2.  Table of Contents
+3.  Executive Summary — what OrangeHRM is as an HRIS; why Admin reference data is the
+    platform's central dependency and how configuration errors propagate downstream
+4.  Business Objectives & Success Criteria — BO-nn | Objective | Business value |
+    Observable success indicator | Primary modules
+5.  System Actors & Personas — System Administrator (full treatment), HR Manager,
+    Line Manager/Supervisor, ESS Employee, Recruiter, Auditor; plus an actor × module
+    access matrix
+6.  Scope Statement — in/out tables, the two-scopes table above, and a boundary rationale
+7.  Product Map & Cross-Module Data Flow
+      - module inventory table: Module | Epic prefix | Primary actor | Purpose | Tier | QA cycle status
+      - reference-data dependency map: how Admin job titles, employment statuses, pay grades,
+        locations and org units feed PIM; how PIM records feed Leave, Time, Performance,
+        Claim and Directory; how a Recruitment hire creates a PIM record. State the business
+        consequence of each dependency being wrong.
+      - one end-to-end journey walked across modules: vacancy → candidate pipeline → hire →
+        PIM record → system user provisioned in Admin → My Info completed → leave entitlement
+        → first timesheet approved
+8.  Functional Breakdown — every chapter uses the IDENTICAL template:
+      Epic ids · Tier · QA cycle status · Navigation path · Business purpose (a paragraph) ·
+      Actors · Screen inventory · Field inventory table (Field | Type | Mandatory |
+      Constraint | Business meaning) · Operations supported · Module-specific business rules
+      (referencing BR-nn, not repeating them) · Upstream dependencies / downstream consumers ·
+      Known behavioural uncertainties
+
+    8.1  Admin — TIER 1, the deepest chapter in the document:
+         System User Management (Admin/ESS roles and what each grant means operationally;
+         enabled vs disabled status; the employee-name autocomplete as a binding business
+         constraint — a system user must be bound to a real employee record, which is why
+         free text is rejected; username uniqueness; the password policy as business rules
+         with each user-facing message; password handling at create vs edit)
+         Job Configuration (Job Titles incl. specification attachment; Pay Grades with
+         per-currency min/max bands and the min ≤ max rule; Employment Status; Job Categories;
+         Work Shifts with times and employee assignment)
+         Organization (General Information and its read-only-by-default edit toggle and why
+         that protects data; Locations with employee counts; Structure hierarchy, parent/child
+         semantics and the cascade consequence of deleting a parent)
+         Qualifications (Skills, Education, Licenses, Languages, Memberships as the controlled
+         vocabularies that make competency data searchable)
+         Nationalities (and the integrity question of removing a value already in use)
+         Corporate Branding (logos, banner, background, theme colours with live preview,
+         reset to default — framed as brand consistency, not cosmetics)
+         Configuration (Email Configuration and its conditional SMTP field set; Email
+         Subscriptions; Localization and the system-wide date format effect; Language
+         Packages; Modules toggles; Social Media Authentication; Register OAuth Client).
+         For every Configuration screen, state the BLAST RADIUS in business terms:
+         who is affected when an administrator changes it.
+    8.2  PIM          — TIER 3
+    8.3  Leave        — TIER 3, include the leave request state machine
+    8.4  Time         — TIER 3, include the timesheet state machine
+    8.5  Recruitment  — TIER 3, include the candidate pipeline state machine
+    8.6  My Info      — TIER 3, include the self-service edit boundary
+    8.7  Performance  — TIER 3
+    8.8  Dashboard    — TIER 3
+    8.9  Directory    — TIER 3
+    8.10 Maintenance  — TIER 3, flag as destructive-by-design, observe-only on a shared demo
+    8.11 Claim        — TIER 3, include the claim state machine
+    8.12 Buzz         — TIER 3
+    8.13 Cross-Cutting Surfaces (COR) — TIER 3: login and forgot-password; unauthenticated
+         deep-link redirect; top bar dropdown; sidebar search and collapse; breadcrumbs;
+         the global toast layer; session timeout and post-logout back-navigation; 404 and
+         route guarding
+9.  Business Rules & Data Integrity — the global CRUD contract, defined ONCE as a normative
+    BR-nn table (id | rule | business rationale | user-visible evidence | modules governed).
+    Cover: mandatory-field enforcement with no partial record creation; field-adjacent inline
+    validation in plain language; duplicate prevention on business keys; length/numeric/email/
+    URL/date-time boundaries; conjunctive search and filter semantics with a working reset;
+    explicit empty-state messaging; pagination integrity (declared count matches reality, no
+    record on two pages, none lost, count updates after create and delete); a success or
+    failure notification for every save, update and delete — silence is a defect; confirmation
+    dialogs on all destructive actions with cancel non-destructive; cancel-discards-input;
+    referential integrity when deleting a value already in use; file upload type and size
+    validation; workflow state-transition integrity; approval authority (no actor approves
+    their own submission); data visibility boundaries (an ESS user sees only their own records)
+10. User Stories & Acceptance Criteria — grouped Module → Epic → Stories → Criteria.
+    Full form: **US-<MOD>-nn-yy** — As a <persona>, I want <capability>, so that <outcome>.
+    Then priority, module, QA cycle status, dependent BR-nn ids, and Gherkin criteria in
+    ```gherkin fences.
+    GHERKIN MUST BE DOMAIN LANGUAGE. "the administrator saves the user", "a confirmation
+    message is displayed" — never CSS selectors, never oxd- class names, never Playwright
+    calls, never element ids. If a criterion cannot be expressed without naming a selector,
+    it is an implementation detail and belongs in the appendix.
+    Coverage: Tier 1 — happy path, mandatory-empty, duplicate, boundary, invalid format,
+    cancel, delete-confirm and delete-cancel, empty search, pagination.
+    Tier 3 — happy path, primary negative case, and each workflow state transition.
+11. Non-Functional & UX Requirements (NFR-nn) — form accessibility (visible labels and
+    accessible names, mandatory markers, errors associated with their field, keyboard-
+    completable primary flows, colour never the sole carrier of meaning); perceived
+    responsiveness with a stated budget; viewport responsiveness at 1920×1080, 1366×768
+    and 768×1024 with per-viewport expectations for sidebar, tables and modals; session
+    handling (clean redirect on expiry, deep-link guarding, post-logout back-navigation);
+    error and empty-state quality free of internal codes; cross-module consistency of
+    terminology, button placement and confirmation patterns
+12. Assumptions, Constraints, Dependencies & Risks — separate tables. Must include: the
+    shared public demo and its periodic data reset; concurrent mutation by other anonymous
+    users; pre-existing product defects in the demo build; screens with global blast radius
+    that are observe-only on a shared instance (Admin Configuration → Modules, Maintenance →
+    Purge); the single-Admin-account limitation on observing role-gated behaviour; and the
+    deliberate API-deferral decision. Risks carry impact, likelihood and mitigation.
+13. Open Questions — numbered register of behaviours needing confirmation in Milestone 2
+14. Appendix A — Automation Alignment: restate the two-scopes distinction; map gates G1–G5
+    to what each guarantees the business; traceability matrix
+    BO-nn → Module → EPIC → US → TC_ADM_xx_nnn (pending M3) → Automation_ID (pending M5),
+    with non-Admin stories marked `pending future cycle`; quality metrics as business
+    outcomes; a future-cycle module roadmap; and a pointer note stating that POM standards,
+    locator strategy, wait strategy and healing process remain governed by
+    .specify/memory/constitution.md and plan.md and are deliberately not restated here
+15. Appendix B — Glossary of business terms across the platform
+
+## HONESTY RULE (non-negotiable)
+Do not invent application behaviour. Where you cannot confirm how the live demo actually
+behaves — exact validation message wording, precise field length limits, the date format in
+use, referential-integrity behaviour on delete, file type and size limits, which workflow
+transitions a role is actually offered, whether a module is enabled on this build — do NOT
+guess a value and present it as a requirement.
+
+Write the requirement at the level you can defend, and mark the unknown explicitly:
+
+> **TO CONFIRM (M2 — Exploration):** exact maximum length of the Job Title field.
+
+Add every marker to the Open Questions register in §13. Be especially disciplined in Tier 3
+chapters, where the temptation to fill gaps from general HRIS knowledge is strongest — you
+are specifying THIS build of THIS demo, not HRIS software in general. An invented constant
+is worse than an acknowledged gap, because it will be silently encoded into a test assertion
+two milestones later.
+
+## Output
+Write the complete document to `deliverables/01-prd/prd.md`.
+Create the directory if it does not exist. Write the file — do not print it to the terminal
+instead. Clean Markdown: ATX headings, strict hierarchy, tables for every structured set,
+```gherkin fences for criteria, no raw HTML. Consistency across the thirteen chapters is
+mandatory — same section order, same table columns, same heading depth everywhere.
+
+## Definition of Done — verify and report each line
+- [ ] deliverables/01-prd/prd.md written in place; no duplicate file created
+- [ ] Every pre-existing EPIC-ADM-*, US-*, NFR-*, BO-* id preserved verbatim
+- [ ] All 12 modules + the cross-cutting chapter present, identical template each
+- [ ] Tier declared in every chapter header; Admin is visibly the deepest
+- [ ] Two-scopes table in §6 and Appendix A; every non-Admin chapter carries the QA CYCLE marker
+- [ ] Cross-module dependency map and the end-to-end hire journey present in §7
+- [ ] All four state machines specified (Leave, Timesheet, Candidate, Claim)
+- [ ] Zero API, REST, HTTP, database or backend requirements in the body
+- [ ] Zero CSS selectors, oxd- class names or Playwright references outside Appendix A
+- [ ] Every BR-nn has id, rationale, user-visible evidence and modules governed
+- [ ] Every story has Gherkin at the depth its tier requires
+- [ ] All three viewports named explicitly in §11
+- [ ] Traceability appendix present; unassigned ids marked `pending`, never fabricated
+- [ ] Every unverified constant carries a TO CONFIRM marker and appears in Open Questions
+- [ ] Markdown renders cleanly; TOC matches headings
+
+Report: the checklist results, counts of modules / epics / stories / business rules produced,
+and the number of TO CONFIRM markers raised.
+
+Then STOP at Gate G1 and wait for my sign-off. Do not begin Milestone 2.
+```
+
+---
+````
+
+**Produced:** deliverables/01-prd/prd.md v1 (personas, scope, Epics/Stories/Gherkin, NFRs, assumptions/risks, traceability seed).
+
+**Notes:** Written in Arabic (Egyptian dialect) with the technical brief in English, as sent.
+
+---
+### #5 — 2026-09-19T23:12:49Z — Gate G1
+
+**Purpose:** Verification commands for the Admin-vs-total story count
+
+````
+cd deliverables/01-prd
+
+# كام ستوري للأدمن مقابل الباقي
+grep -o 'US-[A-Z]*-\?[0-9-]*' prd.md | sort -u | wc -l
+grep -c 'US-0[0-9]-' prd.md              # الأدمن (الـ legacy ids)
+grep -o 'US-\(PIM\|LEV\|TIM\|REC\|MYI\|PRF\|DSH\|DIR\|MNT\|CLM\|BUZ\|COR\)' prd.md | sort | uniq -c
+
+# الـ ids القديمة اتحافظ عليها؟
+grep -c 'EPIC-ADM-0' prd.md
+
+# عمق الجيركين: في negative/boundary ولا happy path بس؟
+grep -c '```gherkin' prd.md
+grep -ci 'Scenario Outline' prd.md
+
+# الـ TO CONFIRM موزّعة إزاي
+grep -n 'TO CONFIRM' prd.md
+
+# حجم الملف
+wc -w prd.md
+````
+
+**Produced:** Story-count verification against prd.md.
+
+**Notes:** Shell commands with Arabic inline comments, as sent.
+
+---
+### #6 — 2026-09-19T23:21:23Z — Gate G1
+
+**Purpose:** Corrective: mint the missing Qualifications/Nationalities story ids before G1 sign-off
+
+```
+Resolve item 1 before G1 sign-off. Mint the missing story ids in BOTH
+.specify/specs/001-admin-ui/spec.md and deliverables/01-prd/prd.md, keeping them identical.
+
+This is an ADDITION, not a renumbering — do not touch any existing id.
+
+EPIC-ADM-04 (Qualifications) — five sub-modules, five stories:
+  US-04-01 Skills · US-04-02 Education · US-04-03 Licenses
+  US-04-04 Languages · US-04-05 Memberships
+EPIC-ADM-05 (Nationalities):
+  US-05-01 Nationalities CRUD
+
+Each story gets the full form (As a / I want / So that), priority, dependent BR-nn ids,
+and inline Tier 1 Gherkin. Do not duplicate the shared CRUD contract prose — reference
+the BR-nn ids and write the screen-specific scenarios only:
+  - US-04-01 Skills: the long-description retention case on edit
+  - US-04-02 Education: the Level field as the business key
+  - US-04-05 Memberships: bulk delete from the list with count update
+  - US-05-01 Nationalities: deleting a nationality already assigned to an employee —
+    write this as an OBSERVATION scenario with a TO CONFIRM (M2) marker; do not assert
+    whether it is blocked or cascaded
+Each screen still needs its field inventory table if one is missing.
+
+Then update the §10.1 US-02 Examples table so it references these ids rather than
+carrying Qualifications and Nationalities anonymously, and refresh the Appendix A
+traceability matrix.
+
+Re-run the G1 checklist. Report the new story count, gherkin block count, TO CONFIRM
+count, and confirm spec.md and prd.md ids match. Stop at G1.
+```
+
+**Produced:** US-04-01..05 and US-05-01 added to spec.md and prd.md identically.
+
+---
+### #7 — 2026-09-19T23:26:43Z — Gate G1
+
+**Purpose:** Id-parity verification command
+
+```
+diff <(grep -o 'US-0[0-9]-[0-9][0-9]' deliverables/01-prd/prd.md | sort -u) \
+     <(grep -o 'US-0[0-9]-[0-9][0-9]' .specify/specs/001-admin-ui/spec.md | sort -u)
+```
+
+**Produced:** diff confirming spec.md/prd.md story-id parity.
+
+---
+### #8 — 2026-09-19T23:28:05Z — Gate G1
+
+**Purpose:** Sign-off
+
+```
+Gate G1 approved. prd.md is signed off.
+```
+
+**Produced:** Gate G1 approved.
+
+---
+
+## Pre-M2 — Tooling Setup
+
+### #9 — 2026-09-19T23:28:22Z — Gate —
+
+**Purpose:** Require a real, working browser tool before M2 begins — no exploration from memory
+
+```
+Before Milestone 2: confirm you have a working browser tool in this session that can
+actually load https://opensource-demo.orangehrmlive.com/ and log in with Admin/admin123.
+
+Navigate there now, log in, and tell me the exact build/version string from the page
+footer and the exact text of the page heading after login.
+
+If you cannot drive a real browser, say so plainly and stop — do not proceed to
+Milestone 2, because an exploration written from memory is worthless and everything
+downstream would be built on it.
+```
+
+**Produced:** A hard precondition on M2: confirm live browser access or stop.
+
+---
+### #10 — 2026-09-19T23:29:28Z — Gate —
+
+**Purpose:** Register the Playwright MCP server
+
+```
+claude mcp add playwright -- npx -y @playwright/mcp@latest
+```
+
+**Produced:** MCP server registration command.
+
+---
+### #11 — 2026-09-19T23:32:28Z — Gate —
+
+**Purpose:** Create .mcp.json for the Playwright MCP server
+
+```
+Create a file named `.mcp.json` in the repo root with exactly this content:
+
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}
+
+Then tell me to restart the session.
+```
+
+**Produced:** .mcp.json created.
+
+---
+### #12 — 2026-09-19T23:34:16Z — Gate —
+
+**Purpose:** Verify the MCP server loaded and do a first live browser check
+
+```
+Re-read CLAUDE.md and .specify/memory/constitution.md.
+
+Context: Gate G1 is approved — deliverables/01-prd/prd.md is signed off (50 stories,
+33 Admin / 17 non-Admin, 8/8 Admin epics traced, id parity with spec.md verified).
+We are about to start Milestone 2.
+
+First, verify the Playwright MCP server actually loaded. List the browser tools you
+now have available.
+
+If it loaded: navigate to https://opensource-demo.orangehrmlive.com/, log in with
+Admin/admin123, and report exactly what you see —
+1. the build/version string in the page footer
+2. the exact text of the main heading after login
+3. the exact placeholder text of the Username field on the login page
+
+Report only what you actually observe. Then stop and wait.
+```
+
+**Produced:** First live check of the demo's build string and login heading.
+
+**Notes:** Session had to be restarted for the MCP tool to load; see #13/#14.
+
+---
+### #13 — 2026-09-19T23:35:16Z — Gate —
+
+**Purpose:** Fix: install bundled Chromium so the MCP browser tool actually launches
+
+```
+Yes — install the browser, then retry.
+
+Run: npx playwright install chromium
+
+Then update .mcp.json to use bundled Chromium instead of the system Chrome channel:
+
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--browser", "chromium"]
+    }
+  }
+}
+
+Tell me when the install finishes so I can restart the session again.
+```
+
+**Produced:** npx playwright install chromium; .mcp.json updated to force the chromium channel.
+
+---
+### #14 — 2026-09-19T23:35:59Z — Gate —
+
+**Purpose:** Retry of #12 after the Chromium install, in a new session
+
+```
+Re-read CLAUDE.md and .specify/memory/constitution.md.
+
+Context: Gate G1 approved, prd.md signed off. About to start Milestone 2.
+
+Navigate to https://opensource-demo.orangehrmlive.com/, log in with Admin/admin123,
+and report exactly what you observe —
+1. the build/version string in the page footer
+2. the exact text of the main heading after login
+3. the exact placeholder text of the Username field on the login page
+
+Report only what you actually see. Then stop and wait.
+```
+
+**Produced:** Same first-live-check request, re-sent after the session restart.
+
+**Notes:** Near-duplicate of #12 — sent again because the tooling fix in #13 required a fresh session.
+
+---
+### #15 — 2026-09-19T23:41:02Z — Gate —
+
+**Purpose:** Recreate the missing CLAUDE.md from the source pack
+
+```
+CLAUDE.md is missing from the workspace root. Create it by copying the master system
+prompt file from this pack — look for MASTER_SYSTEM_PROMPT.md (check the repo root and
+any folder where the SpecKit pack was unpacked).
+
+If you find it: copy it verbatim to CLAUDE.md in the workspace root.
+If you cannot find it anywhere: tell me and I will paste the content.
+
+Then read CLAUDE.md and confirm you can see section 5, the OrangeHRM UI survival guide.
+Report the titles of the sections you find in it.
+```
+
+**Produced:** Request to locate and copy MASTER_SYSTEM_PROMPT.md verbatim to CLAUDE.md.
+
+---
+### #16 — 2026-09-19T23:43:33Z — Gate —
+
+**Purpose:** Create CLAUDE.md at the workspace root with its exact, full content
+
+````
+Create `CLAUDE.md` at the WORKSPACE ROOT (next to .specify/ and .claude/ — NOT inside
+deliverables/) with exactly this content:
+
+# MASTER SYSTEM PROMPT — OrangeHRM UI SpecKit Pipeline (SDD)
+
+## 1. ROLE
+
+You are a **Principal QA Automation Architect** operating a **Spec-Driven Development (SDD)**
+pipeline. You do not "write tests on request". You execute a gated, auditable pipeline whose
+outputs are artifacts a client would accept as a deliverable.
+
+You behave like a senior engineer in a regulated environment:
+- You never claim a step is done without the artifact on disk.
+- You never assert a defect you did not observe in the UI.
+- You never skip a gate because the next step looks more interesting.
+
+## 2. MISSION
+
+Execute a full QA cycle against **OrangeHRM Demo**, UI only.
+
+| Key | Value |
+|---|---|
+| Target | `https://opensource-demo.orangehrmlive.com/` |
+| Credentials | `Admin` / `admin123` |
+| Scope | **100% UI. Zero API testing.** No `request.` fixtures, no direct HTTP assertions, no DB access. |
+| Module under test | **Admin** (all sub-modules) |
+| Stack | Playwright + TypeScript, Page Object Model |
+| Output language | English, professional, client-deliverable |
+
+**The API prohibition is absolute.** Playwright's `page.route()` may be used *only* for
+observability (logging a failing XHR into a healing note). It may never be used to stub,
+mock, seed, or shortcut a UI flow. Login happens through the login form; `storageState`
+reuse is permitted **only after** at least one real UI login has been recorded in the run.
+
+## 3. NON-NEGOTIABLE PIPELINE ORDER
+
+```
+M1 prd.md
+   └─> M2 exploration.md        (manual UI exploration — NO automation yet)
+          └─> M3 test_design.csv (valid in scope / needs automation)
+                 └─> M4 agent_execution_report.html (manual execution + bugs)
+                        └─> M5 Playwright POM + healing_process.md
+```
+
+**Gate rule:** you may not begin milestone *N+1* until milestone *N*'s artifact exists on
+disk, is non-empty, and passes its Definition of Done in `.specify/specs/001-admin-ui/tasks.md`.
+If the user asks you to jump ahead, state the gate you would be skipping, then either
+(a) backfill the missing artifact, or (b) proceed only on explicit override and record
+`GATE-OVERRIDE` at the top of the produced artifact.
+
+**Manual-first rule:** Milestone 2 and Milestone 4 are *human-style exploration and execution*.
+You drive the real UI and record what you observe. You do not write a single `*.spec.ts`
+before M4 is signed off. The demo site is known to be buggy and flaky; the whole point of
+M2/M4 is to separate **product defects** from **automation instability** *before* those
+defects get baked into assertions.
+
+## 4. REPOSITORY CONTRACT
+
+```
+.
+├── CLAUDE.md                          # this prompt
+├── .specify/
+│   ├── memory/constitution.md         # governing law — read before every milestone
+│   └── specs/001-admin-ui/
+│       ├── spec.md                    # PRD + Epics + Stories + Gherkin AC
+│       ├── plan.md                    # tech plan
+│       └── tasks.md                   # milestone breakdown + DoD
+├── .claude/commands/                  # /analyze /coverage /code-review /heal
+├── deliverables/
+│   ├── 01-prd/prd.md
+│   ├── 02-exploration/exploration.md
+│   ├── 03-test-design/test_design.csv
+│   ├── 04-execution/agent_execution_report.html
+│   ├── 04-execution/evidence/         # screenshots referenced by the HTML report
+│   └── 05-automation/healing_process.md
+├── src/
+│   ├── pages/                         # Page Objects — no assertions inside
+│   │   ├── base/BasePage.ts
+│   │   ├── LoginPage.ts
+│   │   └── admin/*.ts
+│   ├── components/                    # oxd primitives: Dropdown, Autocomplete, Toast, Table, Dialog, DatePicker
+│   ├── fixtures/                      # auth fixture, page fixture, data fixture
+│   ├── utils/                         # locator factory, wait helpers, data factory, logger
+│   └── data/                          # test data builders (no hardcoded IDs)
+├── tests/admin/*.spec.ts
+├── playwright.config.ts
+└── reports/                           # html + allure output (git-ignored)
+```
+
+Module-agnostic rule: **nothing** in `src/base`, `src/components`, `src/fixtures`, or
+`src/utils` may mention "Admin". Swapping the module under test must require only a new
+`spec.md` + new `src/pages/<module>/` + new `tests/<module>/`. If you are tempted to put an
+Admin-specific wait, selector, or constant in a shared file — stop, that is an architecture
+violation.
+
+## 5. ORANGEHRM UI SURVIVAL GUIDE (authoritative)
+
+The app is an `oxd`-component Vue SPA. Naive locators will fail. These rules are binding.
+
+### 5.1 Locator strategy — strict priority order
+1. `getByRole` with accessible name.
+2. **Label-anchored field factory** (the workhorse — most OrangeHRM inputs have no
+   `id`, `name`, or `placeholder`):
+   `page.locator('.oxd-input-group').filter({ hasText: /^Username$/ }).locator('input')`
+   Wrap this once in `utils/fieldFactory.ts` as `field(label)`, `dropdown(label)`,
+   `autocomplete(label)`. Never inline it in a test.
+3. `getByPlaceholder` / `getByText` where genuinely stable (e.g. `Type for hints...` is
+   **not** stable — it repeats across the page).
+4. Scoped CSS on `oxd-` classes, always chained from a container.
+5. XPath — **forbidden** except in a healing note documenting why nothing else worked,
+   and never positional (`div[2]/div/input` is an automatic `/code-review` rejection).
+
+Forbidden outright: index-based `nth()` on business data, absolute XPath, selectors
+containing generated ids, `:has-text` on values that are also substrings of other rows.
+
+### 5.2 The oxd component traps
+
+| Component | Trap | Mandated handling |
+|---|---|---|
+| `.oxd-select-text` dropdown | Not a `<select>`. `selectOption()` throws. | Click `.oxd-select-text`, wait for `.oxd-select-dropdown`, click `.oxd-select-option` by exact text. Assert the trigger's text after selection. |
+| `.oxd-autocomplete-text-input input` (Employee Name, Supervisor) | Debounced remote hint list; picking nothing leaves the field "Invalid". | Type partial, `await expect(dropdown.getByRole('option')).toBeVisible()`, click exact option, then assert no `.oxd-input-field-error-message`. Never `fill()` and tab away. |
+| `.oxd-toast` | Auto-dismisses in ~3–5s → classic race: assertion runs after it vanishes. | Start the wait **before** the click (`const toast = page.locator('.oxd-toast-content--success'); await Promise.all([toast.waitFor(), saveBtn.click()])`). Never `waitForTimeout` then assert. |
+| `.oxd-loading-spinner` | Overlays and swallows clicks; appears *after* the click. | `await expect(spinner).toHaveCount(0)` in a shared `waitForIdle()` — and call it before interactions, not after. |
+| `.oxd-table-card` rows | Row order changes; "No Records Found" is a `div`, not an empty table. | Locate rows by cell text within `.oxd-table-body`; assert the empty state explicitly. Always paginate via `.oxd-pagination`, never assume page 1. |
+| `.oxd-checkbox-input` | Real `<input>` is visually hidden → `check()` fails "not visible". | Click the `.oxd-checkbox-wrapper` / label, then assert `--checked` class or `isChecked()`. |
+| `.oxd-date-input` | Demo default format is **yyyy-dd-mm** (not ISO). Calendar widget is fragile. | Type the string in the app's declared format; read the format hint from the field. Log the format as a usability finding in M2. |
+| `.oxd-dialog-container` (delete confirm) | Destructive confirm is a separate modal. | Scope to the dialog, click `Yes, Delete` by role+name, wait for dialog detach **and** toast. |
+| Corporate Branding | Hidden `input[type=file]`, colour pickers. | `setInputFiles()` on the hidden input; treat colour pickers as low-automation-value → `needs automation = No` with justification. |
+| Organization → Structure | Lazy-loaded tree nodes. | Expand parent, wait for child node text, then act. Never pre-compute depth. |
+| Left sidebar | Collapsible; DOM differs collapsed vs expanded. | Normalise to expanded in `BasePage.goto()`. |
+
+### 5.3 Environment realities
+- **Shared public demo.** Other users mutate data concurrently. Every test creates its own
+  uniquely-suffixed data (`e2e_<epic>_<ts>`) and cleans up in `afterEach`. Zero dependency
+  on seeded records.
+- **Periodic data reset.** Never assert on a record you did not create in the same test.
+- **Rate limiting / 5xx under load.** `workers: 2` max against the demo host; retries `1`
+  locally, `2` in CI. A test that only passes on retry is a healing candidate, not a pass.
+- **Session expiry / forced logout** mid-run → the auth fixture must detect a redirect to
+  `/auth/login` and re-authenticate once before failing.
+- **`networkidle` is unreliable** on this SPA (polling/analytics). Banned. Use element-state waits.
+- **Playwright strict mode** violations are common (duplicate menu text, repeated row values).
+  Resolve by scoping, never by `.first()`.
+
+### 5.4 Known-defect discipline
+The demo has genuine product bugs. You must:
+- record each as `BUG-###` in `exploration.md` with steps, expected, actual, severity, evidence;
+- mark the corresponding test case `valid in scope = No` **only** if the defect makes the
+  case un-executable, with the reason naming the bug id;
+- never write an automated assertion that encodes buggy behaviour as correct. If a test must
+  pass against a broken feature, `test.fixme()` it with a link to the bug id.
+
+## 6. ARTIFACT CONTRACTS
+
+### M1 `deliverables/01-prd/prd.md`
+Vision, scope, personas, in/out of scope (API explicitly out), module inventory for **all 12
+UI modules**, then Admin deep-dive: Epics → User Stories → Gherkin acceptance criteria,
+NFRs, assumptions, risks, traceability seed ids.
+
+### M2 `deliverables/02-exploration/exploration.md`
+Per sub-module: navigation path, UI inventory, observed behaviour, **findings table**
+(`FIND-###` usability/UX) and **bug table** (`BUG-###` functional), locator risk register
+(element → chosen locator → stability rating → fallback), flakiness log, screenshots in
+`evidence/`. No automation code in this milestone.
+
+### M3 `deliverables/03-test-design/test_design.csv`
+Exact header (order fixed, the two mandated columns spelled exactly as below):
+
+```
+TC_ID,Epic_ID,Story_ID,Module,Sub_Module,Title,Preconditions,Test_Steps,Test_Data,Expected_Result,Type,Priority,valid in scope,scope_reason,needs automation,automation_reason,Automation_ID,Linked_Bug
+```
+
+- `valid in scope`: `Yes` / `No` — is this case executable and in UI scope on this demo?
+- `needs automation`: `Yes` / `No` — is it worth automating (repeatable, deterministic, high value)?
+- Every `No` in either column **must** have a non-empty reason cell.
+- Multi-line steps use `\n` inside a quoted cell. UTF-8, RFC-4180 quoting, comma-safe.
+- Coverage target: every Story_ID in `spec.md` appears at least once, positive + negative + boundary.
+
+### M4 `deliverables/04-execution/agent_execution_report.html`
+Single self-contained HTML (inline CSS/JS, no CDN). Sections: run metadata, executive
+summary with pass/fail/blocked donut, results table filterable by status/priority/sub-module,
+**bug report cards** (id, title, severity, priority, steps, expected, actual, evidence,
+status), traceability matrix Story → TC → Result, and a flakiness/observation appendix.
+Only `valid in scope = Yes` cases are executed here.
+
+### M5 Automation + `deliverables/05-automation/healing_process.md`
+Playwright POM implementing every `needs automation = Yes` case. Healing doc is an
+**experiment log**, one entry per failure:
+`ID | Timestamp | Test | Symptom | Raw error | Hypothesis | Diagnosis (root cause class) | Fix applied | Verification (N consecutive green) | Prevention rule added`.
+Root cause classes: `LOCATOR_DRIFT | TIMING | STATE_POLLUTION | ENV_INSTABILITY | PRODUCT_BUG | TEST_LOGIC`.
+A fix that only adds a hard wait is rejected — escalate to an element-state wait and say so.
+
+## 7. COMMANDS
+
+`/analyze`, `/coverage`, `/code-review`, `/heal` are defined in `.claude/commands/`.
+Read the command file before executing it. Each produces or updates a named artifact —
+a command that prints to chat only has not run.
+
+## 8. WORKING PROTOCOL
+
+1. **Read first:** `.specify/memory/constitution.md`, then the current milestone in
+   `.specify/specs/001-admin-ui/tasks.md`.
+2. **Announce** the milestone, its inputs, its DoD, and the gate you just verified.
+3. **Execute** in small commits; one artifact per milestone.
+4. **Verify** against the DoD checklist and paste the checklist result.
+5. **Stop** at the gate. Ask for sign-off before the next milestone.
+6. **Never fabricate.** If you did not open the page, you do not know what it does. Say
+   "not yet explored" rather than inventing a field list.
+7. **Evidence or it didn't happen.** Bugs need screenshots; healing entries need the raw
+   error text; coverage claims need the CSV row ids.
+
+---
+
+After creating the file, confirm its path and list the subsection titles you find in §5.
+````
+
+**Produced:** CLAUDE.md (the standing master system prompt governing the whole pipeline) written to the repo root.
+
+---
+
+## M2 — Exploration
+
+### #17 — 2026-09-19T23:46:52Z — Gate G2
+
+**Purpose:** Milestone 2 kickoff: the full manual UI exploration brief
+
+```
+# MILESTONE 2 — UI Exploration & Findings
+
+## Context
+SpecKit pipeline per CLAUDE.md, governed by .specify/memory/constitution.md.
+Gate G1 is signed off. This is Milestone 2 (Gate G2).
+
+Assignment inputs:  project URL + deliverables/01-prd/prd.md + selected coverage scope
+Assignment output:  exploration findings as a markdown file
+Selected coverage scope: Admin module, UI only, all 7 sub-modules.
+
+## Pre-work
+1. Read .specify/memory/constitution.md (Articles I, II, V, VI in particular).
+2. Read Milestone 2 and its DoD in .specify/specs/001-admin-ui/tasks.md.
+3. Read deliverables/01-prd/prd.md section 8.1 (Admin) and section 13 (Open Questions).
+4. Read the OrangeHRM survival guide in CLAUDE.md section 5.
+5. Create deliverables/02-exploration/exploration.md and
+   deliverables/02-exploration/evidence/ .
+
+## THE HARD RULE OF THIS MILESTONE
+You are exploring a live application manually. You may ONLY write down what you have
+actually observed on screen in this session.
+
+- Zero automation code. No .spec.ts file may exist when this milestone ends.
+  Driving the browser interactively to LOOK at the app is exploration. Writing a test
+  that asserts something is Milestone 5. Do not cross that line.
+- Zero API calls, zero network stubbing, zero database access. UI only.
+- If you did not open the screen, you do not know what is on it. Write
+  "not explored — <reason>" rather than inventing a field list.
+- Do not describe behaviour from general OrangeHRM knowledge. You are documenting
+  THIS build (OrangeHRM OS 5.9) of THIS demo, today.
+
+## Credentials and safety
+Admin / admin123 at https://opensource-demo.orangehrmlive.com/
+This is a SHARED PUBLIC demo. Constitution Article VI applies:
+- Prefix every record you create with `e2e_` plus a unique suffix.
+- Delete what you create; never delete a record you did not create.
+- Never change the Admin account's credentials, never disable the Admin user.
+- Admin > Configuration > Modules and Maintenance > Purge have global blast radius:
+  OBSERVE ONLY. Open the screen, inventory it, do not toggle or execute anything.
+- Branding and Localization: if you change something, revert it in the same visit and
+  record that you did.
+
+## Procedure
+
+### Step 1 — Environment capture
+Record: URL, build string (OrangeHRM OS 5.9 — confirm), browser and version, viewport,
+session date and time, account used.
+
+### Step 2 — Walk every Admin sub-module
+For each of the 7 sub-modules (User Management, Job, Organization, Qualifications,
+Nationalities, Corporate Branding, Configuration) and each screen within them:
+  - navigation path taken
+  - screen inventory: every field with its actual control type, whether it is marked
+    mandatory, visible constraints, and every button/action available
+  - default state: record count shown, default filter values, the exact empty-state text
+  - a screenshot of the landing screen into evidence/
+
+### Step 3 — Exercise the behaviour
+On each form, actually perform and record the real outcome of:
+  happy-path create · submit with mandatory fields empty · duplicate of an existing value ·
+  a value at and beyond the apparent length limit · an invalid format where the field
+  implies one · cancel from a filled form · delete then cancel the dialog · delete then
+  confirm · search with a match · search with no match · pagination across pages if the
+  data supports it
+
+Record the EXACT wording of every validation message, toast, and empty state. Verbatim,
+in quotes. This wording becomes the assertion text in Milestone 5 — paraphrasing it here
+guarantees a false failure later.
+
+### Step 4 — Resolve the Open Questions
+prd.md section 13 contains the TO CONFIRM register from Milestone 1. Work through every
+one of them and answer it with an observation. For each, record the question id, what you
+did, what you saw, and the resolved answer. Anything you genuinely cannot determine from
+the UI stays open with a stated reason.
+
+### Step 5 — Findings register (FIND-nnn)
+Usability, consistency and UX observations that are not functional defects: inconsistent
+error wording across screens, unexpected date format ordering, toast dismissing too fast
+to read, ambiguous labels, missing field hints, inconsistent button placement.
+Columns: ID | Sub-module | Observation | Business impact | Evidence file
+
+### Step 6 — Bug register (BUG-nnn)
+Genuine functional defects. Columns: ID | Title | Sub-module | Severity
+(Critical/High/Medium/Low) | Preconditions | Numbered steps | Expected | Actual |
+Reproducibility (x out of 5 attempts) | Evidence file
+
+Rules:
+- Severity is justified by user impact, never by how hard it was to find.
+- Expected behaviour must be traceable to a prd.md requirement — cite the US or BR id.
+- Attempt every bug 5 times and record the true count. A one-off is an observation,
+  not a defect.
+- If you cannot reproduce it, it goes in the flakiness log, not the bug register.
+- Do not pad this register. An honest 4 reproducible bugs beats 15 speculative ones.
+
+### Step 7 — Locator risk register
+This is what makes Milestone 5 possible. For every interactive element you will later
+need to automate:
+  Element | Screen | Proposed locator | Uniqueness/Stability/Order-independence score
+  | Rating (Stable/Fragile/Volatile) | Failure mode | Mitigation or required wrapper
+
+Every oxd trap from CLAUDE.md section 5.2 that you actually encountered must have a row:
+the .oxd-select-text dropdown, the debounced autocomplete, the auto-dismissing toast,
+the loading spinner overlay, table rows and pagination, the visually-hidden checkbox
+input, the date field and its real format, the delete confirmation dialog, hidden file
+inputs on Corporate Branding, and the lazy-loaded Organization Structure tree.
+
+Record the ACTUAL class names and accessible names you observed on build 5.9 — not the
+ones the survival guide predicted. If the guide is wrong about this build, say so
+explicitly; that correction is a valuable finding.
+
+### Step 8 — Flakiness and environment log
+Non-deterministic behaviour, spinner and toast timing, slow responses, 5xx errors, rate
+limiting, evidence of other users mutating data during your session, session expiry.
+Columns: ID | Observation | Frequency | Suspected cause | Impact on automation
+
+### Step 9 — Automation readiness assessment
+Per sub-module: Ready / Ready-with-wrapper / Not recommended, with the reason.
+This feeds the `needs automation` column in Milestone 3 — write it so that M3 can lift
+the justification directly.
+Also flag per screen whether it is executable at all on this shared demo. This feeds
+`valid in scope`.
+
+## Output
+deliverables/02-exploration/exploration.md, with all screenshots in
+deliverables/02-exploration/evidence/ referenced by relative path.
+
+## Definition of Done — verify and report each line
+- [ ] All 7 Admin sub-modules and every screen within them walked and documented
+- [ ] Environment and build string captured
+- [ ] Every validation message, toast and empty state recorded VERBATIM in quotes
+- [ ] Every prd.md section 13 Open Question answered, or left open with a reason
+- [ ] Every bug has severity, numbered steps, expected vs actual, x/5 reproducibility,
+      evidence, and a cited US or BR id for the expected behaviour
+- [ ] Every screen has at least one locator risk row; every encountered oxd trap has a row
+- [ ] Automation readiness stated per sub-module, with reasons written to feed M3
+- [ ] Executability stated per screen, to feed `valid in scope`
+- [ ] Zero .spec.ts files exist anywhere in the repo
+- [ ] Zero API/network-stubbing was used
+- [ ] Every e2e_ record created was deleted; nothing outside my own records was touched
+
+Report: the checklist, counts of FIND / BUG (by severity) / locator rows by rating /
+flakiness entries, how many Open Questions were resolved versus left open, and the three
+highest-risk findings for automation.
+
+Then STOP at Gate G2 and wait for my sign-off. Do not begin Milestone 3.
+```
+
+**Produced:** deliverables/02-exploration/exploration.md — the complete exploration procedure (9 steps), rules, and Definition of Done.
+
+---
+### #18 — 2026-09-20T00:33:20Z — Gate G2
+
+**Purpose:** The M2 back-propagation prompt: correct prd.md/spec.md against what M2 actually observed
+
+```
+Two corrections before G2 sign-off. Do both, then re-report.
+
+## 1. Back-propagate the M2 observations into prd.md and spec.md
+
+M2 proved that prd.md contains at least one factually wrong requirement. Fix the
+document so Milestone 3 does not encode a false assertion.
+
+For every observation that contradicts or resolves what the PRD assumed:
+
+a) FIND-002 — correct the US-01-06 password policy Gherkin to the OBSERVED policy on
+   build 5.9 (>=7 characters, >=1 number, no case requirement). Quote the exact
+   validation message wording you recorded. Remove the invented upper-case scenario.
+
+b) BUG-001 — US-05-01's Nationalities delete scenario is currently an observation
+   scenario. Convert it to an asserted scenario describing the ACTUAL behaviour
+   (deletion succeeds and silently nulls the employee's field), and annotate it
+   `KNOWN DEFECT: BUG-001`. Do not write the desired behaviour as if it were the
+   requirement — write what the product does, and record the gap as the defect.
+
+c) Every other TO CONFIRM marker that M2 resolved: replace the marker with the observed
+   fact, in the exact wording recorded. Any that M2 could not resolve stays marked, with
+   the reason updated.
+
+d) Apply the same edits to .specify/specs/001-admin-ui/spec.md so the two stay identical
+   on ids and consistent on content.
+
+e) Add a short "M2 corrections" subsection to prd.md section 13 listing every requirement
+   that changed, with the FIND/BUG/OQ id that caused the change. This is the audit trail
+   showing the pipeline worked.
+
+## 2. Answer the tasks.md question you raised
+
+My rulings:
+- The TC_ADM_xx_nnn catalogue belongs to Milestone 3, not M2. Do not produce it now.
+- Updating spec.md's observation scenarios IS in scope — that is item 1(b) above.
+
+## Then re-run the G2 DoD checklist and additionally confirm:
+- [ ] No requirement in prd.md now contradicts a recorded M2 observation
+- [ ] Every resolved TO CONFIRM replaced with the observed fact, verbatim
+- [ ] Known defects annotated in the Gherkin rather than written as correct behaviour
+- [ ] prd.md and spec.md id parity still holds (run the diff)
+- [ ] section 13 "M2 corrections" subsection present
+
+Report the count of requirements corrected, then stop at G2 again.
+```
+
+**Produced:** FIND-002's password-policy correction, BUG-001's Nationalities scenario converted to an asserted known-defect scenario, every resolved TO CONFIRM marker replaced, and prd.md §13 "M2 corrections" audit trail added.
+
+---
+### #19 — 2026-09-20T00:43:21Z — Gate G2
+
+**Purpose:** G2 verification checklist after the back-propagation
+
+```
+Re-read CLAUDE.md and .specify/memory/constitution.md.
+
+Context: Milestone 1 is signed off. Milestone 2 exploration is complete and 7 requirement
+corrections were back-propagated from M2 observations into prd.md and spec.md. We are at
+Gate G2, awaiting my sign-off. Do not start Milestone 3.
+
+Run these verification checks and report the results:
+
+1. Id parity — run:
+   diff <(grep -o 'US-0[0-9]-[0-9][0-9]' deliverables/01-prd/prd.md | sort -u) \
+        <(grep -o 'US-0[0-9]-[0-9][0-9]' .specify/specs/001-admin-ui/spec.md | sort -u)
+   Report the exit code.
+
+2. Confirm deliverables/02-exploration/exploration.md exists and is non-empty, and that
+   evidence/ contains screenshots referenced by relative path.
+
+3. G2 DoD condition — confirm no .spec.ts exists anywhere outside node_modules.
+   Then list ./pages, ./tests and ./utils at the repo root. If they are empty SpecKit
+   scaffolding, delete them: the contract puts page objects under src/ and tests/ is
+   created fresh in M5.
+
+4. For each file in .claude/commands/, one line each: is it one of OUR four custom
+   commands (analyze = locator stability audit, coverage = requirement coverage audit,
+   code-review = POM compliance, heal = failure diagnosis), or a stock SpecKit command?
+   Delete nothing.
+
+5. Flag any stock command whose internal references do not match our actual documents —
+   e.g. one citing "Article III (Traceability)" when our Article III is "Playwright
+   Design Standards". I want to know which would misfire if invoked, not to fix them.
+
+6. Confirm the remaining command order matches tasks.md:
+   /coverage after the M3 CSV · /analyze after M4 and before any page object is written ·
+   /code-review before the first full suite run · /heal on every M5 failure.
+
+Report and stop.
+```
+
+**Produced:** Id-parity re-check, exploration.md existence check, scaffolding disposition question raised, per-command audit (ours vs. stock SpecKit), pipeline-order confirmation.
+
+---
+
+## M2 → M3 — Pipeline Reconciliation (Gate G2)
+
+### #20 — 2026-09-23T14:27:11Z — Gate G2
+
+**Purpose:** The pipeline-reconciliation prompt: rule CLAUDE.md authoritative over the stock 4-milestone SpecKit scaffolding
+
+```
+Re-read CLAUDE.md.
+
+Context: M1 signed off. M2 exploration complete, 7 requirement corrections
+back-propagated into prd.md and spec.md. We are at Gate G2.
+
+You correctly found that this repo contains TWO conflicting pipelines: the stock SpecKit
+one (4 milestones, root-level pages/tests/utils, stock commands) and ours (5 milestones,
+src/ layout, four custom commands). Resolve it now, before M3.
+
+## Ruling: CLAUDE.md wins
+Everything from M1 onward was produced under CLAUDE.md's model. Reconcile everything else
+to it. Do not rewrite prd.md, spec.md or exploration.md — they are correct.
+
+## Tasks
+
+1. Rewrite .specify/specs/001-admin-ui/tasks.md to CLAUDE.md's five-milestone model:
+   M1 deliverables/01-prd/prd.md
+   M2 deliverables/02-exploration/exploration.md
+   M3 deliverables/03-test-design/test_design.csv  (exact header from CLAUDE.md section 6,
+      including `valid in scope` and `needs automation`)
+   M4 deliverables/04-execution/agent_execution_report.html
+   M5 Playwright POM suite + deliverables/05-automation/healing_process.md
+   Each milestone gets its Definition of Done and its gate (G1-G5).
+   Mark M1 and M2 as COMPLETE, with M2 pending my sign-off.
+   Remove the deliverables/02-exploration/test-design.md line item — that artifact is
+   M3's test_design.csv and lives at the path above.
+
+2. Reconcile .specify/memory/constitution.md with CLAUDE.md where they conflict on
+   pipeline shape, milestone count, and directory layout. Do not weaken any rule —
+   the UI-only prohibition, the manual-first rule, the POM standards, the healing
+   discipline and the shared-demo safety rules all stand. Report every change you make.
+
+3. Report exactly what the pre-existing .spec.ts files and the root pages/tests/utils
+   code are: file paths, line counts, and whether they reference OrangeHRM Admin at all.
+   Do not delete anything yet — tell me first, because this determines whether G2's
+   "zero .spec.ts" condition was violated by earlier work or by stock scaffolding.
+
+4. Confirm the four custom commands exist at .claude/commands/ : analyze.md, coverage.md,
+   code-review.md, heal.md. Report which are present and which are missing — I have the
+   content for any that are missing.
+
+Report and stop. Do not start M3.
+```
+
+**Produced:** tasks.md rewritten to the 5-milestone/src/ model; constitution.md reconciled; scaffolding disposition reported (not yet deleted).
+
+---
+### #21 — 2026-09-23T14:32:20Z — Gate G2
+
+**Purpose:** Create the four governing custom commands with their exact content
+
+````
+Create these four files in .claude/commands/ , overwriting analyze.md (its current
+content is the stock SpecKit consistency checker, not ours). Leave the other stock
+SpecKit commands untouched.
+
+--- FILE 1: .claude/commands/analyze.md ---
+
+---
+name: analyze
+description: Scan OrangeHRM UI locators and flag unstable/dynamic selectors.
+output: deliverables/02-exploration/locator_risk_register.md
+---
+
+# /analyze — Locator Stability Audit
+
+**Input:** a screen name or URL path (defaults to every Admin sub-module), the live UI, and
+any existing page objects.
+
+## Procedure
+1. Navigate to the target screen through the UI (authenticated, sidebar normalised).
+2. Enumerate every interactive element: inputs, dropdowns, autocompletes, checkboxes,
+   date fields, buttons, table rows/cells, pagination, dialogs, toasts, file inputs, tree nodes.
+3. For each element, generate the candidate ladder in priority order:
+   role+accessible name -> label-anchored .oxd-input-group factory -> data-test
+   (where the app provides it) -> scoped stable text -> structural neighbour -> XPath (last).
+4. Score each candidate 0-3:
+   - Uniqueness — resolves to exactly 1 node (no strict-mode violation).
+   - Semantic stability — depends on meaning, not on structure or generated ids.
+   - Order independence — unaffected by row order, pagination, data volume, or
+     sidebar collapse state.
+5. Classify the element:
+   - Stable — best candidate scores 3/3.
+   - Fragile — 2/3; usable with a documented fallback.
+   - Volatile — 1/3 or less; requires a component wrapper or a design workaround.
+6. Flag automatically, with the reason:
+   - positional or absolute XPath required
+   - generated / hashed / numeric ids
+   - text that also appears elsewhere on the page
+   - .oxd-select-text mistaken for a native select
+   - autocomplete inputs indistinguishable by placeholder
+   - toast/spinner elements that are transient (must be pre-armed)
+   - hidden inputs (checkbox, file) needing wrapper interaction
+   - elements only present after lazy expansion (org tree)
+
+## Output
+Append/refresh a table:
+
+| Element | Screen | Chosen locator | Candidate score | Stability | Failure mode | Mitigation / wrapper |
+
+Plus a summary: counts per stability class, the top 5 highest-risk elements, and any
+new component wrapper the audit proves is required.
+
+## Rules
+- Read-only. /analyze never edits source; it produces the register.
+- Never propose a locator it has not resolved against the live DOM.
+
+--- FILE 2: .claude/commands/coverage.md ---
+
+---
+name: coverage
+description: Validate UI test-case coverage against the Admin module user stories.
+output: deliverables/03-test-design/test_design_coverage.md
+---
+
+# /coverage — Requirement Coverage Audit
+
+**Inputs:** deliverables/01-prd/prd.md and .specify/specs/001-admin-ui/spec.md
+(authoritative ids), deliverables/03-test-design/test_design.csv, and at G5 the
+implemented suite.
+
+## Procedure
+1. Parse all EPIC-ADM-* and US-* ids and every Gherkin scenario (expanding Scenario
+   Outlines into one expected case per Examples row).
+2. Parse the CSV; validate structure first:
+   - header byte-exact, no duplicate TC_ID, RFC-4180 quoting valid
+   - every `valid in scope = No` has a non-empty scope_reason
+   - every `needs automation = No` has a non-empty automation_reason
+   - every `needs automation = Yes` has an Automation_ID
+3. Build the forward matrix Story -> TC_IDs and classify coverage:
+   - Full — positive AND negative AND (boundary where the story implies limits)
+   - Partial — some scenarios covered
+   - None — no case
+4. Build the reverse matrix TC_ID -> Story and flag orphans (cases with no story) —
+   these are either scope creep or a missing requirement; say which.
+5. Depth checks per CRUD screen: create, mandatory-empty, duplicate, boundary length,
+   edit, delete-confirm, delete-cancel, search, empty-state, pagination, reset.
+   Report any missing cell.
+6. At G5 also verify Automation_ID -> an existing test title; report unimplemented and
+   orphan tests.
+
+## Output
+- Coverage matrix table (Story | Scenarios | TC_IDs | Coverage | Gap)
+- Gap list ranked by story priority, each with a concrete proposed TC_ID and title
+- Structural-validation results
+- Headline metrics: story coverage %, scenario coverage %, automation coverage %
+
+## Rules
+- Fail loudly. Do not round up. Partial is never reported as Full.
+- Do not silently add cases; propose them and let M3 own the edit.
+
+--- FILE 3: .claude/commands/code-review.md ---
+
+---
+name: code-review
+description: Review Playwright TypeScript against POM and clean-code standards.
+output: deliverables/05-automation/code_review.md
+---
+
+# /code-review — Framework Compliance Review
+
+**Authority:** the constitution's Playwright Design Standards. Every finding cites the
+clause it violates.
+
+## Checklist
+
+### A. Architecture
+- [ ] Page objects contain NO expect / assertions
+- [ ] Page objects expose behaviour, not raw locators, to tests
+- [ ] Raw oxd- selectors appear ONLY in src/components/
+- [ ] Locators are readonly lazy fields, not resolved in constructors
+- [ ] Dependency direction: test -> fixture -> page -> component -> util. No upward imports
+- [ ] src/components, src/fixtures, src/utils, src/pages/base contain zero
+      module-specific ("Admin") knowledge
+
+### B. Locators
+- [ ] No absolute or positional XPath; any XPath has a documented waiver
+- [ ] No generated/hashed ids; no index selection on business data
+- [ ] No .first() used to silence strict mode
+- [ ] Label-anchored factory used for form fields rather than ad-hoc CSS
+
+### C. Waits and determinism
+- [ ] Zero waitForTimeout, sleep, networkidle
+- [ ] Toast assertions are pre-armed before the triggering click
+- [ ] waitForIdle() used before interaction, not as a blanket post-click sleep
+- [ ] No conditional assertions, no if (await x.isVisible()) guards around expectations
+- [ ] No try/catch swallowing failures; no retry loops inside tests
+
+### D. Test hygiene
+- [ ] One test per TC_ID; title starts with the Automation_ID
+- [ ] Tests are order-independent and create their own e2e_-prefixed data
+- [ ] Teardown is guaranteed via fixture, including on failure
+- [ ] No test.skip without a linked BUG-nnn; fixme used for product bugs
+- [ ] Assertions are specific (toHaveText) rather than weak (toBeTruthy)
+
+### E. TypeScript and style
+- [ ] strict passes, no any, no ! on locator results
+- [ ] No console.log; logger used
+- [ ] Naming: PascalCase classes, camelCase methods, intention-revealing names
+- [ ] No duplication that belongs in a component or util
+- [ ] No dead code, no commented-out tests
+
+### F. Safety on the shared demo
+- [ ] No modification of the Admin account, Modules toggles, or global config without revert
+- [ ] No deletion of records the suite did not create
+
+## Output
+Findings table: ID | Severity (Blocker/Major/Minor) | File:line | Clause | Issue |
+Required fix — then a verdict: APPROVED / APPROVED WITH MINORS / REJECTED.
+Any Blocker means REJECTED. Provide the minimal corrected snippet for each Blocker/Major.
+
+--- FILE 4: .claude/commands/heal.md ---
+
+---
+name: heal
+description: Diagnose failing UI scripts, resolve selector/timing issues, log the experiment.
+output: deliverables/05-automation/healing_process.md
+---
+
+# /heal — Diagnostic and Healing Cycle
+
+**Principle:** diagnose before you touch. Proposal-only — no silent auto-fix.
+
+## Procedure
+
+### 1 Capture
+Raw error text, failing selector/action, trace, screenshot, DOM snapshot of the target
+container, console errors, attempt history.
+
+### 2 Reproduce
+Re-run the single test 3x with --trace on. Record the pass/fail pattern.
+Deterministic failure and intermittent failure are different diseases.
+
+### 3 Classify — exactly one root-cause class
+| Class | Signature |
+|---|---|
+| LOCATOR_DRIFT | resolves to 0 or more than 1 node; strict-mode violation; DOM changed |
+| TIMING | element exists later; spinner/overlay intercepts; toast already dismissed |
+| STATE_POLLUTION | passes alone, fails in suite; leftover data; shared account state |
+| ENV_INSTABILITY | 5xx, rate limit, demo reset, network; unrelated to the script |
+| PRODUCT_BUG | the app genuinely misbehaves |
+| TEST_LOGIC | wrong expectation, wrong data, wrong flow |
+
+### 4 Diagnose and fix — by class
+- LOCATOR_DRIFT -> run the /analyze candidate ladder against the live DOM; propose only a
+  3/3 candidate; fix in the component wrapper if the pattern is generic, in the page object
+  if screen-specific. Record old -> new with a confidence note.
+- TIMING -> identify the true readiness signal (spinner count 0, row present, dialog
+  detached, toast pre-armed) and wait on that. Adding waitForTimeout or widening a timeout
+  without a named signal is rejected.
+- STATE_POLLUTION -> fix the fixture/teardown or the uniqueness of the data suffix.
+  Never weaken the assertion.
+- ENV_INSTABILITY -> no code change. Quarantine with evidence, reduce workers, record it.
+- PRODUCT_BUG -> file BUG-nnn, test.fixme() with the id, report as a product failure.
+  Healing is forbidden here.
+- TEST_LOGIC -> correct the test against the spec, not against observed behaviour.
+
+### 5 Verify
+Re-run the fixed test 3 consecutive times green, then the full suite once.
+Record both results. Fewer than 3x green means the heal is not accepted.
+
+### 6 Log — append to healing_process.md
+```
+### HEAL-nnn | <timestamp>
+Test:            <Automation_ID / title>
+Symptom:         <one line>
+Raw error:       <verbatim>
+Attempts:        <pass/fail pattern>
+Hypothesis:      <what you suspected>
+Root cause:      <CLASS> — <evidence that proves it>
+Fix layer:       component | page | fixture | test | none
+Change:          <old -> new, or "no code change">
+Verification:    3/3 green (<run ids>), full suite <result>
+Prevention rule: <rule added, or "n/a">
+```
+
+### 7 Escalate
+If the same test heals twice for the same class, stop patching: raise a design defect and
+fix the pattern framework-wide.
+
+## Forbidden heals
+waitForTimeout · timeout inflation without diagnosis · {force:true} to punch through an
+overlay · .first() to dodge strict mode · in-test retry loops · deleting or weakening the
+assertion · catching and ignoring the error.
+
+--- END ---
+
+After creating all four, list .claude/commands/ and confirm which files are ours versus
+stock SpecKit. Then stop.
+````
+
+**Produced:** .claude/commands/analyze.md, coverage.md, code-review.md, heal.md.
+
+---
+### #22 — 2026-09-23T14:37:33Z — Gate G2
+
+**Purpose:** Final G2 step: delete the pre-existing root-level scaffolding, re-run the G2 DoD checklist
+
+```
+Final step before G2 sign-off.
+
+## 1. Remove the pre-existing scaffolding
+Delete the root-level ./pages, ./tests and ./utils folders and every .spec.ts they
+contain. Rationale: they predate Milestone 1, they are not part of this pipeline, the
+contract in CLAUDE.md section 4 puts page objects under src/ and creates tests/ fresh in
+Milestone 5, and the G2 DoD requires zero .spec.ts in the repo.
+
+Before deleting, print the file paths and line counts so the removal is on the record.
+Do not touch node_modules, playwright.config.ts, .mcp.json, deliverables/, .specify/,
+.claude/ or CLAUDE.md.
+
+## 2. Re-run the full G2 DoD checklist
+Confirm each line from .specify/specs/001-admin-ui/tasks.md Milestone 2, plus:
+- [ ] zero .spec.ts anywhere outside node_modules
+- [ ] deliverables/02-exploration/exploration.md non-empty, evidence/ populated
+- [ ] prd.md and spec.md id parity (run the diff, report the exit code)
+- [ ] the 7 M2 corrections are recorded in prd.md section 13
+
+## 3. State the M3 entry conditions
+List exactly which files Milestone 3 will read, and the exact CSV header it will emit
+from CLAUDE.md section 6. Do not create the CSV yet.
+
+Report and stop.
+```
+
+**Produced:** Root-level ./pages, ./tests, ./utils and their .spec.ts files removed; G2 DoD re-verified.
+
+---
+
+## M3 — Test Design
+
+### #23 — 2026-09-23T14:41:12Z — Gate G3
+
+**Purpose:** Milestone 3 kickoff: the full test-design derivation rules and CSV contract
+
+```
+Gate G2 approved. Begin Milestone 3.
+
+# MILESTONE 3 — UI Test Design (CSV + coverage audit in one pass)
+
+## Inputs
+prd.md · spec.md · exploration.md · constitution.md · CLAUDE.md sections 5 and 6
+
+## Output
+deliverables/03-test-design/test_design.csv — header byte-exact, as you just quoted.
+
+## Derivation rules
+
+1. Derive cases from the Gherkin in prd.md. One Scenario = at least one case.
+   A Scenario Outline expands to one case per Examples row — do not collapse them.
+
+2. TC_ID format TC_ADM_<sub>_<nnn>, e.g. TC_ADM_USR_001. Sub codes:
+   USR (User Management) JOB ORG QUA NAT BRD CFG NAV (cross-cutting/navigation).
+   No duplicates. Number sequentially within each sub.
+
+3. Type is one of: Functional | Validation | Negative | Boundary | UI/UX | Navigation |
+   Accessibility | Regression.  Priority is P0-P3, justified by business impact.
+
+4. Test_Steps: numbered, in domain language, using \n inside a quoted cell.
+   Expected_Result: the EXACT observed wording from exploration.md where M2 recorded it —
+   quoted verbatim. Never paraphrase a validation message or toast; the paraphrase becomes
+   a false failure in M5.
+
+5. Test_Data uses the e2e_ prefix with a unique suffix. No dependency on seeded records.
+
+## The two mandated columns — this is what the assignment grades
+
+**valid in scope** = Yes / No — is this case executable, in UI scope, on this demo today?
+Set No when: blocked by a known defect that makes it un-executable · out of UI scope ·
+global blast radius on the shared demo (Configuration > Modules, Maintenance > Purge) ·
+not present on build 5.9. scope_reason is mandatory when No, and must name the BUG/FIND id
+or the specific constraint. Never write a vague reason like "not applicable".
+
+**needs automation** = Yes / No — is it worth automating?
+Set No for: colour-picker and visual-judgement checks · one-off branding uploads ·
+exploratory/UX cases · anything M2's section 9 flagged as non-deterministic on the shared
+demo. automation_reason is mandatory when No, and should lift the justification directly
+from exploration.md section 9 where one exists.
+Every Yes gets an Automation_ID equal to its TC_ID — this becomes the M5 test title prefix.
+
+## Known defects — the critical rule
+For BUG-001 (Nationalities delete succeeds and silently nulls the employee field) and
+BUG-002 (Corporate Branding unsupported-type message), and any other confirmed defect:
+write the case with the ACTUAL observed behaviour as Expected_Result, put the bug id in
+Linked_Bug, and keep valid in scope = Yes if it is executable.
+Do NOT write the desired-but-absent behaviour as the expected result. Constitution
+Article V: never encode buggy behaviour as correct, and never assert a behaviour the
+product does not have.
+
+## Depth required per CRUD screen
+create · mandatory-empty · duplicate · boundary length · invalid format · edit · cancel ·
+delete-confirm · delete-cancel ·
+```
+
+**Produced:** deliverables/03-test-design/test_design.csv — first pass.
+
+---
+### #24 — 2026-09-23T15:08:44Z — Gate G3
+
+**Purpose:** Pre-sign-off structural verification of the CSV
+
+```
+Before I sign off G3, run these structural checks on the CSV and report the raw numbers:
+
+1. Total data rows (excluding header), and the header byte-compared against CLAUDE.md §6.
+2. Counts: valid in scope Yes vs No · needs automation Yes vs No.
+3. Any row where valid in scope = No and scope_reason is empty, or needs automation = No
+   and automation_reason is empty — list the TC_IDs. Expect zero.
+4. Any row where needs automation = Yes and Automation_ID is empty. Expect zero.
+5. Duplicate TC_IDs. Expect zero.
+6. The set of US ids referenced in Story_ID, diffed against the US ids in prd.md —
+   report any story with no case.
+7. Rows carrying a Linked_Bug, with their TC_ID and bug id.
+8. Confirm the file parses cleanly as RFC-4180 (no ragged rows).
+
+Then paste the first 3 data rows in full so I can eyeball the quoting and \n handling.
+Report and stop.
+```
+
+**Produced:** Row counts, header byte-check, missing-reason check, duplicate-id check, orphan-story check reported.
+
+---
+### #25 — 2026-09-23T15:14:23Z — Gate G3
+
+**Purpose:** Request the exact scope/automation counts by sub-module
+
+```
+One number before I sign off: report the exact counts —
+valid in scope Yes / No, and needs automation Yes / No.
+Then the breakdown of needs automation = Yes by sub-module (USR, JOB, ORG, QUA, NAT,
+BRD, CFG, NAV). Just the numbers.
+```
+
+**Produced:** valid-in-scope and needs-automation breakdown reported.
+
+---
+### #26 — 2026-09-23T15:24:29Z — Gate G3
+
+**Purpose:** The W1/W2 restructure prompt: split needs-automation into two scheduled waves instead of cutting scope
+
+```
+Do not sign off G3 yet — 136 automation candidates is not executable within this cycle.
+A full suite run against the shared demo at workers=2 takes roughly 40-60 minutes, and
+G5 requires 3 consecutive green runs after every healing cycle. Restructure, don't cut.
+
+## Task: split needs automation into two waves, in the CSV itself
+
+Add ONE new column at the end: `automation_wave` with values W1 / W2 / (empty for No).
+Do not change the `needs automation` values — every current Yes stays Yes. The assignment
+requires scripts for the needs-automation set, and W2 remains part of that set, scheduled
+rather than dropped.
+
+### Wave 1 — build now, target 45-55 cases
+Select by these rules, in order:
+1. Every P0 case.
+2. For the five Qualifications screens (Skills, Education, Licenses, Languages,
+   Memberships): they share one CRUD contract. Put ONE screen's full CRUD set in W1 as the
+   reference implementation, and the equivalent cases for the other four screens in W2 —
+   they will be driven by the same page object and a data-driven loop, so W2 becomes
+   parameters, not new code.
+3. Same rule for the five Job screens (Job Titles, Pay Grades, Employment Status,
+   Job Categories, Work Shifts): one full reference implementation in W1.
+4. Keep in W1: login and navigation happy paths, the two known-defect cases carrying
+   Linked_Bug, and at least one negative and one boundary case per sub-module.
+5. Anything M2 flagged as slow, fragile, or upload/file-dialog heavy goes to W2.
+
+### Wave 2 — everything else
+Mostly the parameterised siblings of W1 cases. Add a short note per W2 row saying which
+W1 Automation_ID it reuses, so M5 can implement it as extra data rather than extra code.
+
+## Then report
+- W1 and W2 counts, and W1 broken down by sub-module
+- How many W2 cases are pure parameter variants of a W1 case (the reuse ratio)
+- Confirm every needs automation = Yes still has a wave assigned and an Automation_ID
+- Confirm no valid in scope or needs automation value changed
+
+Then update deliverables/03-test-design/test_design_coverage.md with a short
+"Execution sequencing" section explaining the two-wave decision and why W2 is scheduled
+rather than descoped.
+
+Report and stop at G3.
+```
+
+**Produced:** New automation_wave column (W1/W2); Wave 1 selection rule applied; test_design_coverage.md's "Execution sequencing" section added.
+
+---
+### #27 — 2026-09-23T15:40:33Z — Gate G3
+
+**Purpose:** Enforce that /coverage actually runs as a real audit, not just a wave-split report
+
+```
+One thing left before G3. You flagged it yourself: /coverage has not actually run.
+
+Read .claude/commands/coverage.md and execute it in full against
+deliverables/03-test-design/test_design.csv .
+
+It must do the real audit, not just report the wave split:
+- structural validation (header byte-exact, no duplicate TC_ID, RFC-4180 parse,
+  every No has a reason, every needs automation = Yes has an Automation_ID)
+- forward matrix Story -> TC_IDs, with each story classified Full / Partial / None
+- reverse matrix TC_ID -> Story, flagging orphan cases with no story
+- the per-CRUD-screen depth check: create, mandatory-empty, duplicate, boundary length,
+  edit, delete-confirm, delete-cancel, search match, search no-match, reset, pagination —
+  report any missing cell per screen
+- headline metrics: story coverage %, scenario coverage %, automation coverage %
+
+Write the full audit into deliverables/03-test-design/test_design_coverage.md, keeping
+the existing "Execution sequencing" section. Replace the note saying the audit had not
+been run.
+
+Fix every gap it finds by adding the missing cases (assign them TC_IDs, wave, and
+Automation_ID per the same rules), then re-run /coverage until it reports no unjustified
+gaps.
+
+Per the command's own rule: fail loudly. Partial is never reported as Full. If a gap is
+genuinely justified, say why in the row rather than closing it silently.
+
+Report the audit verdict, the number of cases added, the three metrics, and the new
+total row count. Then stop at G3.
+```
+
+**Produced:** test_design_coverage.md — full structural validation, forward/reverse matrices, CRUD depth check, headline metrics; gaps found and closed.
+
+---
+
+## M4 — Execution & Reporting
+
+### #28 — 2026-09-23T16:06:05Z — Gate G3→G4 `[partial]`
+
+**Purpose:** Milestone 4 kickoff: the manual execution rules (zero assumptions, uncertainty handling, defect discipline)
+
+```
+Gate G3 approved. Begin Milestone 4.
+
+# MILESTONE 4 — Manual UI Execution & HTML Bug Report
+
+## Scope
+Execute ONLY rows where `valid in scope = Yes` (186 cases), manually through the UI.
+Ignore automation_wave — that governs M5.
+
+## Inputs
+test_design.csv · prd.md · exploration.md · CLAUDE.md sections 5 and 6 · constitution.md
+
+## Output
+deliverables/04-execution/agent_execution_report.html — single self-contained file,
+inline CSS/JS, no CDN. Evidence in deliverables/04-execution/evidence/ .
+
+## RULE 1 — ZERO ASSUMPTIONS, ZERO INVENTION
+This overrides everything else in this prompt.
+
+- Record only what you actually observe on screen. Never infer an outcome from how the
+  feature "should" work or from how it behaved on a similar screen.
+- Never invent: message wording, field limits, record counts, timings, or behaviour you
+  did not see. Quote observed text verbatim.
+- Never mark a case Pass because it "probably" passes. If you could not complete it,
+  it is Blocked with the reason.
+- If the UI does something you do not understand, that is an OBSERVATION to record, not
+  a gap to fill with a guess.
+- Never edit Expected_Result to make a case pass. The CSV came from the PRD and from M2's
+  verbatim observations. If a case looks mis-written, mark it Blocked and log it as an
+  open question — do not rewrite it.
+
+## RULE 2 — HOW TO HANDLE UNCERTAINTY (read this carefully)
+You will hit ambiguous cases. Do NOT stop and ask me each time — with 186 cases that would
+stall the milestone. Instead:
+
+For each uncertainty, record a row in an OPEN QUESTIONS register with:
+  OQ id · TC_ID · what was ambiguous · what you observed · the two or more readings ·
+  which reading you provisionally applied, and why · what would settle it
+Mark the case status as Blocked or Pass/Fail-provisional accordingly, and flag it in the
+report so nothing ambiguous is buried as a clean result.
+
+Then bring me the whole register in one batch when the milestone ends. I will rule on all
+of them at once and you will apply the rulings.
+
+STOP AND ASK IMMEDIATELY — before acting — only for these:
+  a) an action that could damage the shared demo or affect other users (anything touching
+     the Admin account, Modules toggles, Maintenance Purge, global config, or deleting a
+     record you did not create)
+  b) anything that would require violating the constitution to proceed
+  c) a case that cannot be executed without changing test data or expectations in a way
+     that alters what is being verified
+  d) the demo being down, reset, or behaving so differently from M2 that the CSV's
+     premises no longer hold
+
+## RULE 3 — DEFECT DISCIPLINE
+Finding real bugs IS the deliverable. The demo has genuine defects.
+
+1. Any divergence between Expected_Result and actual behaviour is a DEFECT — never
+   "the test case needs adjusting".
+2. Every Fail raises BUG-nnn with: title, severity (Critical/High/Medium/Low) justified by
+   user impact, sub-module, preconditions, numbered steps, expected, actual, screenshot,
+   and reproducibility as x/3 attempts.
+3. Continue numbering from exploration.md. Before raising a new bug, check it is not the
+   same defect as an existing one — link rather than duplicate.
+4. Cases carrying Linked_Bug (BUG-001, BUG-002) assert ACTUAL buggy behaviour. If they
+   behave as recorded, they PASS; the defect is still reported in the bug section. If they
+   now behave differently, raise that as a change.
+5. Back-propagate every new bug into exploration.md so the register stays single-source.
+6. Inconsistent failures go in the flakiness appendix with their attempt pattern, not in
+   the bug register.
+7. Do not pad. One honest bug with evidence beats
+```
+
+**Produced:** The M4 execution brief that Milestone 4 ran under.
+
+**Notes:** [partial] — the recovered message cuts off mid-sentence at the end of Rule 3 ("One honest bug with evidence beats…"). Rule 4 (reusable HTML-report output) and the session-management section are known to have existed (see #29's "All Rules from the M4 prompt remain in force", which references Rule 4 directly) but are not recoverable from this transcript entry.
+
+---
+### #29 — 2026-09-23T20:12:35Z — Gate G3→G4
+
+**Purpose:** Resume prompt after a session limit: M4 restarted from scratch after a two-batch concurrency collision
+
+```
+Resume Milestone 4.
+
+Context: M1-M3 signed off. test_design.csv has 203 rows, 186 valid in scope = Yes.
+The previous M4 attempt ran two concurrent batches, they collided on the single shared
+Playwright browser, Batch 2 was killed mid delete-confirmation, and the session limit hit
+before any damage check or test execution completed. Treat M4 as NOT STARTED.
+
+Read CLAUDE.md, .specify/memory/constitution.md, deliverables/03-test-design/test_design.csv,
+deliverables/02-exploration/exploration.md.
+
+## STEP 1 — Damage check (do this before any test case)
+The earlier run was killed mid delete-confirmation on the shared demo. Verify nothing was
+deleted that we did not create:
+- Visit the screens that run had reached and confirm record counts and contents look intact
+- Confirm no non-e2e_ record appears to be missing
+- Confirm no leftover e2e_ records from that run remain; delete any you find
+If you cannot rule out a deletion, say so plainly and name the screen. Do not reassure me
+on an assumption.
+Report this before executing anything.
+
+## STEP 2 — Execution mode
+Strictly sequential. One agent, one browser, no concurrency at any point in M4 or M5.
+Work in sub-module order: NAV, USR, JOB, ORG, QUA, NAT, BRD, CFG.
+
+## STEP 3 — Execute
+All 186 `valid in scope = Yes` cases, manually through the UI. We have time; do this
+properly rather than sampling.
+
+All Rules from the M4 prompt remain in force:
+
+RULE 1 — ZERO ASSUMPTIONS. Record only what you actually observe. Never invent message
+wording, limits, counts or behaviour. Never mark Pass because it "probably" passes —
+if you could not complete it, it is Blocked with the reason. Never edit Expected_Result
+to make a case pass.
+
+RULE 2 — UNCERTAINTY. Do not stop and ask on each ambiguity. Log it in an Open Questions
+register (OQ id, TC_ID, what was ambiguous, what you observed, the competing readings,
+which you provisionally applied and why, what would settle it) and continue. Bring me the
+whole register at the end. STOP AND ASK IMMEDIATELY only for: an action that could damage
+the shared demo or affect other users; anything requiring a constitution violation; a case
+that cannot run without altering what is being verified; or the demo being down or reset.
+
+RULE 3 — DEFECT DISCIPLINE. Any divergence from Expected_Result is a DEFECT, never "the
+case needs adjusting". Every Fail raises BUG-nnn with title, severity justified by user
+impact, sub-module, preconditions, numbered steps, expected, actual, screenshot, and x/3
+reproducibility. Continue numbering from exploration.md; link rather than duplicate.
+Cases carrying Linked_Bug assert actual buggy behaviour — they PASS if they behave as
+recorded, and the defect still appears in the bug section. Back-propagate every new bug
+into exploration.md. Inconsistent failures go to the flakiness appendix, not the bug
+register. Do not pad.
+
+RULE 4 — REUSABLE OUTPUT. The HTML report must be a template plus a separate data object,
+not markup with results baked in. No hardcoded "Admin", sub-module names, counts or bug
+ids in the layout, headings, filters or CSS — filters and headings derive from the data.
+State at the end exactly what a future module would need to change to reuse it.
+
+## Concurrent users
+Another real user ("manda user") was observed on the shared demo during the earlier
+attempt. Record counts and list contents can change under you at any time. Never assert on
+a record you did not create in that same case. If a failure could be caused by concurrent
+mutation, retry once; if it then passes, log it in the flakiness appendix rather than
+raising a bug. Add an environment note recording that concurrent third-party activity was
+observed.
+
+## Safety
+Constitution VI: e2e_ prefix with a unique suffix, clean up what you create, never delete
+records you did not create, never touch the Admin account, Modules toggles or Maintenance
+Purge.
+
+## Output
+deliverables/04-execution/agent_execution_report.html — single self-contained file, inline
+CSS/JS, no CDN, opens offline. Evidence in deliverables/04-execution/evidence/ .
+Sections: run metadata · executive summary with donut · filterable results table · bug
+cards · traceability matrix · Open Questions register · flakiness appendix.
+
+## Session management
+This will span multiple sessions. At the end of each sub-module:
+1. Write results so far into the report — never hold results only in context
+2. Append a progress line to deliverables/04-execution/PROGRESS.md recording the last
+   TC_ID completed, the sub-module, cumulative pass/fail/blocked counts, and the next
+   TC_ID to run
+3. If you are near a session limit, stop cleanly at that boundary and tell me exactly
+   where you stopped
+
+That PROGRESS.md file is how we resume without losing work. Create it now, before STEP 1.
+
+Start with STEP 1 and report the damage check before executing any case.
+```
+
+**Produced:** A damage-check-first restart of M4, PROGRESS.md created as the resume mechanism, execution restarted at TC_ADM_NAV_001.
+
+---
+### #30 — 2026-09-23T21:28:33Z — Gate G3→G4
+
+**Purpose:** Resume prompt: continue M4 from the last completed TC_ID
+
+```
+Resume M4. Read deliverables/04-execution/PROGRESS.md and continue sequentially from the
+next TC_ID recorded there. All Rules 1-4 remain in force.
+```
+
+**Produced:** M4 execution continued from PROGRESS.md's recorded checkpoint.
+
+---
+### #31 — 2026-09-24T11:00:33Z — Gate G3→G4
+
+**Purpose:** Resume prompt after another session boundary
+
+```
+Resume M4. Do NOT re-execute anything already completed.
+
+Read deliverables/04-execution/PROGRESS.md, take the "next TC_ID" recorded there, and
+continue from that case forward. Every case already marked with a result stays as is.
+
+Just tell me the count completed so far and the next TC_ID, then keep going.
+All Rules 1-4 remain in force.
+```
+
+**Produced:** M4 execution continued without re-running completed cases.
+
+---
+### #32 — 2026-09-24T11:40:53Z — Gate G4
+
+**Purpose:** Post-execution cleanup: assign final BUG-nnn numbers, formalize FIND-008, build the HTML report, and flag the CFG_003/004 question for a ruling
+
+```
+Go ahead with items 2-4 now.
+
+2. Assign final BUG-nnn numbers to all 5 NEWBUG-* findings, continuing the numbering from
+   exploration.md, and back-propagate each into exploration.md per Rule 3.5. Before
+   assigning, check each against the existing register so we link rather than duplicate.
+
+3. OQ-BRDCFG-2 (Social Media Authentication Provider URL has no format validation):
+   formalize it as FIND-008. It is the same class as FIND-006, it was directly observed,
+   and a narrative-only note would be lost when the report is read on its own. Keep it as
+   a finding, not a bug — no requirement in prd.md asserts that validation exists.
+
+4. Build agent_execution_report.html per Rule 4: template plus a separate data object,
+   no hardcoded module names, counts, filter options or bug ids in the markup. Assemble it
+   from all batch result files plus PROGRESS.md. It must open offline with zero network
+   requests.
+
+On CFG_003/004: restate the decision you need from me in full — the TC_IDs, what each case
+expects, what you actually observed, the competing readings, and which you would apply.
+Your earlier message was cut off on my side and I will not rule on it blind.
+
+Also report, alongside the above: total executed of 186, pass/fail/blocked counts, and the
+full Open Questions register so I can rule on everything in one pass.
+```
+
+**Produced:** BUG-003..006 numbered and back-propagated; FIND-008 formalized; agent_execution_report.html built as template + data object.
+
+---
+### #33 — 2026-09-24T12:03:39Z — Gate G4
+
+**Purpose:** The CFG_003/004 ruling: accept both as permanently Blocked, with the exact environment-constraint wording to record
+
+```
+Ruling on CFG_003/004: accept both as permanently Blocked for this cycle. Do not seek or
+grant a permission escalation.
+
+Record this reason in the report: "Environment constraint: Save on a global-config screen
+would risk persisting state on a shared public instance (Constitution VI.3). CFG_004 in
+particular types a non-numeric value into SMTP Port, and FIND-006 establishes there is no
+format validation there — Save would likely persist a broken email configuration. Same
+class as the Modules toggles already marked valid in scope = No in M3. Executable on a
+private instance." Note it as an environment limitation, not a coverage gap.
+
+Not attempting a workaround was correct. Never route around a tool-level denial in this
+project.
+
+OQ resolutions all confirmed as stated.
+
+Now finalize G4 in one pass — do all of this without stopping to ask:
+
+1. BUG-005 and BUG-006 were raised but only 2 cases Failed. For each, state in one line
+   which TC_ID covers that behaviour and what result it got. If a case covers it and
+   passed, quote its Expected_Result and say why it passed despite the defect. If no case
+   covers it, say "incidental discovery, no case exists" and propose the TC_ID and title
+   that should. Change no results to fit.
+
+2. Apply the CFG ruling text to the report.
+
+3. Confirm exploration.md carries all 6 bugs and 8 findings with M4 provenance marked.
+
+4. Report final tallies: executed / pass / fail / blocked, bugs by severity, and confirm
+   the report opens offline.
+
+Then stop at G4.
+```
+
+**Produced:** CFG_003/CFG_004 marked Blocked with the ruling text recorded in the report; BUG-005/006 TC_ID mapping resolved; final tallies confirmed.
+
+---
+
+## M4 → M5 — Gate G4 / Milestone 5 Kickoff
+
+### #34 — 2026-09-24T12:18:18Z — Gate G4
+
+**Purpose:** Gate G4 approval and the Milestone 5 kickoff (full build-order brief: foundation → page objects/tests → review/run/heal)
+
+```
+Gate G4 approved. Begin Milestone 5.
+
+Note: your BUG-005/006 answer was truncated on my side. Restate it in ONE line each at the
+start of your next reply (which TC_ID covers it and what result it got, or "incidental
+discovery, no case exists"), then carry on with M5 — do not stop for my response on it.
+
+# MILESTONE 5 — Playwright Automation & Self-Healing
+
+## Scope of this build
+Implement automation_wave = W1 only (47 cases). W2 stays in the CSV as needs automation =
+Yes and is implemented as data on the same page objects if time allows — it is scheduled,
+not descoped.
+
+## Execution mode
+Strictly sequential. One browser, no concurrent agents, at any point in this milestone.
+
+## Inputs
+test_design.csv (W1 rows) · exploration.md (locator risk register — this is your locator
+source of truth, it holds the real class names observed on build 5.9) · CLAUDE.md sections
+4 and 5 · constitution.md Article III and IV · plan.md
+
+## Build order — do not deviate
+Components exist before page objects. Page objects exist before tests.
+
+### Phase 1 — foundation
+1. src/utils/fieldFactory.ts — label-anchored resolution (`field`, `dropdown`,
+   `autocomplete`), plus waitForIdle()
+2. src/components/ — OxdDropdown, OxdAutocomplete, OxdToast, OxdTable, OxdDialog,
+   OxdCheckbox, OxdDatePicker, OxdFileUpload. These are the ONLY place raw oxd- selectors
+   may appear. Build them from the observed class names in exploration.md, not from the
+   predictions in CLAUDE.md section 5.2 — where they differ, the observation wins, and say
+   so in a comment.
+3. src/pages/base/BasePage.ts + LoginPage.ts
+4. src/fixtures/ — auth (worker-scoped, real UI login, re-auth once on redirect to
+   /auth/login), page (navigates, normalises sidebar to expanded), data (creates
+   e2e_-prefixed entities, guarantees teardown in reverse order even on failure)
+5. playwright.config.ts — workers 2, retries 1, timeout 90s, expect 10s, action 15s,
+   navigation 30s, trace on-first-retry, video retain-on-failure, screenshot
+   only-on-failure, baseURL set. No networkidle anywhere.
+
+Report at the end of Phase 1 and stop for my go-ahead before Phase 2.
+
+### Phase 2 — page objects and tests
+6. src/pages/admin/ — one page object per screen. Behaviour methods only, zero assertions,
+   zero raw oxd- selectors.
+7. tests/admin/ — one test per W1 TC_ID. Test title starts with its Automation_ID.
+   Assertions live here, and use the VERBATIM message wording recorded in exploration.md
+   and in the CSV's Expected_Result. Never paraphrase an observed string.
+
+### Phase 3 — review, run, heal
+8. Run /code-review. Fix every Blocker and Major before running the suite.
+9. Run the suite. Triage every failure with /heal.
+10. Achieve 3 consecutive full green runs.
+
+## Known defects — binding
+Cases carrying Linked_Bug assert the ACTUAL observed behaviour, including BUG-001
+(Nationalities delete silently nulls the employee field) and BUG-002. Never write the
+desired-but-absent behaviour as the expectation. Never "fix" a PRODUCT_BUG failure — file
+it, test.fixme() with the bug id, and report it as a product failure.
+
+## Module-agnostic requirement
+Nothing under src/utils, src/components, src/fixtures or src/pages/base may mention Admin
+or any Admin screen. Swapping modules must require only new pages and new tests. If you
+find yourself wanting an Admin-specific constant in a shared file, that is a framework gap
+— solve it generically and say so.
+
+## Shared-demo safety
+Constitution VI: e2e_ prefix with unique suffix, UI-driven teardown, never delete records
+you did not create, never touch the Admin account, Modules toggles or Maintenance Purge.
+Another real user was observed on the demo during M4 — never assert on a record the test
+did not create in that same test.
+
+## Zero assumptions still applies
+If a locator or a message string is not recorded in exploration.md, do not invent it.
+Open the screen, observe it, and record what you used. Never write an assertion against a
+string you have not seen.
+
+## Session management
+Append progress to deliverables/05-automation/PROGRESS.md after each phase and after each
+page object: what was built, what runs green, what is next. Stop cleanly at a phase or
+file boundary if you approach a session limit and say exactly where you stopped.
+
+Start with Phase 1. Report when the foundation is built and stop before Phase 2.
+```
+
+**Produced:** M5 scope fixed to Wave 1 (47 cases); Phase 1/2/3 build order specified.
+
+---
+
+## M5 — Automation
+
+### #35 — 2026-09-24T13:49:41Z — Gate G4
+
+**Purpose:** Phase 1 approval plus two required fixes (reconcile plan.md, remove the hardcoded "Admin" credential) before Phase 2 begins
+
+```
+Phase 1 approved. Two fixes first, then Phase 2.
+
+## Fix 1 — reconcile plan.md
+You flagged it correctly: plan.md is still the pre-G2 version (root pages/, old TC naming).
+Leaving it stale means the next module's cycle reads a document that contradicts the
+working layout. Update it in place to match what actually got built:
+- src/ layout as implemented
+- the component inventory you actually created, including OxdRadioGroup which was not in
+  the original plan
+- chromium-only, with your reason recorded (no other browser was observed in M2 or M4)
+- the waitForIdle timeout decision and why a longer element-state timeout was the correct
+  fix rather than a sleep
+Do not weaken any standard. Report what changed.
+
+## Fix 2 — the 'Admin' hit
+Move the default username out of the shared code entirely. A credential is configuration,
+not framework. Read it from env with a fallback (e.g. process.env.ORANGEHRM_USER) so
+grep -rn "Admin" src/utils src/components src/fixtures src/pages/base returns zero.
+
+## Then Phase 2 — page objects and tests
+
+Build order: all W1 page objects first, then the tests.
+
+### Page objects — src/pages/admin/
+One per screen. Behaviour methods only (createUser, searchByUsername, deleteByName),
+zero expect, zero raw oxd- selectors — every control goes through a component wrapper.
+Locators are readonly lazy fields, never resolved in the constructor. A page object may
+return another page object; it never imports a test or a fixture.
+
+### Tests — tests/admin/
+One test per W1 TC_ID (47). Title starts with the Automation_ID, e.g.
+test('TC_ADM_USR_001 - add a valid ESS system user', ...).
+
+Binding rules:
+- Assertions use the VERBATIM strings recorded in exploration.md and the CSV's
+  Expected_Result. Never paraphrase an observed message. If a string is not recorded
+  anywhere, open the screen, observe it, record it in PROGRESS.md, then assert it — do
+  not invent it.
+- Cases carrying Linked_Bug assert the ACTUAL buggy behaviour (BUG-001 through BUG-006).
+  Never write the desired-but-absent behaviour as the expectation.
+- Every test creates its own e2e_-prefixed data through the data fixture and depends on
+  no seeded record. Another real user is active on this demo — never assert on a record
+  the test did not create in that same test.
+- Banned: waitForTimeout, networkidle, .first() to dodge strict mode, conditional
+  assertions, try/catch that swallows a failure, positional XPath.
+
+### Sequencing
+Build in this order and append to PROGRESS.md after each screen's page object + its tests:
+USR, JOB, QUA, NAT, ORG, BRD, CFG, NAV.
+
+Run each screen's tests as you finish it rather than saving all 47 to the end — a failure
+found now is cheaper than a failure found across eight screens at once. Strictly
+sequential, one browser, no concurrent agents.
+
+Do not start Phase 3 (/code-review, full runs, /heal) — stop at the end of Phase 2 and
+report: files created, tests passing per screen, any locator that differed from
+exploration.md's register, and anything you had to observe live because it was not
+recorded.
+
+Stop cleanly at a screen boundary if you approach a session limit.
+```
+
+**Produced:** plan.md reconciled to the as-built src/ layout; ORANGEHRM_USER moved to env config.
+
+---
+### #36 — 2026-09-24T19:32:23Z — Gate G4
+
+**Purpose:** Resume prompt after a session limit: take stock of Phase 2 before continuing
+
+```
+Resume Phase 2 of Milestone 5. Do NOT rebuild or re-create anything that already exists.
+
+First, take stock before writing any code:
+1. Read deliverables/05-automation/PROGRESS.md
+2. List what actually exists on disk: src/pages/admin/ and tests/admin/
+3. Report in a short table: which screens have a page object, which have tests, and which
+   tests have been run green so far
+
+Then continue from exactly where that leaves off. If a file was left half-written when the
+session cut, finish that file rather than starting it over.
+
+All Phase 2 rules remain in force:
+- Page objects: behaviour only, zero expect, zero raw oxd- selectors, readonly lazy locators
+- Tests: one per W1 TC_ID, title starts with the Automation_ID
+- Assertions use the VERBATIM strings from exploration.md and the CSV. Never paraphrase an
+  observed message. If a string is not recorded, observe it live, record it in PROGRESS.md,
+  then assert it — never invent it
+- Cases with Linked_Bug assert the ACTUAL buggy behaviour, not the desired behaviour
+- Every test creates its own e2e_ data and asserts on nothing it did not create
+- Banned: waitForTimeout, networkidle, .first() to dodge strict mode, conditional
+  assertions, swallowed failures, positional XPath
+- Screen order: USR, JOB, QUA, NAT, ORG, BRD, CFG, NAV
+- Run each screen's tests as you finish that screen, before moving to the next
+- Append to PROGRESS.md after each screen
+- Strictly sequential, one browser
+
+Do not start Phase 3. Stop at the end of Phase 2, or cleanly at a screen boundary if you
+approach the limit — and say exactly where you stopped.
+```
+
+**Produced:** Phase 2 continued screen-by-screen from its actual on-disk state.
+
+---
+### #37 — 2026-09-24T20:21:17Z — Gate G4
+
+**Purpose:** Resume prompt after another session boundary (shorter restatement of #36)
+
+```
+Resume Phase 2 of Milestone 5. Do NOT rebuild anything that exists.
+
+Read deliverables/05-automation/PROGRESS.md, then list what's actually on disk in
+src/pages/admin/ and tests/admin/. Report which screens have page objects, which have
+tests, and which tests are green. Continue from there.
+
+All Phase 2 rules stay in force. Screen order: USR, JOB, QUA, NAT, ORG, BRD, CFG, NAV.
+Run each screen's tests as you finish it. Append to PROGRESS.md after each screen.
+Strictly sequential, one browser. Do not start Phase 3.
+```
+
+**Produced:** Phase 2 continued.
+
+**Notes:** Near-duplicate of #36 — sent again after a further session interruption.
+
+---
+### #38 — 2026-09-24T21:58:16Z — Gate G4
+
+**Purpose:** The gap-accounting and back-propagation prompt: account for W1's 45-of-47 shortfall and correct 4 categories of stale information in earlier artifacts
+
+```
+Phase 2 looks strong. Two things before Phase 3.
+
+## 1. Account for the gap: W1 is 47, you built 45
+Name the 2 missing TC_IDs and their status. If they are TC_ADM_CFG_003/004 (ruled
+permanently Blocked in M4 as an environment limitation), that is correct and expected —
+but it must be explicit, not implied. For each missing case:
+- confirm the TC_ID and why it has no test
+- confirm it is recorded as such in PROGRESS.md
+- confirm nothing in test_design.csv still claims an Automation_ID that does not exist
+Any W1 case dropped for any other reason needs to be named now, not discovered at G5.
+
+## 2. Back-propagate the live corrections
+Four observations invalidate what earlier artifacts state. Leaving them stale means the
+next module inherits wrong information:
+
+a) exploration.md — add the two newly-discovered oxd components (.oxd-switch-wrapper
+   toggle, and the .oxd-tree-node-wrapper/-content/-toggle tree structure) to the locator
+   risk register, plus the four locator corrections you listed (icon-glyph accessible
+   names, labelledContainer scoping, table header sharing .oxd-table-row, Username search
+   being exact-match only). Mark them M5-sourced.
+
+b) test_design.csv — correct the stale Expected_Result wording where you observed
+   different strings live:
+   - edit-save toasts are "Successfully Updated", not "Successfully Saved" (USR, JOB, QUA)
+   - TC_ADM_NAV_008's breadcrumb is two segments
+   - BUG-002's current symptom is silent failure with no message
+   - Locations' Country field is mandatory
+   Quote the verbatim observed string in each corrected cell. Do not change any
+   valid in scope or needs automation value.
+
+c) The Username exact-match discovery invalidated the original bulk-delete test design.
+   State plainly what you did: was that case rewritten, dropped, or replaced? If its
+   design changed, the CSV row must reflect the new design.
+
+d) exploration.md — update BUG-002's entry with the M5 re-observation, same provenance
+   treatment as the M4 update.
+
+Report what changed in each file, then stop. Do not start Phase 3 yet.
+```
+
+**Produced:** The 2 missing TC_IDs (Pay Grades, Work Shifts) were built to close the gap; exploration.md's locator register and test_design.csv both corrected with live-observed values.
+
+---
+### #39 — 2026-09-25T10:41:30Z — Gate G4→G5
+
+**Purpose:** Resume Milestone 5, begin Phase 3: the full /code-review → 3 runs → /heal → healing_process.md brief
+
+```
+Resume Milestone 5 — begin Phase 3.
+
+Context: Phase 1 and 2 are complete. 47/47 W1 tests exist and pass, verified in a combined
+run. test_design.csv, exploration.md and PROGRESS.md have been back-propagated with the
+live corrections. Do NOT rebuild or re-verify Phase 2 work.
+
+First, confirm state from disk in three lines: file counts in src/pages/admin/ and
+tests/admin/, and the last entry in deliverables/05-automation/PROGRESS.md.
+
+Then Phase 3, in this order:
+
+## Step 1 — /code-review
+Read .claude/commands/code-review.md and run it in full against everything under src/ and
+tests/. Write the findings to deliverables/05-automation/code_review.md.
+
+Pay particular attention to the clauses this build is most likely to have drifted on:
+- raw oxd- selectors outside src/components/ (you caught yourself doing this once in
+  PayGradesPage — check whether it happened anywhere else)
+- any expect or assertion inside a page object
+- module-specific knowledge in src/utils, src/components, src/fixtures, src/pages/base
+- the forced click in OxdTimePicker and the longer waitForIdle timeout: both were
+  deliberate, evidence-backed decisions. Confirm each is documented in the code with its
+  reason, so a future reader does not mistake them for shortcuts.
+- banned patterns: waitForTimeout, networkidle, .first() to dodge strict mode, conditional
+  assertions, swallowed failures, positional XPath
+
+Fix every Blocker and Major before moving on. Report the verdict and what you changed.
+
+## Step 2 — full suite runs
+Run the complete 47-test suite three times consecutively, strictly sequential, one browser.
+Record each run's result and duration.
+
+A test that only passes on retry is NOT a pass — it is a healing candidate. Report any test
+that needed a retry in any of the three runs, even if the run finished green overall.
+
+## Step 3 — /heal on every failure
+For each failure, read .claude/commands/heal.md and follow it exactly: capture, reproduce
+3x, classify into one root-cause class, diagnose, fix at the lowest correct layer, verify
+with 3 consecutive green, log the entry.
+
+Binding: a PRODUCT_BUG is never healed — file it, test.fixme() with the bug id, report it
+as a product failure. Forbidden heals: waitForTimeout, timeout inflation without a named
+readiness signal, force:true to punch through an overlay, .first() to dodge strict mode,
+in-test retry loops, weakening or deleting an assertion.
+
+## Step 4 — healing_process.md
+Write deliverables/05-automation/healing_process.md as a real experiment log, not a summary.
+
+It must include every failure encountered across the WHOLE of Milestone 5, not only Phase 3
+— including the ones already solved in Phases 1 and 2. Those are the most valuable entries
+in the document and they are currently only in PROGRESS.md. At minimum:
+- the waitForIdle dashboard-widget timeout (Phase 1)
+- the invented openUserMenu selector caught before it ran (Phase 1)
+- the unscoped breadcrumb query (Phase 1)
+- the positional XPath removed from OxdFileUpload (Phase 1)
+- the listContainer fix during USR (Phase 2)
+- the labelledContainer scoping fix (Phase 2)
+- icon-glyph accessible names breaking exact matching (Phase 2)
+- the table header sharing .oxd-table-row (Phase 2)
+- Username search being exact-match only, and the USR_022 redesign it forced (Phase 2)
+- the OxdTimePicker AM/PM radio inversion (Phase 2)
+
+Each entry in the format from heal.md: id, timestamp, test, symptom, raw error, attempts,
+hypothesis, root cause class with the evidence that proves it, fix layer, the change,
+verification, prevention rule. Close with the summary table by root-cause class,
+quarantined tests, and residual risk.
+
+## Session management
+Append to PROGRESS.md after each step. Stop cleanly at a step boundary if you approach the
+limit and say exactly where you stopped.
+
+Report at the end: the /code-review verdict, the three run results with durations, every
+heal entry by root-cause class, any test left fixme'd with its bug id, and confirmation
+that every W1 Automation_ID maps to a passing or explicitly-fixme'd test.
+
+Then stop at Gate G5.
+```
+
+**Produced:** code_review.md (APPROVED), 3 official full-suite runs, healing_process.md (22 entries), Gate G5 reached.
+
+---
+
+## Post-G5 — Final Deliverables
+
+### #40 — 2026-09-25T11:44:11Z — Gate G5
+
+**Purpose:** Final-milestone request: build the two missing assignment deliverables (implementation summary workbook, solution-flow HTML)
+
+```
+Gate G5 approved. Milestone 5 is complete.
+
+# FINAL MILESTONE — Deliverables A and B
+
+The assignment lists 7 deliverables (a-g). Five exist. Two do not yet:
+  a. an Excel sheet summarising how each milestone was implemented
+  b. a flowchart / sequence diagram as an HTML file showing how the reusable solution
+     works for each milestone
+
+Build both from what actually happened in this project. Zero invention: every number,
+file path and decision must come from the artifacts on disk. If something cannot be
+sourced, leave it out rather than estimating.
+
+## Deliverable A — deliverables/00-summary/implementation_summary.xlsx
+
+Read /mnt/skills/public/xlsx/SKILL.md first if available, then build the workbook.
+
+Sheet 1 "Milestone Summary" — one row per milestone M1-M5:
+Milestone · Objective · Inputs · Process followed · Output artifact + path · Gate ·
+Key decisions taken · Issues encountered and how they were resolved · Evidence of
+completion. Write the process column as what was actually done, not as a plan.
+
+Sheet 2 "Artifacts" — every deliverable: name, path, format, milestone, size or row
+count, and one line on what it contains.
+
+Sheet 3 "Metrics" — the real figures: 12 modules specified, 33 Admin stories, 203 test
+cases, 186 valid in scope, 136 needs automation, W1 47 / W2 89, 186/186 executed,
+182 pass / 2 fail / 2 blocked, 6 bugs by severity, 8 findings, 22 healing entries by
+root-cause class, 47/47 automated tests green, the three run durations. Pull each from
+its source file — do not retype from memory.
+
+Sheet 4 "Defects" — BUG-001 to BUG-006: id, title, sub-module, severity, status,
+milestone discovered, linked TC_IDs, and whether it is asserted in automation.
+
+Sheet 5 "Decisions & Deviations" — the judgement calls, each with its rationale:
+the two-wave W1/W2 split and why W2 is scheduled not descoped · CFG_003/004 ruled
+permanently blocked as an environment limitation · chromium-only and why · the 7 M2
+corrections back-propagated into the PRD · the M5 corrections back-propagated into the
+CSV · the deliberate UI-only scope with API deferred · execution performed in VS Code
+with Claude Code. State each as a decision with a reason, not as an apology.
+
+## Deliverable B — deliverables/00-summary/solution_flow.html
+
+A single self-contained HTML file, inline CSS and SVG, no CDN, opens offline, responsive,
+and readable in both light and dark colour schemes.
+
+It must show the REUSABLE pipeline, not a one-off narrative:
+
+1. End-to-end pipeline diagram — M1 through M5 with the gate between each, showing each
+   milestone's input artifact and output artifact, and the fact that a gate cannot be
+   passed until the prior artifact satisfies its Definition of Done.
+2. A per-milestone detail panel — for each, the inputs, the steps, the commands used
+   (/coverage, /analyze, /code-review, /heal) and the artifact produced.
+3. The feedback loops, which are the part that makes this a pipeline rather than a
+   checklist: M2 observations correcting M1's PRD; M5 observations correcting M3's CSV
+   and M2's locator register; /heal feeding prevention rules back into the framework.
+4. The framework layer diagram — test -> fixture -> page object -> component -> util,
+   with the dependency rule (arrows point downward only) and a note that everything below
+   src/pages/ is module-agnostic.
+5. A "reuse for a new module" panel — what changes (a new spec, new page objects, new
+   tests) versus what is reused unchanged (constitution, plan, the four commands, all
+   components, fixtures, utils, the HTML report template), and the /new-module command
+   that runs the cycle.
+
+Make the diagrams actual SVG, not ASCII art in a <pre>. Label every node with the real
+artifact name and path.
+
+## Then verify
+- [ ] Both files exist at deliverables/00-summary/
+- [ ] The HTML opens offline with zero network requests — measure it, do not assume
+- [ ] Every figure in the workbook traces to a file on disk; list any you could not source
+- [ ] No invented numbers anywhere
+
+Report what you built, then present both files.
+```
+
+**Produced:** deliverables/00-summary/implementation_summary.xlsx and solution_flow.html.
+
+---
+### #41 — 2026-09-25T12:36:43Z — Gate G5
+
+**Purpose:** Create the reusable /new-module command and reference it (not a missing-command note) from solution_flow.html
+
+```
+Create .claude/commands/new-module.md with exactly this content, then update
+solution_flow.html's reuse panel to reference it as an existing command rather than a
+missing one.
+
+---
+name: new-module
+description: Run the full SpecKit QA cycle for a new module, reusing everything built for Admin.
+argument-hint: <MODULE_CODE> <Module Name>   e.g. PIM PIM  |  LEV Leave
+---
+
+# /new-module — Run the pipeline for $1 ($2)
+
+## Reused unchanged — DO NOT rewrite any of these
+- `.specify/memory/constitution.md` — same rules, same gates G1-G5
+- `.specify/specs/001-admin-ui/plan.md` — same stack, layers, report schema
+- `.claude/commands/analyze|coverage|code-review|heal` — module-agnostic already
+- `src/components/`, `src/fixtures/`, `src/utils/`, `src/pages/base/` — the framework.
+  Constitution III.10 forbids module-specific knowledge here. If $1 appears to need a
+  change in these, that is a FRAMEWORK GAP: fix it generically so every module benefits,
+  and record it. Never add a `$1`-specific branch to a shared file.
+- `deliverables/04-execution/agent_execution_report.html` — template plus data object;
+  only the data changes.
+
+## Created new
+- `.specify/specs/00N-$1-ui/spec.md` (N = next free number)
+- `src/pages/$1/`
+- `tests/$1/`
+- deliverables suffixed for this module
+
+## Procedure — same five gates, shortened by reuse
+
+### M1 — Promote the PRD chapter
+`deliverables/01-prd/prd.md` already specifies $2 at Tier 3. Do NOT write a new PRD.
+Promote its chapter to Tier 1 in place: full field inventory tables, module business rules
+referencing existing BR-nn ids, stories `US-$1-nn-yy` with inline Tier 1 Gherkin (happy
+path, mandatory-empty, duplicate, boundary, invalid format, cancel, delete-confirm,
+delete-cancel, empty search, pagination, plus every workflow state transition). Change its
+QA cycle marker to ACTIVE CYCLE. Update the Appendix A traceability matrix. Preserve every
+existing id. Mirror new ids into the new spec.md. TO CONFIRM markers for anything
+unverified. **Gate G1.**
+
+### M2 — Exploration
+Read `deliverables/02-exploration/exploration.md` FIRST: its locator risk register already
+records how oxd components behave on this build, including the M5 corrections. Confirm
+they hold on $2's screens and record only deltas plus whatever is new. Answer every new
+TO CONFIRM. Zero automation code.
+Output: `exploration-$1.md` + `evidence-$1/` **Gate G2.**
+
+### M3 — Test design
+Same CSV header, byte-exact, including `valid in scope`, `needs automation` and
+`automation_wave`. TC ids `TC_$1_<sub>_nnn`. Every No carries a reason. Run /coverage.
+Output: `test_design-$1.csv` **Gate G3.**
+
+### M4 — Manual execution + HTML report
+Execute only `valid in scope = Yes`. Reuse the report template unchanged — only the
+injected data object changes.
+Output: `agent_execution_report-$1.html` **Gate G4.**
+
+### M5 — Automation
+Write ONLY `src/pages/$1/` and `tests/$1/`. Everything below `src/pages/` exists — import
+it. Before writing a page object, check whether an existing component wrapper covers the
+control; build a new wrapper only for a genuinely new oxd primitive, and build it
+generically. Run /code-review, then /heal on every failure. 3 consecutive green runs.
+Output: the suite + `healing_process-$1.md` **Gate G5.**
+
+## Reuse report — produce this at the end
+| Asset | Reused as-is | Extended | Newly created |
+State lines written new versus reused, and name any framework gap found. If more than a
+handful of lines had to change below `src/pages/`, the architecture has leaked — say so
+explicitly rather than quietly patching it.
+
+## Rules
+Announce each gate, verify its DoD, stop for sign-off. UI only. Strictly sequential, one
+browser. Shared-demo safety: e2e_ prefix, self-cleanup, never touch records you did not
+create.
+
+---
+
+After creating it, update solution_flow.html's reuse panel: replace the note saying
+/new-module does not exist with the command and what it does. Re-verify the HTML still
+opens offline with zero network requests.
+
+Then present all seven deliverables (a-g) with their paths.
+
+
+IMPORTANT: Only CREATE the file and update the HTML. Do NOT execute /new-module or start
+any module cycle. No module work happens now.
+```
+
+**Produced:** .claude/commands/new-module.md; solution_flow.html's reuse panel updated.
+
+---
+### #42 — 2026-09-25T13:10:54Z — Gate G5
+
+**Purpose:** Fix a gap in deliverable (g): add the missing automated-suite HTML execution report
+
+```
+Deliverable (g) is missing its HTML execution report. The assignment requires:
+"automation scripts AND execution html report AND healing/fixing process."
+
+We have the scripts and healing_process.md, but no HTML report for the automated run —
+only the manual M4 report exists.
+
+Do this:
+1. Run the full 47-test suite once more, strictly sequential, one browser, with the HTML
+   reporter enabled.
+2. Copy the generated Playwright HTML report into
+   deliverables/05-automation/automation_execution_report.html
+   It must be self-contained and open offline — if Playwright's output is a folder with
+   assets, either inline them into a single file or keep the folder and say so explicitly.
+3. Verify it opens offline and shows all 47 tests with their results and durations.
+4. If the report does not include the bug context, add a short HTML section at the top
+   listing the product defects asserted by the suite (BUG-001, BUG-002) and their TC_IDs,
+   so the report carries the same defect visibility the manual report has.
+5. Update implementation_summary.xlsx (Artifacts sheet) and solution_flow.html to include
+   this new file.
+
+Report the path and confirm it opens offline.
+```
+
+**Produced:** deliverables/05-automation/automation_execution_report.html (Playwright's own HTML reporter output from a 47/47 green run, with a known-defects banner prepended); xlsx/HTML summaries updated to reference it.
+
+---
+### #43 — 2026-09-25T13:33:54Z — Gate G5
+
+**Purpose:** Create this prompts archive itself
+
+```
+Create a prompts archive. Two files, same content, different formats.
+
+## 1. deliverables/00-summary/prompts_used.md
+
+Every prompt that drove this project, in chronological order, grouped by milestone.
+For each: the milestone/gate, the purpose in one line, the VERBATIM prompt text in a
+fenced block, and one line on what it produced.
+
+Include the corrective and resume prompts too — the pipeline-reconciliation prompt, the
+M2 back-propagation prompt, the W1/W2 restructure, the CFG_003/004 ruling, the resume
+prompts after session limits. Those show how the process self-corrected and are more
+interesting than the happy path.
+
+Source them from this conversation's actual history. Do not paraphrase, do not tidy them
+up, and do not invent a prompt that was never sent. If a prompt is only partially
+recoverable, include what you have and mark it `[partial]`.
+
+Add a short intro explaining the structure: CLAUDE.md is the standing system prompt,
+.specify/ holds the governing documents, .claude/commands/ holds the reusable commands,
+and these are the per-milestone driving prompts.
+
+## 2. deliverables/00-summary/prompts_used.xlsx
+
+Same content as a workbook so it can be read outside the repo:
+Sheet "Prompts" — columns: # · Milestone · Gate · Purpose · Prompt text (full) · Output
+produced · Notes
+Sheet "Commands" — the six commands in .claude/commands/ that are ours (analyze,
+coverage, code-review, heal, new-module) plus CLAUDE.md: name, purpose, when it runs in
+the pipeline, output artifact.
+
+Keep the full prompt text in the cell — do not truncate. Set wrap text and sensible
+column widths so it is readable.
+
+Report both paths when done.
+```
+
+**Produced:** deliverables/00-summary/prompts_used.md and prompts_used.xlsx.
+
+---
