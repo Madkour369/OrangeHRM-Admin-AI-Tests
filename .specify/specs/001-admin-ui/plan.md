@@ -72,7 +72,7 @@ src/
                               e2e_oversized.png) used by Corporate Branding's upload
                               tests — in active use, not reserved/unused
 tests/
-  admin/                   one spec per W1 TC_ID (47, built in Phase 2)
+  admin/                   one test per W1 TC_ID (52: 47 built in Phase 2, 5 P0 cases promoted post-G5)
 playwright.config.ts
 .specify/
   memory/constitution.md
@@ -180,7 +180,9 @@ gone, not "existing structure to preserve," and must not be recreated.
    `tests/admin/`, one per W1 `TC_ID`. Built in order USR, JOB, QUA, NAT, ORG, BRD, CFG,
    NAV, running each screen's tests as it finished. A gap-accounting pass mid-Phase-2
    found 2 W1 cases missed by an incomplete initial query (Pay Grades, Work Shifts) and
-   closed them, reaching the true 47/47.
+   closed them, reaching the true 47/47. Post-G5, 5 P0 cases (`TC_ADM_NAV_003`/`004`,
+   `TC_ADM_USR_005`/`006`/`007`) were promoted from W2 under the "every P0 case is Wave 1"
+   rule (`test_design_coverage.md` §8.5), bringing W1 to 52/52.
 4. ~~M5 Phase 3~~ — complete. `/code-review` (verdict: APPROVED, 1 Blocker + 8 Major
    fixed), three consecutive official full-suite runs (all green; one run's single
    flaky test diagnosed as `ENV_INSTABILITY` per `/heal` and recorded, not code-patched),
@@ -193,7 +195,7 @@ gone, not "existing structure to preserve," and must not be recreated.
    network/CPU characteristics, never reproduced locally) and fixed it at the
    component layer (`OxdTable.waitForListRendered()`); see `HEAL-023`/`024`/`025`.
 
-**Next actions for a future cycle**, not this one: build Wave 2's 89 scheduled cases
+**Next actions for a future cycle**, not this one: build Wave 2's 84 scheduled cases
 (mostly parameter variants against Wave 1's existing page objects, per
 `test_design_coverage.md`'s reuse-ratio analysis), or run `/new-module` to start the same
 cycle for a different OrangeHRM module.

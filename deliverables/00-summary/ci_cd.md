@@ -38,7 +38,7 @@ One job (`test`) on `ubuntu-latest`:
 3. Click **Run workflow** (top-right of the run list).
 4. Fill in the two optional inputs, or leave both at their defaults:
    - **test_filter** — a spec path (`tests/admin/usr.spec.ts`), a directory
-     (`tests/admin`, the default — runs the full 47-case Wave-1 suite), or a substring
+     (`tests/admin`, the default — runs the full 52-case Wave-1 suite), or a substring
      Playwright will `--grep` against test titles (e.g. `TC_ADM_NAT` to run just the
      Nationalities cases).
    - **workers** — defaults to `2`. Any higher value is silently clamped back to `2` by

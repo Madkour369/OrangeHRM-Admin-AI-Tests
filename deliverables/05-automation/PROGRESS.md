@@ -869,3 +869,46 @@ source files were modified in Steps 2–4, only test-design/log artifacts).
 instruction — no further milestone work without new sign-off.**
 
 ---
+
+### 2026-09-26 — Post-G5: 5 P0 cases promoted from Wave 2 to Wave 1 (47 → 52), cascade completed
+
+**Why:** the Priority Model (`test_design_coverage.md` §8) showed a confirmed defect
+(`BUG-003`) at P0 with no automated regression guard. The rule "every P0 case is Wave 1"
+(§8.5) was added, promoting `TC_ADM_NAV_003`, `TC_ADM_NAV_004`, `TC_ADM_USR_005`,
+`TC_ADM_USR_006`, `TC_ADM_USR_007`.
+
+**Built:** 5 tests, no new page-object code. `NAV_003` is a parameter variant of
+`NAV_002` (`LoginPage.login()`, verbatim `Invalid credentials` alert). `USR_005/006/007`
+are parameter variants of `USR_003` (`submitAddFormWithEmptyField()` was already typed
+for `'Status' | 'Username' | 'Password'`), asserting the verbatim `Required` field error,
+no success toast, and no record created, with `e2e_` data tracked for teardown.
+`NAV_004` asserts BUG-003's **actual** behaviour: `ADMIN` / `admin123` logs in and
+reaches the dashboard. It is annotated as a known-defect guard, the same treatment as
+`TC_ADM_NAT_010` (BUG-001) and `TC_ADM_BRD_001` (BUG-002).
+
+**Runs (from the work session that was interrupted):**
+- Report-build run (JSON + step reporters, workers 1, started 2026-09-25T22:15:06Z,
+  477.0 s): **52/52 passed, 0 retries**. `automation_execution_report.html` was rebuilt
+  from this run. The assembly script aborts unless exactly 52 results join to W1 rows.
+- A separate full-suite run: 51 clean, 1 flaky (`TC_ADM_USR_022`, passed on its automatic
+  retry). This was diagnosed as ENV_INSTABILITY in `HEAL-027` (3/3 clean in isolation,
+  and an unrelated navigation check failed in the same window). There was no code change.
+- All 5 promoted tests passed on the first attempt in both runs.
+- The raw JSON output of neither run was kept on disk. The embedded data in the report
+  is the surviving record of the report-build run.
+
+**Cascade completed this session (resumed after a rate-limit interruption):** checked on
+disk first. The tests, the CSV promotion, the run, `HEAL-027` and the report rebuild were
+already done and were not redone. Still-stale figures were then updated to 52 / 84 in:
+`implementation_summary.xlsx`, `plan.md`, `tasks.md` (plus heal count 25 → 27),
+`ci_cd.md` and `solution_flow.html`. `HEAL-027`'s own text said the two ENV_INSTABILITY
+incidents were "months apart"; they are a day apart, and that was corrected. Historical
+47-test records (Phase 2/3 runs, `code_review.md`, `prompts_used.md`, the
+pre-promotion narrative in `test_design_coverage.md`) were left as written, because
+they accurately describe what happened at the time.
+
+**Checks done this session:** `npx playwright test --list` lists 52 tests.
+`test_design.csv` has W1 = 52, W2 = 84, and all 17 P0 rows are W1 (0 exceptions). The
+5 promoted rows have `automation_wave = W1` and `Automation_ID` equal to their `TC_ID`.
+
+---

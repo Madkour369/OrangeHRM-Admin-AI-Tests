@@ -388,6 +388,20 @@ Prevention rule: A `toPass()`/manual-poll predicate must re-derive every piece o
 
 ---
 
+### HEAL-027 | 2026-09-26 ~10:15 UTC (found during the mandatory full-suite run after promoting 5 P0 cases from Wave 2 to Wave 1)
+Test:            TC_ADM_USR_022 (bulk delete via row checkboxes) — not one of the 5 newly-promoted cases; all 5 of those (`TC_ADM_NAV_003`, `NAV_004`, `TC_ADM_USR_005`, `USR_006`, `USR_007`) passed clean on their first attempt in this same run
+Symptom:         First attempt of the official 52-test full-suite run timed out waiting for the bulk-delete confirmation's success toast; passed on Playwright's own automatic retry
+Raw error:       `TimeoutError: locator.waitFor: Timeout 15000ms exceeded` — `waiting for locator('.oxd-toast-content--success') to be visible`, at `src/components/OxdToast.ts:25`, inside `OxdToast.waitForSuccess()`, called from `usr.spec.ts:336` (the bulk-delete confirm click). The same failed attempt also threw a cascading `TestDataRegistry.teardownAll` error: both of the test's own cleanup calls additionally timed out waiting for `getByRole('navigation', {name:'Sidepanel'})` to become visible — a plain post-login navigation check, unrelated to toasts or bulk-delete specifically
+Attempts:        Full-suite run (this session): failed attempt 1 (1.1m), passed attempt 2/automatic retry (27.2s). Isolated reproduction immediately after: 3/3 clean, single-worker, `--retries=0`, `--trace=on` (26.4s, 25.3s, 24.2s) — no flake in isolation
+Hypothesis:      Not a locator defect (`.oxd-toast-content--success` is the same selector proven reliable across every other Save/Delete flow in this suite, including this exact test's own 3/3 clean isolated reruns). Not state pollution (fresh `e2e_bulk_` data each run, standard bulk-delete flow, no prior test leaves the page in an unusual state). The cascading Sidepanel-visibility timeout in the cleanup phase — a completely different, simple action — failing in the same window is the key evidence: it points to the whole page/demo being briefly unresponsive to any request during that specific window, not a defect confined to the bulk-delete action or component
+Root cause:      ENV_INSTABILITY — evidence: (1) 3/3 clean in isolation immediately afterward under normal conditions, ruling out a deterministic script defect; (2) a second, unrelated action (a bare post-login navigation check in the cleanup phase) failed in the identical window, which a bug in the bulk-delete/toast code specifically cannot explain — only a broader, transient unresponsiveness can; (3) consistent with CLAUDE.md §5.3's documented reality of rate limiting/slowness under load on this shared public demo, and the same class already established by `HEAL-022` (`TC_ADM_USR_002`)
+Fix layer:       none — per `heal.md`'s ENV_INSTABILITY branch, no code change is prescribed
+Change:          No code change. Workers already at the project minimum (1, this run's own configuration). Recorded here as an accepted environmental risk, not quarantined — the test reproduces cleanly under normal load, and Playwright's own `retries` configuration already absorbed this exact transient failure without masking it (the run correctly reported it as `flaky`, not silently `ok`)
+Verification:    3/3 consecutive clean isolated reruns (26.4s / 25.3s / 24.2s) stand in for the "3 consecutive green" requirement, since no code changed to verify. The full 52-test suite (this run) otherwise completed 51/52 clean with only this one flake; no other test in the run showed any timing anomaly
+Prevention rule: Same as `HEAL-022`: a single `flaky`-flagged test in an official run, with clean isolated reproduction, no locator/state signature, and — new corroborating evidence this time — a second, unrelated action failing in the identical window, is diagnosed as ENV_INSTABILITY and recorded, not chased with a code change that would only mask the real cause
+
+---
+
 ## Summary by root-cause class
 
 | Class | Count | Entries |
@@ -395,29 +409,35 @@ Prevention rule: A `toPass()`/manual-poll predicate must re-derive every piece o
 | TIMING | 11 | HEAL-001, 006, 010, 012, 013, 014, 015, 019, 023, 024, 025 |
 | LOCATOR_DRIFT | 10 | HEAL-002, 003, 004, 005, 007, 008, 009, 017, 018, 021 |
 | TEST_LOGIC | 4 | HEAL-011, 016, 020, 026 |
-| ENV_INSTABILITY | 1 | HEAL-022 |
+| ENV_INSTABILITY | 2 | HEAL-022, 027 |
 | STATE_POLLUTION | 0 | — |
 | PRODUCT_BUG | 0 (by design — see below) | — |
 
-**Why PRODUCT_BUG is 0, not missing:** this suite carries two live, deterministic
+**Why PRODUCT_BUG is 0, not missing:** this suite carries three live, deterministic
 product defects — **BUG-001** (deleting an in-use Nationality silently orphans
-the owning employee's field, `TC_ADM_NAT_010`) and **BUG-002** (uploading an
+the owning employee's field, `TC_ADM_NAT_010`), **BUG-002** (uploading an
 unsupported file type on Corporate Branding shows no error message at all,
-`TC_ADM_BRD_001`). Neither went through the heal cycle, because neither was ever
-"broken then fixed" — both were asserted directly against their actual, confirmed
-behavior from the moment each test was written, per CLAUDE.md §6.4's rule that a
-deterministically-reproducible defect a test can positively confirm is asserted
-directly, not `test.fixme()`'d. `test.fixme()` is reserved for a case that cannot
-complete a run at all, which neither of these is. **Zero `test.fixme()` calls
-exist anywhere in this suite.**
+`TC_ADM_BRD_001`), and, as of the Wave 1/Priority-alignment promotion,
+**BUG-003** (username login is case-insensitive, letting `ADMIN` authenticate as
+`Admin`, `TC_ADM_NAV_004`). None of the three went through the heal cycle,
+because none was ever "broken then fixed" — all three were asserted directly
+against their actual, confirmed behavior from the moment each test was written,
+per CLAUDE.md §6.4's rule that a deterministically-reproducible defect a test
+can positively confirm is asserted directly, not `test.fixme()`'d.
+`test.fixme()` is reserved for a case that cannot complete a run at all, which
+none of these is. **Zero `test.fixme()` calls exist anywhere in this suite.**
 
 ## Quarantined tests
 
-**None.** `TC_ADM_USR_002` (HEAL-022) was evaluated for quarantine and explicitly
-NOT quarantined: it reproduces cleanly under normal load (3/3 isolated, 2/3 of the
-official full-suite runs), workers are already at the project minimum, and the
-failure signature matches this shared demo's own documented instability
-(CLAUDE.md §5.3), not a defect in the test.
+**None.** `TC_ADM_USR_002` (HEAL-022) and `TC_ADM_USR_022` (HEAL-027) were each
+evaluated for quarantine and explicitly NOT quarantined: both reproduce cleanly
+under normal load (3/3 isolated each time), workers are already at the project
+minimum, and both failure signatures match this shared demo's own documented
+instability (CLAUDE.md §5.3), not a defect in either test. Two independent
+ENV_INSTABILITY incidents on two different tests, a day apart (2026-09-25 and 2026-09-26)
+but both against the same demo, is itself consistent with — not contradictory
+to — this being a real, ongoing environmental characteristic rather than a
+one-off.
 
 ## Residual risk
 

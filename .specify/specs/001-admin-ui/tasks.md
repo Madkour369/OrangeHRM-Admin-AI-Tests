@@ -80,7 +80,8 @@ TC_ID,Epic_ID,Story_ID,Module,Sub_Module,Title,Preconditions,Test_Steps,Test_Dat
       comma-safe
 
 **Wave 1 / Wave 2 note:** the 136 `needs automation = Yes` cases were sequenced, not
-descoped, into `automation_wave = W1` (47 cases, built in M5) and `W2` (89 cases,
+descoped, into `automation_wave = W1` (52 cases, built in M5 — originally 47; 5 P0 cases promoted
+post-G5 per `test_design_coverage.md` §8.5) and `W2` (84 cases,
 **scheduled, not automated in this cycle** — every W2 row still carries `needs automation
 = Yes` and an `Automation_ID`; `automation_wave` records only *when* it is built, never
 *whether*). Rationale and the exact wave-selection rule are in
@@ -116,21 +117,21 @@ cards have evidence. ✅ **VERIFIED — signed off 2026-09-24, M5 begun immediat
 
 ---
 
-## M5 — Automation — `[x]` COMPLETE (Wave 1, 47/136 needs-automation cases; Wave 2's 89
+## M5 — Automation — `[x]` COMPLETE (Wave 1, 52/136 needs-automation cases; Wave 2's 84
 scheduled for a future cycle, not descoped — see the M3 note above)
 
 **Deliverables:**
 - Playwright POM suite: `src/pages/`, `src/components/`, `src/fixtures/`, `src/utils/`,
-  `src/data/`, `tests/admin/*.spec.ts` (CLAUDE.md §4 repository contract) — 47 tests,
-  47/47 green
-- `deliverables/05-automation/healing_process.md` (25 entries, `HEAL-001..025`)
+  `src/data/`, `tests/admin/*.spec.ts` (CLAUDE.md §4 repository contract) — 52 tests,
+  52/52 green
+- `deliverables/05-automation/healing_process.md` (27 entries, `HEAL-001..027`)
 - `deliverables/05-automation/code_review.md` (`/code-review` verdict: APPROVED)
 - `deliverables/05-automation/automation_execution_report.html` (self-contained,
   reuses the M4 report's template/CSS)
 
 **Definition of Done (CLAUDE.md §6, M5):**
 - [x] Every `needs automation = Yes` case from the M3 CSV **in Wave 1** is implemented
-      (Wave 2's 89 cases are scheduled, per the M3 note above — the DoD's own wording
+      (Wave 2's 84 cases are scheduled, per the M3 note above — the DoD's own wording
       governs the wave actually built this cycle)
 - [x] Page objects contain no assertions
 - [x] `src/base`, `src/components`, `src/fixtures`, `src/utils` contain nothing
@@ -144,7 +145,7 @@ scheduled for a future cycle, not descoped — see the M3 note above)
 - [x] No healing entry resolves a failure with only a hard wait (`waitForTimeout`) —
       escalate to an element-state wait
 - [x] Every automated test traces to exactly one `TC_ID` from the M3 CSV — cross-checked,
-      47/47 exact 1:1, 0 missing, 0 extra
+      52/52 exact 1:1, 0 missing, 0 extra
 - [x] `test.fixme()` + linked `BUG-###` used wherever a case would otherwise encode buggy
       behaviour as correct (CLAUDE.md §5.4) — in practice both `BUG-001`/`BUG-002` are
       deterministically reproducible and are asserted directly instead (the correct

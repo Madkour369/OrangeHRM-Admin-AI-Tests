@@ -44,6 +44,42 @@ test.describe('Login / Session / Navigation', () => {
     await expect(page).toHaveURL(/auth\/login/);
   });
 
+  test('TC_ADM_NAV_003 - invalid credentials rejected without leaking which field is wrong (nonexistent username)', async ({ page }) => {
+    // Promoted from Wave 2 (test_design_coverage.md §8): a P0 case is now Wave 1 by
+    // rule. Parameter variant of TC_ADM_NAV_002 — same page object, same
+    // assertions, only the credentials differ (a username that was never seeded,
+    // rather than a wrong password for a real one).
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+
+    await loginPage.login('ghost', 'admin123');
+
+    await expect(loginPage.errorAlert).toHaveText('Invalid credentials');
+    await expect(page).toHaveURL(/auth\/login/);
+  });
+
+  test('TC_ADM_NAV_004 - invalid credentials rejected without leaking which field is wrong (uppercase username) — KNOWN DEFECT BUG-003', async ({ page }) => {
+    // Promoted from Wave 2 (test_design_coverage.md §8): a P0 case is now Wave 1 by
+    // rule. Unlike NAV_002/003, this is NOT a pure parameter variant with the same
+    // outcome: BUG-003 (exploration.md §5 Bug Register, M4-discovered, severity
+    // Medium) confirmed live that login is username-case-INSENSITIVE — "ADMIN"
+    // with the account's own correct password successfully authenticates as
+    // "Admin", rather than being rejected. This is the product's ACTUAL
+    // behaviour, asserted directly (not test.fixme()) so this test
+    // regression-guards the defect itself, per CLAUDE.md §6.4's "assert the
+    // ACTUAL buggy behaviour, never the desired-but-absent one" — same treatment
+    // as TC_ADM_NAT_010 (BUG-001) and TC_ADM_BRD_001 (BUG-002). Do NOT change this
+    // to assert an "Invalid credentials" rejection; that is the desired-but-absent
+    // behaviour test_design.csv's Expected_Result explicitly warns against baking in.
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+
+    await loginPage.login('ADMIN', 'admin123');
+
+    await page.waitForURL(/dashboard/);
+    await expect(page.getByRole('banner').getByRole('img', { name: 'profile picture' })).toBeVisible();
+  });
+
   test('TC_ADM_NAV_005 - required-field validation, Username left empty', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();

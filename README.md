@@ -32,11 +32,15 @@ Actions workflow, explained), and `final_review.md` (an outside-reviewer-style a
 the whole project, with every finding and fix).
 
 **On scope:** `test_design.csv` designs 203 cases, 136 of which are `needs automation =
-Yes`. Only **47 (Wave 1)** are built in `tests/admin/` this cycle — the other **89 (Wave
-2)** are deliberately **scheduled, not forgotten**: every Wave-2 row already carries
-`needs automation = Yes` and an `Automation_ID`, and `test_design_coverage.md`'s
-"Execution sequencing" section explains the wave split and why ~76% of Wave 2 is pure
-parameter variants against Wave-1 page objects that already exist, not new code.
+Yes`. **52 (Wave 1)** are built in `tests/admin/` this cycle — the other **84 (Wave 2)**
+are deliberately **scheduled, not forgotten**: every Wave-2 row already carries
+`needs automation = Yes` and an `Automation_ID`. Wave assignment is priority-driven, not
+just capacity-driven: every `P0` case is Wave 1 by rule (`test_design_coverage.md` §8.5) —
+5 cases were promoted from Wave 2 into Wave 1 and implemented when Priority itself was
+tightened (§8.3), closing a gap where a confirmed defect (`BUG-003`) had no automated
+regression guard. `test_design_coverage.md`'s "Execution sequencing" section explains the
+original wave-split rationale and why most of Wave 2 is pure parameter variants against
+Wave-1 page objects that already exist, not new code.
 
 ## Repository layout
 
@@ -59,7 +63,7 @@ tests/admin/*.spec.ts         # one test per Wave-1 TC_ID
 npm ci
 npx playwright install --with-deps chromium
 
-# Full Wave-1 suite (47 cases), matching how this project runs its own official checks:
+# Full Wave-1 suite (52 cases), matching how this project runs its own official checks:
 npx playwright test tests/admin --workers=1
 
 # A single screen, or a TC_ID substring:

@@ -264,7 +264,7 @@
     <text x="1115" y="142" text-anchor="middle" font-size="9.5" fill="var(--text)">in: exploration.md</text>
     <text x="1115" y="154" text-anchor="middle" font-size="9.5" fill="var(--text)">+ CSV Wave 1</text>
     <text x="1115" y="176" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--text)">out: src/ + tests/</text>
-    <text x="1115" y="190" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--text)">47/47 green</text>
+    <text x="1115" y="190" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--text)">52/52 green</text>
   </g>
 
   <!-- Gate G5 -->
@@ -348,7 +348,7 @@
           <li>Author 203 cases across all 33 stories (positive/negative/boundary).</li>
           <li>Run <span class="cmd-pill">/coverage</span>; close 5 structural gaps, fix 1 duplicate id.</li>
           <li>Classify <span class="mono">valid in scope</span> / <span class="mono">needs automation</span>, reason on every "No".</li>
-          <li>Sequence 136 "Yes" cases into Wave 1 (47) / Wave 2 (89) &mdash; scheduled, not descoped.</li>
+          <li>Sequence 136 "Yes" cases into Wave 1 (47) / Wave 2 (89) &mdash; scheduled, not descoped (now 52 / 84 after the post-G5 P0 promotion, &sect;8.5).</li>
         </ol></dd>
         <dt>Commands used</dt>
         <dd><span class="cmd-pill">/coverage</span></dd>
@@ -384,7 +384,7 @@
     <div class="m-body">
       <dl>
         <dt>Inputs</dt>
-        <dd><span class="path">exploration.md</span>'s locator register; <span class="path">test_design.csv</span> Wave 1 (47 cases).</dd>
+        <dd><span class="path">exploration.md</span>'s locator register; <span class="path">test_design.csv</span> Wave 1 (52 cases &mdash; 47 built in Phase 2, 5 more promoted from Wave 2 post-G5 when every P0 case became Wave 1 by rule, §8.5).</dd>
         <dt>Steps</dt>
         <dd class="steps"><ol>
           <li>Phase 1: foundation (fixtures/components/base), verified against a real login.</li>
@@ -394,7 +394,7 @@
         <dt>Commands used</dt>
         <dd><span class="cmd-pill">/code-review</span> <span class="cmd-pill">/heal</span> <span class="cmd-pill">/coverage</span> <span style="color:var(--muted); font-size:12px;">(re-run at G5 per coverage.md's own G5 clause)</span></dd>
         <dt>Artifact produced</dt>
-        <dd><span class="path">src/</span> POM suite + <span class="path">tests/admin/*.spec.ts</span> (47/47 green) + <span class="path">code_review.md</span> + <span class="path">healing_process.md</span> + <span class="path">automation_execution_report.html</span></dd>
+        <dd><span class="path">src/</span> POM suite + <span class="path">tests/admin/*.spec.ts</span> (52/52 green) + <span class="path">code_review.md</span> + <span class="path">healing_process.md</span> + <span class="path">automation_execution_report.html</span></dd>
       </dl>
     </div>
   </div>
@@ -457,7 +457,7 @@
 
   <!-- loop 4: /heal -> framework (self loop on M5) -->
   <path d="M 1070,106 C 1120,130 1120,160 1070,170 C 1030,178 1000,160 995,140" fill="none" stroke="var(--loop)" stroke-width="1.8" marker-end="url(#arrowLoop)"></path>
-  <text x="1075" y="270" text-anchor="middle" font-size="10.5" fill="var(--loop)">/heal: 26 entries, each</text>
+  <text x="1075" y="270" text-anchor="middle" font-size="10.5" fill="var(--loop)">/heal: 27 entries, each</text>
   <text x="1075" y="283" text-anchor="middle" font-size="10.5" fill="var(--loop)">ending in a prevention rule</text>
   <text x="1075" y="296" text-anchor="middle" font-size="10.5" fill="var(--loop)">folded into components/utils</text>
 </svg>
@@ -466,7 +466,7 @@
   These three loops are recorded, not silent: prd.md §13.1 lists all 7 M2&rarr;M1
   corrections by requirement and cause; exploration.md's §6 "M5 locator corrections" note
   and this project's M5 progress log list every M5&rarr;M2/M3 correction by cell/finding;
-  <span class="path">healing_process.md</span>'s 26 entries each end in a named
+  <span class="path">healing_process.md</span>'s 27 entries each end in a named
   "Prevention rule," several of which became new <span class="path">fieldFactory.ts</span>
   or component exports rather than one-off patches.
 </div>
@@ -490,7 +490,7 @@
   <!-- test layer -->
   <rect x="60" y="30" width="320" height="56" rx="8" fill="var(--m5-bg)" stroke="var(--m5)" stroke-width="1.6"></rect>
   <text x="220" y="55" text-anchor="middle" font-size="13" font-weight="700" fill="var(--m5)">tests/admin/*.spec.ts</text>
-  <text x="220" y="72" text-anchor="middle" font-size="10" fill="var(--text)">module-specific &middot; 47 tests, one per Wave-1 TC_ID</text>
+  <text x="220" y="72" text-anchor="middle" font-size="10" fill="var(--text)">module-specific &middot; 52 tests, one per Wave-1 TC_ID</text>
   <line x1="220" y1="86" x2="220" y2="106" stroke="var(--gate)" stroke-width="1.8" marker-end="url(#arrowDown)"></line>
 
   <!-- fixture layer -->
@@ -577,7 +577,7 @@
   This is what CLAUDE.md §4 means by "swapping the module under test must require only a
   new <span class="path">spec.md</span> + new <span class="path">src/pages/&lt;module&gt;/</span>
   + new <span class="path">tests/&lt;module&gt;/</span>" &mdash; and it is why 76.4% of this
-  project's own Wave 2 (68 of 89 scheduled cases) is pure parameter variants against an
+  project's own Wave 2 (68 of 89 scheduled cases, as measured when the waves were first sequenced &mdash; before 5 cases moved to Wave 1 post-G5) is pure parameter variants against an
   already-built page object, not new interaction code (test_design_coverage.md, "Execution
   sequencing" section).
 </p>

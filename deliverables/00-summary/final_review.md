@@ -3,6 +3,15 @@
 **Run:** 2026-09-25, after Gate G5, CI setup, and publication to
 `https://github.com/Madkour369/OrangeHRM-Admin-AI-Tests`.
 
+> **Update (2026-09-26):** the figures below (47-test suite, 26 healing entries) describe
+> this audit's own before/after state on 2026-09-25 and are left as written — an accurate
+> historical record, not restated. A day later, a further review of the Priority Model this
+> audit did not touch found and closed a real gap: a confirmed defect (`BUG-003`) sitting
+> at P0 with no automated regression guard. That work promoted 5 cases from Wave 2 to Wave
+> 1 and added the rule "every P0 case is Wave 1" (`test_design_coverage.md` §8.5). **Current
+> totals: 52 automated tests (52/52 green), 27 `healing_process.md` entries** — see that
+> file and §8.5 for the current, authoritative state.
+
 **Method:** every check below was actually run against the live repo and the live CI
 run's raw data (not assumed from memory of having built it). Where a finding was
 fixable without changing a recorded result or observation, it was fixed in this same

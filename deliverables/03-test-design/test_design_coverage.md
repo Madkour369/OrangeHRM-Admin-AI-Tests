@@ -264,31 +264,52 @@ membership. `test_design.csv`'s `Priority` column has been updated to match; no 
 column (`valid in scope`, `needs automation`, `automation_wave`, `Automation_ID`) was
 touched by this change.
 
-> **Note for `test_design.csv` readers:** the "Execution sequencing" section immediately
-> below was written when P0 meant the original 5 cases (2026-09-23) and Wave 1 was built
-> against that set (2026-09-24/25). Its own text is left as the accurate historical record
-> of what Wave 1's selection rule actually was at build time — it is not restated here.
-> All 12 newly-promoted P0 cases already carry real `Automation_ID`s and `automation_wave`
-> values from that earlier design, checked directly against the CSV rather than assumed:
-> **7 are already `W1`** (built and green — `TC_ADM_NAV_002`, `NAV_007`, `NAV_015`,
-> `NAV_016`, `TC_ADM_USR_002`, `USR_003`, `USR_022`, all in `tests/admin/`), and **5 are
-> still `W2`, scheduled but not yet automated** (`TC_ADM_NAV_003`, `NAV_004` — the `BUG-003`
-> regression guard — and `TC_ADM_USR_005`, `USR_006`, `USR_007`). This is a real, honest
-> consequence of the promotion, not a gap this document is hiding: 5 of this project's
-> now-17 P0 cases, including the one that would catch a confirmed authentication anomaly
-> if it regressed, do not yet have an automated test. Re-running Wave 1's selection rule
-> against today's Priority column to decide whether these 5 should move into Wave 1 is a
-> real decision for a future automation cycle, not made unilaterally here — this section is
-> additive (a priority correction), not a re-sequencing.
+### 8.5 Wave/Priority alignment rule (added 2026-09-26 — closes the gap §8.4 first found)
+
+When this Priority Model was written (above, same day), checking the 12 newly-promoted
+P0 cases against `automation_wave` found that 5 of them — `TC_ADM_NAV_003`, `NAV_004` (the
+`BUG-003` regression guard), `TC_ADM_USR_005`, `USR_006`, `USR_007` — were still `W2`,
+scheduled but not yet automated. That is exactly the kind of gap a reviewer would raise
+next: a confirmed defect sitting at P0 with no regression guard running. It was closed the
+same day, not left as a documented-but-open gap:
+
+- **The rule, stated plainly so the two systems cannot drift apart again:** Wave assignment
+  was originally a pure capacity-sequencing decision (`test_design_coverage.md`'s
+  "Execution sequencing" section below, written 2026-09-23/24, back when the current
+  Priority Model did not yet exist). Now that P0 is explicitly defined (§8.1), the rule is:
+  **every P0 case is Wave 1, unconditionally.** A case cannot be marked P0 and left in Wave
+  2 — if a future review promotes a case to P0, promoting its `automation_wave` to `W1` (and
+  implementing it) is part of the same change, not a follow-up.
+- **What was done to close this specific instance:** all 5 cases' `automation_wave` changed
+  `W2` → `W1` in `test_design.csv`, and all 5 were implemented in the same pass —
+  `TC_ADM_NAV_003`/`NAV_004` in `tests/admin/nav.spec.ts`, `TC_ADM_USR_005`/`006`/`007` in
+  `tests/admin/usr.spec.ts`. All five were parameter variants of an already-built Wave 1
+  reference case (confirmed before writing anything — `UserManagementPage
+  .submitAddFormWithEmptyField()` was already typed to accept `'Status' | 'Username' |
+  'Password'`), except `NAV_004`, which asserts `BUG-003`'s actual (defective) behaviour
+  directly, annotated `— KNOWN DEFECT: BUG-003` in its Title and `Linked_Bug`, the same
+  treatment as `TC_ADM_NAT_010`/`BUG-001` and `TC_ADM_BRD_001`/`BUG-002`.
+- **Verification:** every one of the 17 P0 rows is confirmed `automation_wave = W1` by
+  direct query against the CSV (0 exceptions) — see the full suite result and updated
+  totals in `deliverables/00-summary/final_review.md` and `healing_process.md`.
 
 ---
 
 # Execution sequencing (Wave 1 / Wave 2)
 
-> Unchanged from the prior turn — reproduced here for continuity. Wave assignment logic and
-> counts were not affected by this audit; the 5 cases added above are all
-> `needs automation = No` and therefore carry no `automation_wave` value, consistent with
-> every other `No` row.
+> **This section is the historical record of the ORIGINAL wave-selection decision
+> (2026-09-23/24) and is preserved as written — the "Wave 1 — 47 cases" / "5 P0 cases" /
+> per-sub-module counts below describe that original build, not the current CSV.** Two
+> things changed it since: the `/coverage` audit (prior turn) added 5 `needs automation =
+> No` cases with no `automation_wave` value, not affecting these counts; and the §8.5
+> Wave/Priority alignment rule (2026-09-26) promoted 5 more cases from `W2` to `W1`
+> (`TC_ADM_NAV_003`/`004`, `TC_ADM_USR_005`/`006`/`007`) because Priority itself changed
+> (§8.3) and the rule requires every P0 case to be Wave 1. **Current, authoritative totals:
+> Wave 1 = 52 cases, Wave 2 = 84 cases** (verified directly against `test_design.csv`, not
+> recomputed from the narrative below) — see §8.5 and `deliverables/00-summary
+> /final_review.md` for the current state. The selection rule, reasoning, and per-
+> sub-module table immediately below reflect what those first 47 Wave-1 cases actually
+> were and why, which remains true and useful context — it is just no longer the total.
 
 `test_design.csv` carries 136 `needs automation = Yes` cases. A full Playwright run against
 the shared demo at `workers: 2` (Constitution Article VI.2) takes roughly 40–60 minutes, and

@@ -147,6 +147,68 @@ test.describe('Admin > User Management > Users', () => {
     await expect(userPage.table.rows.filter({ hasText: username })).toHaveCount(0);
   });
 
+  // Promoted from Wave 2 (test_design_coverage.md §8): a P0 case is now Wave 1 by
+  // rule. TC_ADM_USR_005/006/007 are pure parameter variants of TC_ADM_USR_003 —
+  // same page object, same submitAddFormWithEmptyField() helper (already typed to
+  // accept 'Status' | 'Username' | 'Password', confirmed before writing this),
+  // only the empty field differs. TC_ADM_USR_004 (Employee Name) stays Wave 2 —
+  // it was not promoted to P0 (test_design_coverage.md §8.3: traceability, not
+  // access), so it is out of scope for this batch.
+
+  test('TC_ADM_USR_005 - mandatory field blocks submission when Status is empty', async ({ page, testData }) => {
+    const userPage = new UserManagementPage(page);
+    await userPage.goto();
+
+    const username = testData.unique('probe');
+    testData.track(`user ${username}`, () => ensureUserDeleted(userPage, username));
+
+    await userPage.openAddForm();
+    await userPage.submitAddFormWithEmptyField('Status', username);
+
+    await expect(userPage.fieldError('Status')).toHaveText('Required');
+    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+
+    await userPage.goto();
+    await userPage.searchByUsername(username);
+    await expect(userPage.table.rows.filter({ hasText: username })).toHaveCount(0);
+  });
+
+  test('TC_ADM_USR_006 - mandatory field blocks submission when Username is empty', async ({ page, testData }) => {
+    const userPage = new UserManagementPage(page);
+    await userPage.goto();
+
+    const username = testData.unique('probe');
+    testData.track(`user ${username}`, () => ensureUserDeleted(userPage, username));
+
+    await userPage.openAddForm();
+    await userPage.submitAddFormWithEmptyField('Username', username);
+
+    await expect(userPage.fieldError('Username')).toHaveText('Required');
+    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+
+    await userPage.goto();
+    await userPage.searchByUsername(username);
+    await expect(userPage.table.rows.filter({ hasText: username })).toHaveCount(0);
+  });
+
+  test('TC_ADM_USR_007 - mandatory field blocks submission when Password is empty', async ({ page, testData }) => {
+    const userPage = new UserManagementPage(page);
+    await userPage.goto();
+
+    const username = testData.unique('probe');
+    testData.track(`user ${username}`, () => ensureUserDeleted(userPage, username));
+
+    await userPage.openAddForm();
+    await userPage.submitAddFormWithEmptyField('Password', username);
+
+    await expect(userPage.fieldError('Password')).toHaveText('Required');
+    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+
+    await userPage.goto();
+    await userPage.searchByUsername(username);
+    await expect(userPage.table.rows.filter({ hasText: username })).toHaveCount(0);
+  });
+
   test('TC_ADM_USR_009 - password policy feedback for a too-short password', async ({ page }) => {
     const userPage = new UserManagementPage(page);
     await userPage.goto();
