@@ -13,7 +13,17 @@ Last updated: 2026-09-26
 | 2 | Prompts archive: improved prompts + "What the improvement fixes" + "Reusable prompt library" | ✅ Done 2026-09-26: 43 improved prompts with grounded fixes, 11 reusable templates; .md and .xlsx verified identical (0 mismatches); original text unchanged |
 | 3 | `deliverables/00-summary/code_standards.md` | ✅ Done 2026-09-26: written from the code with verified excerpts; 12 deviations documented (incl. re-authentication helper never wired in, no logger, config allows 2 workers) |
 | 4 | `deliverables/00-summary/system_sequence_diagram.html` | ✅ Done 2026-09-26: 48 sourced messages across 7 lanes, static inline SVG, milestone I/O and command tables, layer diagram; measured 1 request, 0 errors, light/dark and phone width checked |
-| 5 | `BOOTSTRAP.md` at the repo root + README "Reusing on another system / module" | ⬜ Not started |
+| 5 | `BOOTSTRAP.md` at the repo root + README "Reusing on another system / module" | ✅ Done 2026-09-26: fill-in header, standing instructions, first actions on a new system; CSV header verified byte-exact against CLAUDE.md; README links added |
+
+## Status: all five steps complete (2026-09-26)
+
+Open items found along the way, not yet fixed (each needs a decision or a small change in a future session):
+- `.claude/commands/new-module.md` cites a non-existent "Constitution III.10"; the rule is Article IV.1.
+- Known-defect tests cite a non-existent "CLAUDE.md §6.4" (9 places); either write the known-defect-guard rule into CLAUDE.md §5.4 or correct the citations to prompts_used.md #29 Rule 3.
+- Prompt #23 in the prompts archive is truncated without a `[partial]` marker.
+- `challenges_and_resolutions.xlsx` CH-09 wrongly says the scaffold removal date is unrecorded (deleted 2026-09-23 per prompt #22); constitution Article IV.4 still reads as an open decision.
+- `code_standards.md` deviations: `reauthenticateIfExpired` is never called (CLAUDE.md §5.3 re-auth not wired in); no logger module; config allows 2 workers while official runs use 1.
+- `scope_review.xlsx` is awaiting the human's filled-in decisions; reconcile into test_design.csv when it comes back.
 
 ## Step details
 

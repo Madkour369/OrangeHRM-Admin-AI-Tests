@@ -14,6 +14,13 @@ module-agnostic architecture: everything below `src/pages/<module>/` (fixtures,
 components, utils, base pages) knows nothing about "Admin" specifically, so a future
 module's cycle — run via `/new-module` — reuses it unchanged.
 
+## Reusing this pipeline
+
+- **Reusing on another system** → [`BOOTSTRAP.md`](BOOTSTRAP.md): one prompt that starts the
+  whole five-milestone pipeline on any web system, given only a URL and a scope statement.
+- **Reusing on another module** of OrangeHRM → [`/new-module`](.claude/commands/new-module.md):
+  runs the same cycle for a new module, reusing everything below `src/pages/<module>/`.
+
 ## Deliverables
 
 | # | Deliverable | Path |
