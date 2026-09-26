@@ -34,6 +34,12 @@ One prompt (**#28**) is only partially recoverable — the transcript entry itse
 mid-sentence — and is marked `[partial]` with a note on what is known to be missing, per
 the instruction not to invent what wasn't recoverable.
 
+## Improved prompts and the reusable library (added 2026-09-26)
+
+Each prompt below is followed by an **improved prompt** and **what the improvement fixes**. The improved versions were written afterwards, with hindsight: each one names a specific correction, retry or gap that actually followed the original, with the prompt number, finding, bug, healing entry or commit that records it. Where nothing traceable went wrong after a prompt, the "fixes" line says so rather than inventing a weakness. The original prompts are unchanged.
+
+Some improved versions of very long prompts (the pasted spec draft in #2, CLAUDE.md in #16, the command files in #21, and the M1, M2, M3, M4 and M5 briefs) keep the unchanged parts by reference to the original prompt directly above them, and spell out only what changes. The **Reusable prompt library** at the end has the complete, standalone, module-parameterised versions.
+
 ---
 
 
@@ -48,6 +54,18 @@ Create Page Object Model and Playwright E2E tests for OrangeHRM Admin Module (ht
 ```
 
 **Produced:** An initial ad-hoc Playwright POM suite (later deleted at the G2 reconciliation, since it predated the pipeline and lived at the repo root, not under src/).
+
+**Improved prompt:**
+
+```
+I want a UI-only QA cycle for the OrangeHRM Admin module (https://opensource-demo.orangehrmlive.com/), ending in a Playwright + TypeScript Page Object Model suite.
+
+Do not write any test code yet. Tests come last, after the product has been specified, explored manually and executed manually, so that no assertion is written from assumption.
+
+First, set up the spec-driven pipeline: I will give you the governing CLAUDE.md in the next message. Until then, create nothing under tests/, pages/ or utils/, and tell me if any such folders already exist.
+```
+
+**What the improvement fixes:** Asked for test code before any spec, exploration or pipeline existed; the ad-hoc suite it produced at the repo root predated the pipeline and had to be reported and deleted at Gate G2 (#19, #20, #22).
 
 ---
 
@@ -566,6 +584,23 @@ Ids assigned here are authoritative and must be reused verbatim downstream.
 
 **Notes:** Most of the message body is a pasted draft of spec.md's own content (evidently drafted earlier in the same working session as reference material); the new instruction is the final paragraph.
 
+**Improved prompt:**
+
+```
+Act as the Principal QA Architect for the OrangeHRM Admin UI cycle.
+
+Step 1 — create CLAUDE.md at the workspace root with the content I paste below, verbatim. It is the governing system prompt; everything else must follow it.
+Step 2 — create the SpecKit workspace strictly to CLAUDE.md's model: five milestones (PRD, exploration, test design, manual execution, automation) with gates G1–G5, and the src/ layout in its section 4. Files: .specify/memory/constitution.md, .specify/specs/001-admin-ui/spec.md (from the draft pasted below), plan.md, tasks.md, and only the four custom commands in .claude/commands/ (analyze, coverage, code-review, heal).
+Do not generate stock SpecKit templates or commands. If a tool creates any, list them and stop; do not keep them alongside ours.
+Step 3 — list every file you created, with its purpose, and confirm there is exactly one milestone model in the workspace.
+Then start Milestone 1 (deliverables/01-prd/prd.md), and stop at Gate G1.
+
+[CLAUDE.md content]
+[spec.md draft — the text pasted in the original prompt, unchanged]
+```
+
+**What the improvement fixes:** Asked for "all the required SpecKit workspace files" without naming the governing model or supplying CLAUDE.md, so stock 4-milestone scaffolding and commands appeared next to the project's own; CLAUDE.md turned out to be missing (#15) and the two pipelines had to be reconciled at Gate G2 (#20, #21).
+
 ---
 ### #3 — 2026-09-19T22:47:55Z — Gate G1
 
@@ -798,6 +833,21 @@ Report: the checklist results, counts of modules / epics / stories / business ru
 **Produced:** Revised PRD scope: full 12-module product breadth with Admin as the deep-dive tier.
 
 **Notes:** Written in Arabic (Egyptian dialect), as sent.
+
+**Improved prompt:**
+
+```
+Before any PRD text is written, settle the scope decisions, because changing them afterwards means rewriting the document:
+
+1. Product scope: all 12 OrangeHRM modules plus cross-cutting surfaces (login, navigation, session).
+2. QA cycle scope: Admin only. Every non-Admin chapter carries "QA CYCLE: not in current cycle — specification only".
+3. Depth: exactly two tiers. Admin is Tier 1 (exhaustive, assertion-grade). Every other module is Tier 3 (functional overview). No intermediate tier.
+4. API scope: deferred by explicit decision, stated in the PRD.
+
+Reply with these four decisions restated in one line each and any you think are wrong. The full PRD brief follows once they are confirmed (see #4).
+```
+
+**What the improvement fixes:** Introduced a three-tier depth model that the very next prompt reversed (#4 collapsed Tier 2 into Tier 3, later recorded as PRD v2.1), so the PRD was specified twice; like #4, its honesty rule left it to the writer to judge what counted as unverified.
 
 ---
 ### #4 — 2026-09-19T23:06:02Z — Gate G1
@@ -1059,6 +1109,38 @@ Then STOP at Gate G1 and wait for my sign-off. Do not begin Milestone 2.
 
 **Notes:** Written in Arabic (Egyptian dialect) with the technical brief in English, as sent.
 
+**Improved prompt:**
+
+```
+# MILESTONE 1 — Product Requirements Document
+
+Context, pre-work, role, the two scopes, scope constraints, depth tiers, id scheme and the 15-section structure: as in the original M1 brief, unchanged. The changes below are binding and override anything in it.
+
+## Always unverified until observed
+The following can never be stated as fact in this document, however standard they look. Each gets a TO CONFIRM (M2 — Exploration) marker and an Open Questions row:
+- every user-facing message, toast, empty state and error string, quoted or paraphrased
+- every numeric rule: lengths, minimums, maximums, counts, formats, date formats
+- every validation rule, including password policy (length, character classes)
+- which fields are mandatory
+- delete behaviour on referenced data, and file type/size limits
+Describe the capability ("the system enforces a password policy and explains violations") and mark the specifics. A familiar rule is not a verified rule.
+
+## Screen inventory comes from the product, not from this prompt
+The screen lists in this brief are a starting point. Open the live navigation menu for each Admin sub-module and list what is actually there. Any screen not in this brief gets a story; any screen in this brief that is not in the menu is flagged.
+
+## One story per screen
+Every Admin screen in the inventory has at least one US-nn-yy story with Tier 1 Gherkin. Report the screen → story mapping.
+
+## Definition of Done additions
+- [ ] Zero message strings, limits or validation rules stated without a TO CONFIRM marker
+- [ ] Screen inventory checked against the live menu; every screen has a story
+- [ ] TO CONFIRM count equals the Open Questions count
+
+Stop at Gate G1.
+```
+
+**What the improvement fixes:** Asked for "the password policy … with each user-facing message" while forbidding invention, and left the TO CONFIRM rule to the writer's judgement, so the PRD asserted an upper-case rule and an 8-character minimum that build 5.9 does not have (FIND-002, corrected in #18); it also hand-listed 7 Configuration screens (LDAP was missing, FIND-005) and did not require one story per screen (Qualifications and Nationalities had none, #6).
+
 ---
 ### #5 — 2026-09-19T23:12:49Z — Gate G1
 
@@ -1089,6 +1171,21 @@ wc -w prd.md
 **Produced:** Story-count verification against prd.md.
 
 **Notes:** Shell commands with Arabic inline comments, as sent.
+
+**Improved prompt:**
+
+```
+Run these checks on deliverables/01-prd/prd.md and report the raw output:
+
+1. Story counts: all, Admin (US-0n-nn), and per module prefix.
+2. Every Admin screen in §8.1's inventory, with the story id(s) that cover it. List screens with none.
+3. Gherkin blocks and Scenario Outlines, per Admin epic.
+4. Every quoted string inside a Gherkin step (text between double quotes). For each, show whether a TO CONFIRM marker covers it. List the unmarked ones.
+5. TO CONFIRM marker count vs Open Questions row count; list any mismatch.
+6. prd.md vs spec.md id parity for US-, EPIC-ADM- and BR- ids (diff; report the exit code).
+```
+
+**What the improvement fixes:** Counted stories and markers but did not check that every Admin screen had a story or that every quoted message was either observed or marked; the missing Qualifications/Nationalities stories needed a separate corrective (#6), and the unmarked password messages passed Gate G1.
 
 ---
 ### #6 — 2026-09-19T23:21:23Z — Gate G1
@@ -1128,6 +1225,20 @@ count, and confirm spec.md and prd.md ids match. Stop at G1.
 
 **Produced:** US-04-01..05 and US-05-01 added to spec.md and prd.md identically.
 
+**Improved prompt:**
+
+```
+Before G1 sign-off, close the story gaps. This is an addition, not a renumbering; no existing id changes.
+
+1. Mint the stories you listed for EPIC-ADM-04 (US-04-01 to US-04-05) and EPIC-ADM-05 (US-05-01) in both spec.md and prd.md, identically, with full story form, priority, BR-nn references and Tier 1 Gherkin. The Nationalities in-use delete scenario is an OBSERVATION scenario with a TO CONFIRM (M2) marker.
+2. Then sweep every other Admin epic the same way: compare each epic's screens with the live navigation menu and list any screen with no story. Propose ids for them; do not mint them without my approval.
+3. Re-run the G1 checks from #5 and report.
+
+Stop at G1.
+```
+
+**What the improvement fixes:** Fixed only the two named epics; a sweep of every epic against the live menus would also have surfaced LDAP Configuration, which stayed without a story until US-07-08 was added on 2026-09-26.
+
 ---
 ### #7 — 2026-09-19T23:26:43Z — Gate G1
 
@@ -1140,6 +1251,16 @@ diff <(grep -o 'US-0[0-9]-[0-9][0-9]' deliverables/01-prd/prd.md | sort -u) \
 
 **Produced:** diff confirming spec.md/prd.md story-id parity.
 
+**Improved prompt:**
+
+```
+diff <(grep -oE 'US-0[0-9]-[0-9]{2}|EPIC-ADM-[0-9]{2}' deliverables/01-prd/prd.md | sort -u) \
+     <(grep -oE 'US-0[0-9]-[0-9]{2}|EPIC-ADM-[0-9]{2}' .specify/specs/001-admin-ui/spec.md | sort -u)
+echo "exit code: $?"
+```
+
+**What the improvement fixes:** No downstream problem traced to this command. Small gap: it compares Admin story ids only; the improved version also compares epic ids, which every later parity check needed (e.g. commit 23c3cd9).
+
 ---
 ### #8 — 2026-09-19T23:28:05Z — Gate G1
 
@@ -1150,6 +1271,14 @@ Gate G1 approved. prd.md is signed off.
 ```
 
 **Produced:** Gate G1 approved.
+
+**Improved prompt:**
+
+```
+Gate G1 approved: deliverables/01-prd/prd.md is signed off as it stands (50 stories, 33 Admin; id parity with spec.md verified). The remaining TO CONFIRM markers are expected and are Milestone 2's input. Do not start Milestone 2 until I confirm the browser tooling works.
+```
+
+**What the improvement fixes:** No downstream problem traced to this sign-off. The improved version records what was approved and what stays open, so the approval can be audited later.
 
 ---
 
@@ -1173,6 +1302,21 @@ downstream would be built on it.
 
 **Produced:** A hard precondition on M2: confirm live browser access or stop.
 
+**Improved prompt:**
+
+```
+Before Milestone 2 you need a real browser. Set it up in one pass:
+
+1. Register the Playwright MCP server in the project's .mcp.json using bundled Chromium:
+   {"mcpServers":{"playwright":{"command":"npx","args":["-y","@playwright/mcp@latest","--browser","chromium"]}}}
+2. Run: npx playwright install chromium
+3. Tell me to restart the session, and nothing else.
+
+After the restart I will ask you to prove the browser works. If at any point you cannot drive a real browser, say so and stop: exploration written from memory is worthless.
+```
+
+**What the improvement fixes:** Asked only whether a browser tool worked, not for the setup it needs; the next five prompts (#10–#14) went on registering the MCP server, creating .mcp.json, installing Chromium and restarting the session twice.
+
 ---
 ### #10 — 2026-09-19T23:29:28Z — Gate —
 
@@ -1183,6 +1327,15 @@ claude mcp add playwright -- npx -y @playwright/mcp@latest
 ```
 
 **Produced:** MCP server registration command.
+
+**Improved prompt:**
+
+```
+claude mcp add playwright -- npx -y @playwright/mcp@latest --browser chromium
+npx playwright install chromium
+```
+
+**What the improvement fixes:** Registered the server without the bundled-Chromium flag, so the browser failed to launch and #13 had to add "--browser chromium" and install Chromium.
 
 ---
 ### #11 — 2026-09-19T23:32:28Z — Gate —
@@ -1205,6 +1358,23 @@ Then tell me to restart the session.
 ```
 
 **Produced:** .mcp.json created.
+
+**Improved prompt:**
+
+```
+Create .mcp.json in the repo root with exactly this content, then run "npx playwright install chromium" and tell me to restart the session:
+
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--browser", "chromium"]
+    }
+  }
+}
+```
+
+**What the improvement fixes:** Duplicated #10's registration in a second form, still without the bundled-Chromium flag (added in #13).
 
 ---
 ### #12 — 2026-09-19T23:34:16Z — Gate —
@@ -1234,6 +1404,19 @@ Report only what you actually observe. Then stop and wait.
 
 **Notes:** Session had to be restarted for the MCP tool to load; see #13/#14.
 
+**Improved prompt:**
+
+```
+Re-read CLAUDE.md and .specify/memory/constitution.md. Gate G1 is approved; Milestone 2 is next.
+
+1. List the browser tools you have. If the Playwright tools are missing, or the browser fails to launch, report the exact error and stop — do not attempt workarounds.
+2. If it works: open https://opensource-demo.orangehrmlive.com/, log in through the form as Admin/admin123, and report exactly what you see: the footer build/version string, the main heading after login, and the Username field's placeholder on the login page.
+
+Report only what you observe. Then stop.
+```
+
+**What the improvement fixes:** Assumed the browser would launch; it did not until Chromium was installed (#13), so the same check had to be re-sent in a new session (#14).
+
 ---
 ### #13 — 2026-09-19T23:35:16Z — Gate —
 
@@ -1260,6 +1443,18 @@ Tell me when the install finishes so I can restart the session again.
 
 **Produced:** npx playwright install chromium; .mcp.json updated to force the chromium channel.
 
+**Improved prompt:**
+
+```
+Install the browser and switch to bundled Chromium in one step:
+
+npx playwright install chromium
+
+Then set .mcp.json's args to ["-y", "@playwright/mcp@latest", "--browser", "chromium"], and tell me when both are done so I can restart the session.
+```
+
+**What the improvement fixes:** No downstream problem traced to this fix; the improved version is folded into the one-pass setup (#9, #10) so the install happens once.
+
 ---
 ### #14 — 2026-09-19T23:35:59Z — Gate —
 
@@ -1283,6 +1478,16 @@ Report only what you actually see. Then stop and wait.
 
 **Notes:** Near-duplicate of #12 — sent again because the tooling fix in #13 required a fresh session.
 
+**Improved prompt:**
+
+```
+Re-read CLAUDE.md and .specify/memory/constitution.md. Gate G1 is approved; Milestone 2 is next.
+
+Open https://opensource-demo.orangehrmlive.com/, log in through the form as Admin/admin123, and report exactly what you observe: the footer build/version string, the main heading after login, and the Username field's placeholder. If the browser does not launch, report the error and stop. Then wait.
+```
+
+**What the improvement fixes:** A near-duplicate of #12, needed only because setup was split across several prompts; no change beyond the #12 improvements.
+
 ---
 ### #15 — 2026-09-19T23:41:02Z — Gate —
 
@@ -1301,6 +1506,16 @@ Report the titles of the sections you find in it.
 ```
 
 **Produced:** Request to locate and copy MASTER_SYSTEM_PROMPT.md verbatim to CLAUDE.md.
+
+**Improved prompt:**
+
+```
+CLAUDE.md is missing from the workspace root. Create it now with the exact content I paste below (not from a file on disk). Then read it back and list its section titles and the subsection titles of section 5, so I can confirm nothing was lost.
+
+[CLAUDE.md content]
+```
+
+**What the improvement fixes:** Searched for a file that was not in the workspace, costing a round-trip before the content was pasted in #16; CLAUDE.md should have been created first, at #2.
 
 ---
 ### #16 — 2026-09-19T23:43:33Z — Gate —
@@ -1526,6 +1741,29 @@ After creating the file, confirm its path and list the subsection titles you fin
 
 **Produced:** CLAUDE.md (the standing master system prompt governing the whole pipeline) written to the repo root.
 
+**Improved prompt:**
+
+```
+Create CLAUDE.md at the workspace root with the content of the original master prompt, keeping sections 1–4, 6 and 7 unchanged, and with these amendments:
+
+§5.1, item 2 — replace the worked example with: anchor on the <label> element itself, then take the input inside the same .oxd-input-group:
+  page.locator('.oxd-input-group').filter({ has: page.locator('label', { hasText: /^Username$/ }) }).locator('input')
+Filtering the group by its full text fails whenever a sibling control renders text (a dropdown's "-- Select --"). Also: an icon can add a leading character to a button's accessible name (" Add"), so do not assume exact names for icon buttons.
+
+§5.3 — add: execution is strictly sequential, one agent, one browser, at every milestone. Keep the raw output (JSON results and list output) of every official run under deliverables/05-automation/runs/.
+
+§5.4 — replace the fixme rule with the known-defect guard rule: a test for a deterministic, confirmed defect asserts the product's ACTUAL behaviour, carries the bug id in its title and in Linked_Bug, and is labelled KNOWN DEFECT, so it fails when the bug is fixed. test.fixme() is only for a case that cannot complete a run at all.
+
+§8 — add:
+8. Resuming after an interruption: reconcile state from disk first, damage-check the shared demo, do not re-execute completed work, and treat any work not recorded to the evidence standard as not done.
+9. Every P0 case is in the first automation wave; promoting a case to P0 includes automating it.
+10. When a figure changes, update every artifact that shows it in the same change; never rewrite historical run records.
+
+After creating the file, confirm its path and list the subsection titles in §5 and the items in §8.
+```
+
+**What the improvement fixes:** Two of its own rules did not hold up: the §5.1 worked example (filter the input group by ^Label$) fails on dropdown fields (M5 locator corrections, HEAL-005), and §5.4's test.fixme() rule was never followed — the project asserted defects' actual behaviour instead, without writing that rule down, which led to a non-existent "CLAUDE.md §6.4" being cited in 9 places.
+
 ---
 
 ## M2 — Exploration
@@ -1684,6 +1922,43 @@ Then STOP at Gate G2 and wait for my sign-off. Do not begin Milestone 3.
 
 **Produced:** deliverables/02-exploration/exploration.md — the complete exploration procedure (9 steps), rules, and Definition of Done.
 
+**Improved prompt:**
+
+```
+# MILESTONE 2 — UI Exploration & Findings
+
+Context, pre-work, the hard rule (observe only, zero automation code), credentials and safety, and Steps 1–9: as in the original M2 brief, unchanged. The additions below are binding.
+
+## Execution mode
+Strictly sequential: one agent, one browser, no concurrent batches.
+
+## Per-screen completeness matrix (required for every screen, including "confirmatory" ones)
+For each screen, fill every cell with the verbatim observation or "not applicable — <reason>". Blank is not allowed.
+| Operation | Toast / message text (verbatim) |
+| Create — success | |
+| Edit — success (record separately; it may differ from create) | |
+| Delete — single, success | |
+| Delete — bulk, success (where bulk exists) | |
+| Mandatory-empty submit — message under each field | |
+| Duplicate submit | |
+| Boundary length (at and beyond the limit) | |
+Also record, per screen:
+- every mandatory field, including dropdowns and autocompletes (the red * is a CSS marker; confirm by submitting empty)
+- search semantics for each filter: exact, prefix or contains (test with a true prefix of a real value)
+- the breadcrumb, segment by segment
+
+A "confirmatory pass" may reuse a sibling screen's structure, but not its strings: every toast and message is recorded on the screen where it was seen.
+
+## Definition of Done additions
+- [ ] The completeness matrix is filled for every screen, with no blank cells
+- [ ] Search semantics recorded for every filter
+- [ ] Every screen found in the live menu that the PRD lacks is listed as a finding, with a proposed story
+
+Then stop at Gate G2.
+```
+
+**What the improvement fixes:** Asked for every toast verbatim but did not require a per-screen, per-operation checklist, so the edit toast ("Successfully Updated"), Locations' mandatory Country, the exact-match Username search and every delete toast went unrecorded and were discovered in M5 (#38, HEAL-016, exploration.md Addendum A on 2026-09-26).
+
 ---
 ### #18 — 2026-09-20T00:33:20Z — Gate G2
 
@@ -1738,6 +2013,27 @@ Report the count of requirements corrected, then stop at G2 again.
 
 **Produced:** FIND-002's password-policy correction, BUG-001's Nationalities scenario converted to an asserted known-defect scenario, every resolved TO CONFIRM marker replaced, and prd.md §13 "M2 corrections" audit trail added.
 
+**Improved prompt:**
+
+```
+Two corrections before G2 sign-off.
+
+## 1. Back-propagate M2 into prd.md and spec.md
+a) FIND-002: correct US-01-06 to the observed policy (≥7 characters, ≥1 number, no case requirement), quoting the recorded messages verbatim; remove the invented upper-case scenario.
+b) BUG-001: convert US-05-01's delete scenario to an asserted scenario of the ACTUAL behaviour, annotated KNOWN DEFECT: BUG-001.
+c) Replace every TO CONFIRM that M2 resolved with the observed fact, verbatim; keep unresolved ones with an updated reason.
+d) ADDITIONS: every screen or behaviour M2 found that the PRD does not specify (e.g. FIND-005) gets a requirement now: add it to the inventory and mint a story with Gherkin written only from what exploration.md recorded. No test case may later trace to a FIND id instead of a story.
+e) Apply the same edits to spec.md; keep ids identical.
+f) Add an "M2 corrections" subsection to prd.md §13 listing every changed or added requirement with the FIND/BUG/OQ id behind it.
+
+## 2. Rulings
+The TC catalogue belongs to Milestone 3. Updating spec.md's observation scenarios is in scope.
+
+Re-run the G2 checklist, confirm id parity (diff and exit code), report the count of requirements corrected and added, and stop at G2.
+```
+
+**What the improvement fixes:** Back-propagated corrections to existing requirements but not additions: FIND-005's undocumented LDAP screen got no story, so two test cases traced to a finding id until US-07-08 was added on 2026-09-26.
+
 ---
 ### #19 — 2026-09-20T00:43:21Z — Gate G2
 
@@ -1782,6 +2078,22 @@ Report and stop.
 ```
 
 **Produced:** Id-parity re-check, exploration.md existence check, scaffolding disposition question raised, per-command audit (ours vs. stock SpecKit), pipeline-order confirmation.
+
+**Improved prompt:**
+
+```
+Re-read CLAUDE.md and .specify/memory/constitution.md. We are at Gate G2; do not start M3.
+
+1. Id parity: run the prd.md/spec.md diff (US- and EPIC-ADM- ids) and report the exit code.
+2. Confirm exploration.md exists and is non-empty, and that evidence/ holds the screenshots it references.
+3. List every .spec.ts outside node_modules, and everything under ./pages, ./tests and ./utils at the repo root: paths, line counts, and whether each mentions OrangeHRM. Delete nothing; I will decide after reading it.
+4. For each file in .claude/commands/: is it one of our four commands (analyze, coverage, code-review, heal) or a stock SpecKit command? Flag any stock command whose references would misfire against our documents.
+5. Confirm the command order in tasks.md: /coverage after the M3 CSV, /analyze after M4 and before any page object, /code-review before the first full run, /heal on every M5 failure.
+
+Report and stop.
+```
+
+**What the improvement fixes:** Told the agent to delete root folders "if they are empty scaffolding" without first asking what they held; they held the pre-pipeline suite from #1, so the decision came back through #20 and #22. The improved version reports first and deletes only on a separate instruction.
 
 ---
 
@@ -1837,6 +2149,24 @@ Report and stop. Do not start M3.
 ```
 
 **Produced:** tasks.md rewritten to the 5-milestone/src/ model; constitution.md reconciled; scaffolding disposition reported (not yet deleted).
+
+**Improved prompt:**
+
+```
+Re-read CLAUDE.md. The repo contains two conflicting pipelines: stock SpecKit (4 milestones, root pages/tests/utils, stock commands) and ours (5 milestones, src/, four custom commands).
+
+## Ruling: CLAUDE.md wins
+Do not rewrite prd.md, spec.md or exploration.md; they are correct.
+
+1. Rewrite tasks.md to CLAUDE.md's five milestones (M1 prd.md · M2 exploration.md · M3 test_design.csv with the exact header · M4 agent_execution_report.html · M5 suite + healing_process.md), each with its Definition of Done and gate G1–G5. Mark M1 and M2 complete, M2 pending my sign-off.
+2. Reconcile the constitution with CLAUDE.md on pipeline shape, milestone count and layout, weakening no rule. Record the change in its changelog and in Article IV.4.
+3. The root-level pages/, tests/ and utils/ you listed predate the pipeline: print their paths and line counts for the record, then delete them.
+4. Confirm the four custom command files exist; list any missing.
+
+Report every change and stop. Do not start M3.
+```
+
+**What the improvement fixes:** No downstream problem traced to the ruling itself; the improved version also removes the listed scaffold in the same step, which took a third prompt (#22).
 
 ---
 ### #21 — 2026-09-23T14:32:20Z — Gate G2
@@ -2085,6 +2415,31 @@ stock SpecKit. Then stop.
 
 **Produced:** .claude/commands/analyze.md, coverage.md, code-review.md, heal.md.
 
+**Improved prompt:**
+
+```
+Create the four command files in .claude/commands/ with the content of the original prompt, with these amendments:
+
+code-review.md — every checklist item is checked by searching ALL of src/ and tests/, not by sampling. Add a "Search patterns" section, each pattern run and every hit read in context:
+- raw oxd- selectors outside src/components/ and src/utils/fieldFactory.ts:  \.oxd-  in tests/ and src/pages/
+- weak assertions:  toBeTruthy | toBeDefined | \.length\)\.toBeGreaterThan\(0\)
+- swallowed errors:  \.catch\(\s*\(\)\s*=>  and  try {  without a rethrow
+- strict mode silenced:  \.first\(\)  after  filter\(\{\s*hasText
+- positional selection on business data:  \.nth\(  and  nth-child
+- retrying presence checks on auto-dismissing toasts:  toHaveCount\(0\)  on a toast locator
+The report must say which patterns were run and list every hit with its verdict.
+
+heal.md — PRODUCT_BUG branch: a deterministic confirmed defect is asserted as its actual behaviour, labelled KNOWN DEFECT with the bug id (per CLAUDE.md §5.4); test.fixme() only if the case cannot complete a run. ENV_INSTABILITY branch: keep the raw output of the failing run under deliverables/05-automation/runs/.
+
+coverage.md — an orphan (a TC whose Story_ID is not a US id) is a gap to fix, never a justified exception: mint the missing story or correct the Story_ID.
+
+analyze.md — unchanged.
+
+After creating them, list .claude/commands/ and confirm which files are ours. Then stop.
+```
+
+**What the improvement fixes:** The /code-review checklist named violation classes without search patterns, so the first review checked page objects only and missed 17 raw oxd- selectors in test files, 5 weak toast assertions and 5 swallowed .catch(() => false) errors (found by the 2026-09-26 re-review); /heal's PRODUCT_BUG branch prescribes test.fixme() while the project's actual practice asserts a known defect's real behaviour (#28 Rule 3.4), and the two were never reconciled in writing; /coverage let orphans be "justified" (FIND-005).
+
 ---
 ### #22 — 2026-09-23T14:37:33Z — Gate G2
 
@@ -2118,6 +2473,21 @@ Report and stop.
 ```
 
 **Produced:** Root-level ./pages, ./tests, ./utils and their .spec.ts files removed; G2 DoD re-verified.
+
+**Improved prompt:**
+
+```
+Final step before G2 sign-off.
+
+1. Delete the root-level ./pages, ./tests and ./utils and every .spec.ts in them (they predate Milestone 1; CLAUDE.md §4 puts page objects under src/ and creates tests/ in M5). Print their paths and line counts first. Touch nothing else.
+2. Update constitution Article IV.4 to record the disposition: retired on this date, with the reason.
+3. Re-run the G2 Definition of Done, plus: zero .spec.ts outside node_modules; exploration.md and evidence/ populated; prd.md/spec.md id parity (exit code); the M2 corrections recorded in prd.md §13.
+4. State Milestone 3's inputs and the exact CSV header it will emit. Do not create the CSV.
+
+Report and stop.
+```
+
+**What the improvement fixes:** No downstream problem; the improved version also records the scaffold's removal in the constitution's Article IV.4, which still reads as an open decision.
 
 ---
 
@@ -2188,6 +2558,36 @@ delete-confirm · delete-cancel ·
 
 **Produced:** deliverables/03-test-design/test_design.csv — first pass.
 
+**Improved prompt:**
+
+```
+Gate G2 approved. Begin Milestone 3.
+
+# MILESTONE 3 — UI Test Design (CSV + coverage audit)
+
+Inputs, output, derivation rules 1–5, the two mandated columns and the known-defects rule: as in the original M3 brief. The changes below are binding.
+
+## Traceability
+Story_ID must be a US-nn-yy id from spec.md. A case with no story means a missing requirement: stop and propose the story; never use a FIND or BUG id as the Story_ID.
+
+## Cases whose expected result has not been observed
+If exploration.md did not record the outcome, write the Expected_Result from the PRD, mark it "TO CONFIRM (M4)", and decide "needs automation" on value (repeatable, deterministic, high value), not on whether it has been observed yet. M4 resolves the marker; do not use "not observed" as an automation_reason.
+
+## Capacity — decide the automation volume now
+A full run at workers: 2 takes about 40–60 minutes, and Gate G5 needs 3 consecutive green runs after every healing cycle. Add an automation_wave column (W1 / W2 / blank for No):
+- W1 is what this cycle builds, sized to the capacity above (target 45–55).
+- Every P0 case is W1, always.
+- One reference implementation per repeated CRUD family in W1; the siblings go to W2 as data.
+- W2 is scheduled, not descoped: every W2 row stays "needs automation = Yes" with an Automation_ID.
+
+## Depth required per CRUD screen
+create · mandatory-empty · duplicate · boundary length · invalid format · edit · cancel · delete-confirm · delete-cancel · search match · search no-match · reset · pagination.
+
+Then run /coverage in full (see #27) and stop at G3.
+```
+
+**What the improvement fixes:** Did not cap automation volume, which produced 136 candidates that could not be built and verified in one cycle (#26); gave no rule for cases whose expected result had not been observed yet, so 44 were marked "No" for that reason and stayed so after M4 observed all of them (scope_review.xlsx). The archived text of this prompt also stops mid-list.
+
 ---
 ### #24 — 2026-09-23T15:08:44Z — Gate G3
 
@@ -2213,6 +2613,25 @@ Report and stop.
 
 **Produced:** Row counts, header byte-check, missing-reason check, duplicate-id check, orphan-story check reported.
 
+**Improved prompt:**
+
+```
+Before I sign off G3, run these checks on the CSV and report the raw numbers:
+
+1. Data rows; header byte-compared with CLAUDE.md §6.
+2. valid in scope Yes/No; needs automation Yes/No; automation_wave W1/W2.
+3. Rows with a "No" and an empty reason; rows with "Yes" and no Automation_ID; duplicate TC_IDs. Expect zero each.
+4. Story_ID values that are not US ids in spec.md (orphans). Expect zero.
+5. P0 rows not in W1. Expect zero.
+6. W1 size against capacity: W1 count × average minutes per test, compared with the time for 3 consecutive green runs.
+7. Rows with a Linked_Bug, with TC_ID and bug id.
+8. RFC-4180 parse: ragged rows. Expect zero.
+
+Then paste the first 3 data rows in full so I can check quoting. Report and stop.
+```
+
+**What the improvement fixes:** Checked structure but not whether the automation set was executable within the gate budget; that surfaced only through the separate count request (#25) and the restructure (#26).
+
 ---
 ### #25 — 2026-09-23T15:14:23Z — Gate G3
 
@@ -2226,6 +2645,14 @@ BRD, CFG, NAV). Just the numbers.
 ```
 
 **Produced:** valid-in-scope and needs-automation breakdown reported.
+
+**Improved prompt:**
+
+```
+Report the exact counts: valid in scope Yes / No, needs automation Yes / No, and needs automation = Yes by sub-module (USR, JOB, ORG, QUA, NAT, BRD, CFG, NAV). Also state whether the Yes count fits the G5 run budget. Just the numbers.
+```
+
+**What the improvement fixes:** No downstream problem; this is the question that exposed the 136. It is folded into #24's improved checks.
 
 ---
 ### #26 — 2026-09-23T15:24:29Z — Gate G3
@@ -2277,6 +2704,25 @@ Report and stop at G3.
 
 **Produced:** New automation_wave column (W1/W2); Wave 1 selection rule applied; test_design_coverage.md's "Execution sequencing" section added.
 
+**Improved prompt:**
+
+```
+Do not sign off G3 yet: 136 automation candidates cannot be built and verified in this cycle (a full run takes 40–60 minutes; G5 needs 3 consecutive green runs after every healing cycle). Restructure, don't cut.
+
+Add automation_wave (W1 / W2 / blank for No) at the end. No "needs automation" value changes.
+
+Wave 1, target 45–55, selected in order:
+1. Every P0 case. This is a standing invariant, not a one-off selection: whenever a Priority changes later, every P0 row must still be W1, and promoting a case to P0 includes automating it.
+2. One full reference CRUD set per repeated family (Qualifications: one of five screens; Job: one of five); the siblings go to W2.
+3. Login/navigation happy paths, every Linked_Bug case, and one negative and one boundary case per sub-module.
+4. Anything M2 flagged as slow, fragile or file-dialog heavy goes to W2.
+Each W2 row notes which W1 Automation_ID it reuses.
+
+Report W1/W2 counts, W1 by sub-module, the reuse ratio with today's date (it changes as rows move), and confirm every Yes has a wave and an Automation_ID. Add an "Execution sequencing" section to test_design_coverage.md, including the P0 invariant. Stop at G3.
+```
+
+**What the improvement fixes:** Applied "every P0 case" once, at selection time, instead of as a standing rule; when priorities were revised after G5, 5 P0 cases, including the BUG-003 guard, were found still in Wave 2 (test_design_coverage.md §8.5, commit c81f972).
+
 ---
 ### #27 — 2026-09-23T15:40:33Z — Gate G3
 
@@ -2314,6 +2760,21 @@ total row count. Then stop at G3.
 ```
 
 **Produced:** test_design_coverage.md — full structural validation, forward/reverse matrices, CRUD depth check, headline metrics; gaps found and closed.
+
+**Improved prompt:**
+
+```
+/coverage has not actually run. Read .claude/commands/coverage.md and execute it in full against test_design.csv:
+- structural validation (header, duplicates, RFC-4180, reasons, Automation_IDs)
+- forward matrix Story → TC_IDs with Full / Partial / None
+- reverse matrix TC_ID → Story. Every orphan is a gap to close, never a justified exception: mint the missing story (in prd.md and spec.md, from exploration.md only) or correct the Story_ID
+- the per-CRUD-screen depth check (create, mandatory-empty, duplicate, boundary, edit, delete-confirm, delete-cancel, search match, search no-match, reset, pagination)
+- story, scenario and automation coverage %
+
+Write it into test_design_coverage.md, keep "Execution sequencing", close every gap, and re-run until nothing unjustified remains. Partial is never reported as Full. Report the verdict, cases added, orphans (must be 0), the three metrics and the row count. Stop at G3.
+```
+
+**What the improvement fixes:** Let orphans be "justified", so the two LDAP rows tracing to FIND-005 passed G3 and stayed orphans until US-07-08 (commit 23c3cd9).
 
 ---
 
@@ -2399,6 +2860,35 @@ Finding real bugs IS the deliverable. The demo has genuine defects.
 **Produced:** The M4 execution brief that Milestone 4 ran under.
 
 **Notes:** [partial] — the recovered message cuts off mid-sentence at the end of Rule 3 ("One honest bug with evidence beats…"). Rule 4 (reusable HTML-report output) and the session-management section are known to have existed (see #29's "All Rules from the M4 prompt remain in force", which references Rule 4 directly) but are not recoverable from this transcript entry.
+
+**Improved prompt:**
+
+```
+Gate G3 approved. Begin Milestone 4.
+
+# MILESTONE 4 — Manual UI Execution & HTML Report
+
+Scope, inputs, output and Rules 1–3: as in the original M4 brief. The additions below are binding.
+
+## Execution mode — read first
+Strictly sequential: one agent, one browser, no concurrent batches, at any point. The demo and the browser are shared state; parallel batches corrupt each other's results.
+
+## Checkpointing
+Create deliverables/04-execution/PROGRESS.md before the first case. After EVERY case, append its result (TC_ID, status, verbatim actual, evidence) to the batch's results file and update PROGRESS.md with the next TC_ID. Nothing is held only in context.
+
+## Evidence field
+Each case's evidence is one of: a file path under evidence/, or exactly one of these reasons — "Not required (Pass, no defect)", "Not applicable (Blocked before observation)", "Not captured — <why>". Screenshots are required for every Fail and every defect, including a defect found during a passing case.
+
+## Known defects
+Cases with a Linked_Bug assert the actual buggy behaviour and PASS if it still behaves as recorded; the defect stays in the bug section. A new bug found on a case gets that case's Linked_Bug in the CSV.
+
+## RULE 4 — Reusable output
+The HTML report is a template plus a separate data object; no module names, counts, filter options or bug ids hardcoded in the markup.
+
+Start with a damage check of any screen a previous attempt touched, then NAV_001.
+```
+
+**What the improvement fixes:** Did not forbid concurrent agents or require checkpointing, so the first attempt ran two batches that collided on one shared browser and had to be discarded (#29); it also left the evidence field free-form, so 17 cells hold the text "Not required" where a file is expected (test_cases_manual_vs_automation.xlsx).
 
 ---
 ### #29 — 2026-09-23T20:12:35Z — Gate G3→G4
@@ -2497,6 +2987,26 @@ Start with STEP 1 and report the damage check before executing any case.
 
 **Produced:** A damage-check-first restart of M4, PROGRESS.md created as the resume mechanism, execution restarted at TC_ADM_NAV_001.
 
+**Improved prompt:**
+
+```
+Resume Milestone 4. Treat it as NOT STARTED: the previous attempt ran two concurrent batches that collided on the shared browser.
+
+Read CLAUDE.md, the constitution, test_design.csv and exploration.md.
+
+STEP 1 — Damage check before any case: visit every screen that run reached; confirm no non-e2e_ record is missing and delete leftover e2e_ records. If you cannot rule out a deletion, name the screen. Report this first.
+STEP 2 — Execution mode: strictly sequential, one agent, one browser, for the rest of M4 and all of M5.
+STEP 3 — Execute all 186 valid-in-scope cases in order NAV, USR, JOB, ORG, QUA, NAT, BRD, CFG. Rules 1–4 remain in force.
+
+Concurrent users: another real user is active on the demo. Never assert on a record you did not create in the same case; if a failure could be concurrent mutation, retry once and log it as flakiness if it then passes.
+
+Checkpointing: after EVERY case, write its result to the batch results file and update PROGRESS.md (last TC_ID, cumulative pass/fail/blocked, next TC_ID). If a batch ends without its results on disk, its work counts as not executed. Near a session limit, stop at a case boundary and say where.
+
+Create PROGRESS.md now, then report the damage check.
+```
+
+**What the improvement fixes:** Required results to be written at the end of each sub-module, not after each case; the Branding/Configuration batch was later killed mid-sub-module having written nothing, and all 22 of its cases had to be re-run (M4 PROGRESS, 2026-09-24 11:00).
+
 ---
 ### #30 — 2026-09-23T21:28:33Z — Gate G3→G4
 
@@ -2508,6 +3018,18 @@ next TC_ID recorded there. All Rules 1-4 remain in force.
 ```
 
 **Produced:** M4 execution continued from PROGRESS.md's recorded checkpoint.
+
+**Improved prompt:**
+
+```
+Resume M4. Do NOT re-execute any case that already has a recorded result.
+
+1. Read deliverables/04-execution/PROGRESS.md and the batch result files. Report in two lines: cases completed so far and the next TC_ID.
+2. If the previous session ended in the middle of a case, run a damage check of that screen first (no non-owned record missing, no leftover e2e_ data).
+3. Continue sequentially from the next TC_ID, one browser. Rules 1–4 remain in force.
+```
+
+**What the improvement fixes:** Said "continue" but not "do not re-execute completed cases" or "reconcile state first"; the next resume (#31) had to add both.
 
 ---
 ### #31 — 2026-09-24T11:00:33Z — Gate G3→G4
@@ -2525,6 +3047,18 @@ All Rules 1-4 remain in force.
 ```
 
 **Produced:** M4 execution continued without re-running completed cases.
+
+**Improved prompt:**
+
+```
+Resume M4. Do NOT re-execute anything already completed.
+
+1. Read PROGRESS.md and every batch results file. Any batch that has no results file on disk counts as not executed, however far it got; its cases run again from the start.
+2. Damage check every screen that batch could have touched, verified live rather than assumed: for global screens (Corporate Branding, Email Configuration, Localization, Modules) confirm the saved state is still the default.
+3. Report the count completed and the next TC_ID, then continue sequentially, one browser. Rules 1–4 remain in force.
+```
+
+**What the improvement fixes:** Did not ask for a damage check or say how to treat a batch that left no results; the lost Branding/Configuration batch was handled correctly only because the agent chose to (M4 PROGRESS, 2026-09-24 11:00).
 
 ---
 ### #32 — 2026-09-24T11:40:53Z — Gate G4
@@ -2557,6 +3091,22 @@ full Open Questions register so I can rule on everything in one pass.
 ```
 
 **Produced:** BUG-003..006 numbered and back-propagated; FIND-008 formalized; agent_execution_report.html built as template + data object.
+
+**Improved prompt:**
+
+```
+Go ahead with items 2–4.
+
+2. Assign final BUG-nnn numbers to the 5 NEWBUG findings, continuing from exploration.md, checking each against the register to link rather than duplicate, and back-propagate each into exploration.md. For each new bug, set Linked_Bug on the case that found it in test_design.csv, including a defect found during a passing case; if a bug has no covering case, propose one.
+3. Formalise OQ-BRDCFG-2 as FIND-008 (same class as FIND-006; a finding, not a bug).
+4. Build agent_execution_report.html per Rule 4 from the batch result files plus PROGRESS.md; it must open offline with zero network requests.
+
+On CFG_003/004, restate the decision you need in full: TC_IDs, what each expects, what you observed, the competing readings, and your recommendation.
+
+Also report executed of 186, pass/fail/blocked, and the full Open Questions register.
+```
+
+**What the improvement fixes:** Numbered the new bugs but did not ask for them to be linked back into test_design.csv; BUG-004, BUG-005 and BUG-006 still have no Linked_Bug row (challenges_and_resolutions.xlsx, Defect sheet).
 
 ---
 ### #33 — 2026-09-24T12:03:39Z — Gate G4
@@ -2598,6 +3148,18 @@ Then stop at G4.
 ```
 
 **Produced:** CFG_003/CFG_004 marked Blocked with the ruling text recorded in the report; BUG-005/006 TC_ID mapping resolved; final tallies confirmed.
+
+**Improved prompt:**
+
+```
+Ruling on CFG_003/004: accept both as permanently Blocked for this cycle; no permission escalation. Record in the report: "Environment constraint: Save on a global-config screen would risk persisting state on a shared public instance (Constitution VI.3). CFG_004 types a non-numeric value into SMTP Port, and FIND-006 shows there is no format validation there. Executable on a private instance." It is an environment limitation, not a coverage gap. Never route around a tool-level denial.
+
+Make the standing rules durable: add to CLAUDE.md (and the constitution changelog) the two rules this milestone has relied on but never written down — (1) never route around a tool-level denial; (2) the known-defect guard: a case with a Linked_Bug asserts the actual behaviour and passes while the bug exists. Cite them by their new section numbers from now on.
+
+Then finalise G4 in one pass: map BUG-005/006 to their covering TC_ID and result (or "incidental discovery, no case exists" plus a proposed case), apply the ruling text, confirm exploration.md carries all bugs and findings with M4 provenance, and report the final tallies. Stop at G4.
+```
+
+**What the improvement fixes:** Rulings lived only in prompts: the known-defect-guard practice from #28 Rule 3.4 was never written into CLAUDE.md, so later artifacts justified it by citing a "CLAUDE.md §6.4" that does not exist (challenges_and_resolutions.xlsx, CH-37).
 
 ---
 
@@ -2695,6 +3257,29 @@ Start with Phase 1. Report when the foundation is built and stop before Phase 2.
 
 **Produced:** M5 scope fixed to Wave 1 (47 cases); Phase 1/2/3 build order specified.
 
+**Improved prompt:**
+
+```
+Gate G4 approved. Begin Milestone 5.
+
+# MILESTONE 5 — Playwright Automation & Self-Healing
+
+Scope (W1 only; W2 scheduled, not descoped), execution mode (strictly sequential, one browser), inputs, build order (Phases 1–3), module-agnostic requirement, shared-demo safety and zero-assumption rules: as in the original M5 brief. The changes below are binding.
+
+## Before Phase 2 — fix the build list
+Derive the W1 list per screen from test_design.csv, sum it, and confirm it equals the W1 total. Build from that list, and at the end of Phase 2 run a set difference between W1 Automation_IDs and test titles; both directions must be empty.
+
+## Known defects — one rule
+A case with a Linked_Bug asserts the product's ACTUAL behaviour, labelled KNOWN DEFECT with the bug id, and passes while the bug exists (CLAUDE.md §5.4 as amended). test.fixme() is only for a case that cannot complete a run. Never write the desired-but-absent behaviour as the expectation.
+
+## Runs
+Keep the raw output of every official full-suite run under deliverables/05-automation/runs/<date>/ (JSON results, list output, failure screenshots). A test that passes only on retry is a healing candidate, not a pass.
+
+Start with Phase 1 and stop before Phase 2.
+```
+
+**What the improvement fixes:** Gave two rules for defects in one paragraph (assert actual behaviour for Linked_Bug cases; test.fixme() for a PRODUCT_BUG failure) without saying which governs a newly found deterministic defect, and it did not ask for the per-screen Wave 1 list to be checked against the 47 total, so 2 cases went unbuilt until #38 (TC_ADM_JOB_023, TC_ADM_JOB_049).
+
 ---
 
 ## M5 — Automation
@@ -2768,6 +3353,24 @@ Stop cleanly at a screen boundary if you approach a session limit.
 
 **Produced:** plan.md reconciled to the as-built src/ layout; ORANGEHRM_USER moved to env config.
 
+**Improved prompt:**
+
+```
+Phase 1 approved. Two fixes, then Phase 2.
+
+Fix 1 — reconcile plan.md in place with what was built (src/ layout, the actual component inventory including OxdRadioGroup, chromium-only with the reason, the waitForIdle timeout decision). Weaken no standard.
+Fix 2 — move the default username out of shared code into env config with a fallback, so grep -rn "Admin" in src/utils, src/components, src/fixtures and src/pages/base returns nothing.
+
+Phase 2 — page objects then tests, screen by screen (USR, JOB, QUA, NAT, ORG, BRD, CFG, NAV). Before starting, list each screen's W1 TC_IDs from the CSV and confirm the sum is 47.
+- Page objects: behaviour only, zero expect, zero raw oxd- selectors, readonly lazy locators.
+- Tests: one per W1 TC_ID, title starts with the Automation_ID; assertions use verbatim strings from exploration.md or the CSV. If a string is not recorded (for example a toast for an operation M2 did not exercise), observe it live, record it in PROGRESS.md, then assert it.
+- Cases whose CSV row carries a Linked_Bug (check the CSV; do not assume which) assert the actual behaviour.
+- Banned: waitForTimeout, networkidle, .first() to silence strict mode, conditional assertions, swallowed errors, positional XPath, "text is not empty" assertions.
+Run each screen's tests as you finish it; append to PROGRESS.md after each screen. At the end, run the W1-vs-tests set difference and report it. Do not start Phase 3.
+```
+
+**What the improvement fixes:** Said Linked_Bug cases covered "BUG-001 through BUG-006", but only BUG-001 and BUG-002 carried a Linked_Bug then; and it asked for no per-screen count check, so the 45-of-47 gap survived Phase 2.
+
 ---
 ### #36 — 2026-09-24T19:32:23Z — Gate G4
 
@@ -2806,6 +3409,21 @@ approach the limit — and say exactly where you stopped.
 
 **Produced:** Phase 2 continued screen-by-screen from its actual on-disk state.
 
+**Improved prompt:**
+
+```
+Resume Phase 2 of Milestone 5. Do NOT rebuild or re-create anything that already exists.
+
+Take stock first:
+1. Read PROGRESS.md.
+2. List what exists in src/pages/admin/ and tests/admin/.
+3. Run a set difference between W1 Automation_IDs in test_design.csv and the TC ids in test titles. Report: screens with page objects, tests per screen, which are green, and which W1 ids have no test yet.
+
+Continue from there; finish any half-written file rather than restarting it. All Phase 2 rules remain in force (see #35). Stop at the end of Phase 2 or at a screen boundary, and say where.
+```
+
+**What the improvement fixes:** Took stock of what existed but not of what was missing against the Wave 1 list, so the 2 unbuilt cases were not noticed until #38.
+
 ---
 ### #37 — 2026-09-24T20:21:17Z — Gate G4
 
@@ -2826,6 +3444,16 @@ Strictly sequential, one browser. Do not start Phase 3.
 **Produced:** Phase 2 continued.
 
 **Notes:** Near-duplicate of #36 — sent again after a further session interruption.
+
+**Improved prompt:**
+
+```
+Resume Phase 2 of Milestone 5. Do NOT rebuild anything that exists.
+
+Read PROGRESS.md, list what is on disk in src/pages/admin/ and tests/admin/, and run the W1-vs-test-title set difference. Report screens with page objects, tests, green tests, and missing W1 ids. Continue from there under the Phase 2 rules (#35). Strictly sequential, one browser. Do not start Phase 3.
+```
+
+**What the improvement fixes:** A near-duplicate of #36 after a further interruption; same gap (no check against the Wave 1 list).
 
 ---
 ### #38 — 2026-09-24T21:58:16Z — Gate G4
@@ -2874,6 +3502,25 @@ Report what changed in each file, then stop. Do not start Phase 3 yet.
 ```
 
 **Produced:** The 2 missing TC_IDs (Pay Grades, Work Shifts) were built to close the gap; exploration.md's locator register and test_design.csv both corrected with live-observed values.
+
+**Improved prompt:**
+
+```
+Phase 2 looks strong. Two things before Phase 3.
+
+## 1. Account for the W1 gap
+Run a set difference between every automation_wave = W1 Automation_ID in test_design.csv and every TC id referenced in tests/admin/*.spec.ts. Report both directions. For each missing id: why it has no test, and build it unless there is a recorded reason not to. Do not assume which ids they are.
+
+## 2. Back-propagate the live corrections
+a) exploration.md — add the newly found oxd components and the M5 locator corrections to the locator register, marked M5-sourced.
+b) test_design.csv — sweep EVERY Expected_Result that quotes or implies a message against what you observed live, for every operation (create, edit, delete single, delete bulk), not only the ones already noticed. Quote the verbatim string in each corrected cell. Where a test currently asserts only that a message exists, replace it with the verbatim string. Change no valid in scope or needs automation value.
+c) State what happened to the bulk-delete design after the exact-match Username finding; the CSV row must describe the design that was built.
+d) exploration.md — update BUG-002 with the M5 re-observation.
+
+Report what changed in each file, then stop.
+```
+
+**What the improvement fixes:** Suggested the answer ("if they are TC_ADM_CFG_003/004…") instead of asking for a set difference, and they were JOB_023 and JOB_049; its list of strings to correct also missed the delete toasts, leaving 5 tests asserting only that the toast text was not empty until 2026-09-26.
 
 ---
 ### #39 — 2026-09-25T10:41:30Z — Gate G4→G5
@@ -2961,6 +3608,28 @@ Then stop at Gate G5.
 
 **Produced:** code_review.md (APPROVED), 3 official full-suite runs, healing_process.md (22 entries), Gate G5 reached.
 
+**Improved prompt:**
+
+```
+Resume Milestone 5 — begin Phase 3. Do NOT rebuild or re-verify Phase 2 work. Confirm state from disk in three lines first.
+
+## Step 1 — /code-review
+Run .claude/commands/code-review.md in full, including every search pattern in its "Search patterns" section, over ALL of src/ and tests/ (test files included). Report which patterns were run and every hit with its verdict. Also confirm the deliberate decisions (OxdTimePicker forced click, waitForIdle timeout) are documented in code. Fix every Blocker and Major.
+
+## Step 2 — three consecutive full runs
+Strictly sequential, one browser. For each run keep the raw output under deliverables/05-automation/runs/<date-time>/: JSON results, list output, and failure screenshots (test-results/ is overwritten by the next run). Read the raw results, not only the summary: any test that needed a retry is a healing candidate.
+
+## Step 3 — /heal every failure
+Follow heal.md exactly. Each healing entry's timestamp and raw error come from the retained run output, cited by path.
+
+## Step 4 — healing_process.md
+A full experiment log covering the whole of M5 (Phases 1–3), in heal.md's format, with the root-cause summary, quarantine and residual-risk sections.
+
+Append to PROGRESS.md after each step. Report the review verdict, the three runs with durations and retries, every heal entry, and the W1-vs-tests set difference. Stop at Gate G5.
+```
+
+**What the improvement fixes:** Listed what to check but not how, and scoped the raw-selector check by example ("you caught yourself … in PayGradesPage"), so the review searched page objects only and missed test files; it also did not ask for raw run output to be kept, so a healing entry's timestamp later matched no run (HEAL-027, fixed 2026-09-26).
+
 ---
 
 ## Post-G5 — Final Deliverables
@@ -3047,6 +3716,23 @@ Report what you built, then present both files.
 ```
 
 **Produced:** deliverables/00-summary/implementation_summary.xlsx and solution_flow.html.
+
+**Improved prompt:**
+
+```
+Gate G5 approved. Build deliverables (a) and (b) from what is on disk.
+
+(a) deliverables/00-summary/implementation_summary.xlsx — sheets Milestone Summary, Artifacts, Metrics, Defects, Decisions & Deviations (columns as in the original brief).
+- Compute every figure from its source file with a script at build time (test_design.csv, the M4 report data, healing_process.md, the retained run output). Do not type any number from this prompt or from memory.
+- Next to each metric, record its source file and the date it was computed.
+- Keep the build script so the workbook can be regenerated when a figure changes.
+
+(b) deliverables/00-summary/solution_flow.html — self-contained, offline, light and dark, real SVG: the pipeline with gates, per-milestone panels, the feedback loops, the framework layers, and the reuse-for-a-new-module panel.
+
+Verify: both files exist; the HTML makes zero network requests (measured); every figure traces to a source; list anything you could not source. Record in final_review.md that any later change to a figure must be cascaded to both files.
+```
+
+**What the improvement fixes:** Hard-coded the current figures in the prompt (33 stories, W1 47 / W2 89, 22 healing entries), which went stale in the workbook with each later change and had to be cascaded by hand (final_review.md; commits c81f972, 23c3cd9).
 
 ---
 ### #41 — 2026-09-25T12:36:43Z — Gate G5
@@ -3145,6 +3831,24 @@ any module cycle. No module work happens now.
 
 **Produced:** .claude/commands/new-module.md; solution_flow.html's reuse panel updated.
 
+**Improved prompt:**
+
+```
+Create .claude/commands/new-module.md with the content of the original prompt, with these amendments, then update solution_flow.html's reuse panel to reference it.
+
+- Replace "Constitution III.10" with "Constitution Article IV.1 (module-agnostic rule)". Check every other section reference against the actual documents before writing.
+- M1: apply the "always unverified until observed" list (every message, limit, validation rule, mandatory field) and build the screen inventory from the live menu, one story per screen.
+- M2: fill the per-screen completeness matrix (create/edit/delete/bulk-delete toasts, mandatory fields, search semantics, breadcrumb) for every screen.
+- M3: Story_ID must be a US id (no orphans); every P0 case is Wave 1; size Wave 1 to the run budget; do not mark a case "No" only because its outcome is unobserved.
+- M4: strictly sequential, one browser; checkpoint after every case; fixed evidence reasons.
+- M5: check the Wave 1 list against test titles by set difference; keep raw output of every official run under runs/; known-defect guards per CLAUDE.md §5.4.
+- Resume rule for every milestone: reconcile from disk, damage-check, never re-execute completed work.
+
+Only create the file and update the HTML. Do not run /new-module. Then present deliverables (a)–(g) with their paths.
+```
+
+**What the improvement fixes:** Cited a non-existent "Constitution III.10" (the rule is Article IV.1), which is now inside new-module.md, and carried none of the lessons learned after it: a per-operation observation checklist, P0 in the first wave, raw run output, orphans fixed with stories, and resume rules.
+
 ---
 ### #42 — 2026-09-25T13:10:54Z — Gate G5
 
@@ -3175,6 +3879,21 @@ Report the path and confirm it opens offline.
 ```
 
 **Produced:** deliverables/05-automation/automation_execution_report.html (Playwright's own HTML reporter output from a 47/47 green run, with a known-defects banner prepended); xlsx/HTML summaries updated to reference it.
+
+**Improved prompt:**
+
+```
+Deliverable (g) needs an HTML report of the automated run.
+
+1. Run the full W1 suite once, strictly sequential, one browser, with the JSON reporter and a step reporter writing to deliverables/05-automation/runs/<date-time>/, plus the list output.
+2. Build deliverables/05-automation/automation_execution_report.html as a template plus an embedded data object generated from that retained output (same design as the M4 report): run metadata, pass / fail / flaky counts, per-test status with retries and duration, steps, the healing summary, and the known-defect section generated from the CSV's Linked_Bug column (not hand-listed).
+3. Verify it opens offline with zero network requests and shows every W1 test.
+4. Update implementation_summary.xlsx and solution_flow.html to reference it.
+
+Report the path, the run's raw-output folder, and the result.
+```
+
+**What the improvement fixes:** Asked for Playwright's own HTML output with a hand-written bug banner listing BUG-001 and BUG-002; the report was later rebuilt as a data-driven template from retained JSON output, and the banner had to grow when BUG-003 got a guard.
 
 ---
 ### #43 — 2026-09-25T13:33:54Z — Gate G5
@@ -3219,5 +3938,261 @@ Report both paths when done.
 ```
 
 **Produced:** deliverables/00-summary/prompts_used.md and prompts_used.xlsx.
+
+**Improved prompt:**
+
+```
+Create a prompts archive in two identical formats: deliverables/00-summary/prompts_used.md and prompts_used.xlsx (sheets Prompts and Commands, columns as before).
+
+Source every prompt from the session transcripts; no paraphrase, no tidying, nothing invented. Exclude system-generated compaction summaries and say how many you excluded.
+
+For each prompt, check that the recovered text ends cleanly. If it stops mid-sentence or mid-list, mark it [partial] and note what is missing, as for any unrecoverable prompt. Report the list of prompts checked this way.
+
+After writing both files, verify they are identical: same prompt count, same text in each cell and fenced block (compare programmatically), and report the result.
+```
+
+**What the improvement fixes:** Asked for [partial] marking but not for a check that each recovered prompt ends cleanly; #23 stops mid-list ("delete-confirm · delete-cancel ·") without the marker that #28 carries.
+
+---
+
+## Reusable prompt library
+
+The improved prompts with this project's specifics removed, one per pipeline stage, so the set can drive any module. Placeholders in {{DOUBLE_BRACES}} are filled per module (for example {{MODULE}} = "PIM", {{MODULE_CODE}} = "PIM").
+
+### L-00 — Setup — Workspace and tooling setup before Milestone 1
+
+**Parameters:** {{MODULE}}, {{MODULE_CODE}}, {{TARGET_URL}}
+
+**Built from (original prompts):** #1, #2, #9–#16
+
+```
+Act as the Principal QA Architect for a UI-only QA cycle on {{MODULE}} at {{TARGET_URL}}.
+
+1. Create CLAUDE.md at the workspace root with the content I paste below, verbatim. It governs everything else.
+2. Create the SpecKit workspace strictly to CLAUDE.md's five-milestone model and src/ layout: .specify/memory/constitution.md, .specify/specs/<NNN>-{{MODULE_CODE}}-ui/ (spec.md, plan.md, tasks.md), and only our commands in .claude/commands/. Generate no stock templates.
+3. Set up the browser in one pass: .mcp.json with @playwright/mcp and "--browser chromium", then "npx playwright install chromium". Tell me to restart the session.
+4. After the restart: log in through the form at {{TARGET_URL}} and report the footer build string and the post-login heading, verbatim. If the browser does not work, report the error and stop.
+
+Write no test code in this step. List every file created.
+```
+
+---
+
+### L-01 — M1 — Product Requirements Document with an assertion-grade chapter for the module under test
+
+**Parameters:** {{MODULE}}, {{MODULE_CODE}}, {{TARGET_URL}}, {{OTHER_MODULES}}
+
+**Built from (original prompts):** #3, #4, #5, #6
+
+```
+# MILESTONE 1 — Product Requirements Document (Gate G1)
+
+Read the constitution, spec.md and tasks.md (Milestone 1 and its DoD). List every existing id; ids are immutable.
+
+Scope: product scope is the whole application; QA cycle scope is {{MODULE}} only. {{MODULE}} is Tier 1 (exhaustive, assertion-grade); {{OTHER_MODULES}} are Tier 3 and carry "QA CYCLE: not in current cycle — specification only". UI only; API deferred by decision.
+
+Always unverified until observed — never state as fact, mark "TO CONFIRM (M2)" and add to Open Questions:
+every message, toast and empty-state string · every numeric rule, length, minimum, maximum and format · every validation rule, including password-style policies · which fields are mandatory · delete behaviour on referenced data · file type and size limits. Describe the capability; mark the specifics.
+
+Screen inventory: open the live navigation for each {{MODULE}} sub-module and list what is there. Every screen gets at least one US story with Tier 1 Gherkin (happy path, mandatory-empty, duplicate, boundary, invalid format, cancel, delete-confirm, delete-cancel, empty search, pagination). Gherkin is domain language, never selectors.
+
+Output: deliverables/01-prd/prd.md (update the existing chapter in place if the PRD exists). Mirror new ids into spec.md.
+
+DoD: ids preserved · screen → story mapping complete · zero unmarked messages, limits or validation rules · TO CONFIRM count equals Open Questions count · prd.md/spec.md parity diff exits 0.
+Report the checklist and counts, then stop at G1.
+```
+
+---
+
+### L-02 — M2 — Manual UI exploration, with a completeness matrix for every screen
+
+**Parameters:** {{MODULE}}, {{TARGET_URL}}, {{BUILD}}, {{CREDENTIALS}}, {{OBSERVE_ONLY_SCREENS}}
+
+**Built from (original prompts):** #17
+
+```
+# MILESTONE 2 — UI Exploration & Findings (Gate G2)
+
+You are exploring {{TARGET_URL}} ({{BUILD}}) manually, logged in through the form as {{CREDENTIALS}}. Record only what you observe in this session. Zero automation code; zero API calls or stubbing. Strictly sequential, one browser.
+
+Shared-demo safety: create only e2e_-prefixed records with a unique suffix and delete them; never delete what you did not create; {{OBSERVE_ONLY_SCREENS}} are observe-only; revert any global setting you change in the same visit.
+
+For every {{MODULE}} screen, including screens that only get a confirmatory pass:
+1. Navigation path, full field inventory (control type, mandatory — confirmed by submitting empty), buttons, default state, empty-state text, screenshot.
+2. The completeness matrix, verbatim or "not applicable — <reason>", no blanks: create success · edit success · delete single · delete bulk · mandatory-empty (message per field) · duplicate · boundary length at and beyond the limit.
+3. Search semantics for every filter (exact, prefix or contains), and the breadcrumb segment by segment.
+
+Also: answer every TO CONFIRM from the PRD; findings (FIND-nnn); bugs (BUG-nnn: severity by user impact, numbered steps, expected with the US/BR id, actual, x/5 reproducibility, evidence); the locator risk register using the class names and accessible names actually observed; flakiness log; automation readiness and executability per screen. Any screen in the menu that the PRD lacks is a finding with a proposed story.
+
+Output: deliverables/02-exploration/exploration.md and evidence/. Report the DoD and counts, then stop at G2.
+```
+
+---
+
+### L-03 — G2 — Back-propagate exploration into the PRD and spec, then verify the gate
+
+**Parameters:** {{MODULE}}
+
+**Built from (original prompts):** #18, #19, #20, #22
+
+```
+Before G2 sign-off, back-propagate Milestone 2 into prd.md and spec.md:
+a) Every requirement M2 contradicted: correct it to the observed behaviour, quoting the recorded wording; remove anything invented.
+b) Every confirmed defect in a scenario: assert the ACTUAL behaviour, annotated KNOWN DEFECT: BUG-nnn.
+c) Every resolved TO CONFIRM: replace with the observed fact; keep unresolved ones with a reason.
+d) Every screen or behaviour M2 found that the PRD lacks: add it and mint a story from exploration.md only. No test case may later trace to a finding id.
+e) Keep prd.md and spec.md identical on ids; add an "M2 corrections" audit table to the PRD's Open Questions section.
+
+Then verify: parity diff (exit code); exploration.md and evidence/ present; zero .spec.ts in the repo; only our commands in .claude/commands/. List anything that should be deleted; delete nothing without a separate instruction.
+Report the counts of requirements corrected and added, then stop at G2.
+```
+
+---
+
+### L-04 — M3 — Test design CSV, sized to capacity, with the coverage audit
+
+**Parameters:** {{MODULE}}, {{MODULE_CODE}}, {{SUB_CODES}}, {{RUN_MINUTES}}, {{GATE_RUNS}}
+
+**Built from (original prompts):** #23–#27
+
+```
+# MILESTONE 3 — UI Test Design (Gate G3)
+
+Output: deliverables/03-test-design/test_design.csv with CLAUDE.md §6's exact header plus automation_wave.
+
+- Derive cases from the Gherkin: one per Scenario, one per Examples row. TC_ID TC_{{MODULE_CODE}}_<sub>_<nnn>, sub codes {{SUB_CODES}}.
+- Story_ID is a US id from spec.md. A case with no story is a missing requirement: propose the story; never use a finding id.
+- Expected_Result quotes exploration.md verbatim. If the outcome was not observed, write it from the PRD, mark "TO CONFIRM (M4)", and decide automation on value, not on observation.
+- valid in scope = No only for: blocked by a defect that prevents execution · outside UI scope · global blast radius on the shared demo · not present on this build. needs automation = No for visual judgement, colour pickers, non-deterministic or low-value cases. Every No has a specific reason.
+- Known defects: Expected_Result states the actual behaviour, Linked_Bug set, valid in scope stays Yes if executable.
+- Capacity: a full run takes {{RUN_MINUTES}} and G5 needs {{GATE_RUNS}} consecutive green runs per healing cycle. Size Wave 1 to fit. Every P0 case is W1, always. One reference CRUD set per repeated family in W1, siblings in W2 as data. W2 is scheduled, not descoped.
+- Depth per CRUD screen: create, mandatory-empty, duplicate, boundary, invalid format, edit, cancel, delete-confirm, delete-cancel, search match, search no-match, reset, pagination.
+
+Then run /coverage in full; every orphan is fixed with a story, never justified. Report counts (in scope, needs automation, W1/W2, P0 outside W1 = 0, orphans = 0), coverage metrics and the first 3 rows. Stop at G3.
+```
+
+---
+
+### L-05 — M4 — Manual execution of every in-scope case, with the HTML report
+
+**Parameters:** {{MODULE}}, {{IN_SCOPE_COUNT}}, {{SUB_ORDER}}
+
+**Built from (original prompts):** #28, #29, #32, #33
+
+```
+# MILESTONE 4 — Manual UI Execution & HTML Report (Gate G4)
+
+Execute the {{IN_SCOPE_COUNT}} rows with valid in scope = Yes, manually through the UI, in the order {{SUB_ORDER}}.
+
+Execution mode: strictly sequential, one agent, one browser. Before the first case, create PROGRESS.md and damage-check any screen a previous attempt touched.
+
+Rule 1 — zero assumptions: record only what you observe; never mark Pass on a guess (Blocked, with the reason); never edit Expected_Result to make a case pass.
+Rule 2 — uncertainty: log an Open Questions row and continue; stop immediately only for an action that could damage the shared demo, a constitution violation, a case that cannot run without changing what it verifies, or the demo being down or reset.
+Rule 3 — defects: any divergence is a defect (BUG-nnn: severity by user impact, steps, expected, actual, screenshot, x/3), numbered from exploration.md, linked not duplicated, back-propagated, and set as Linked_Bug on the case that found it. Linked_Bug cases assert the actual behaviour and pass while the bug exists.
+Rule 4 — reusable output: the report is a template plus a data object; nothing module-specific in the markup.
+
+Checkpoint after EVERY case: results file plus PROGRESS.md (last TC_ID, counts, next TC_ID). Work not on disk counts as not executed.
+Evidence per case: a file path, or exactly one of "Not required (Pass, no defect)", "Not applicable (Blocked before observation)", "Not captured — <why>". Never route around a tool-level denial; bring it to me.
+
+Output: deliverables/04-execution/agent_execution_report.html, offline, evidence in evidence/. Report tallies and the Open Questions register; stop at G4.
+```
+
+---
+
+### L-06 — M5 — Build the Page Object Model suite for Wave 1
+
+**Parameters:** {{MODULE}}, {{MODULE_CODE}}, {{SCREEN_ORDER}}
+
+**Built from (original prompts):** #34, #35, #38
+
+```
+# MILESTONE 5 — Playwright Automation, build phases (Gate G5)
+
+Scope: automation_wave = W1 only; W2 stays scheduled. Strictly sequential, one browser.
+
+Phase 1 (only if the framework does not exist yet): utils/fieldFactory (label-anchored by the <label> element), components for every oxd primitive (the only place raw oxd- selectors live), base pages, fixtures (real UI login, re-auth on redirect, e2e_ data with guaranteed teardown), config (workers 2, retries 1, no networkidle). If it exists, reuse it unchanged; a module-specific need below src/pages/ is a framework gap to solve generically.
+
+Phase 2: derive each screen's W1 list from the CSV and confirm the sum equals the W1 total. Build in {{SCREEN_ORDER}}: page objects under src/pages/{{MODULE_CODE}}/ (behaviour only, no expect, no raw oxd-), then one test per W1 TC_ID under tests/{{MODULE_CODE}}/, titled with its Automation_ID.
+- Assertions use verbatim observed strings; if a string was never recorded, observe it live, record it, then assert it. No "text is not empty" assertions.
+- Linked_Bug cases assert the actual behaviour, labelled KNOWN DEFECT (CLAUDE.md §5.4).
+- Banned: waitForTimeout, networkidle, .first() to silence strict mode, conditional assertions, swallowed errors, positional XPath.
+Run each screen's tests when it is done; append to PROGRESS.md per screen.
+
+End of Phase 2: set difference between W1 Automation_IDs and test titles, both directions empty; back-propagate every live correction into exploration.md and the CSV (sweep every quoted message, for every operation). Stop before Phase 3.
+```
+
+---
+
+### L-07 — M5 — Review, three official runs with retained output, and healing
+
+**Parameters:** {{MODULE}}, {{MODULE_CODE}}
+
+**Built from (original prompts):** #39, #42
+
+```
+# MILESTONE 5 — Review, run, heal (Gate G5)
+
+Confirm state from disk in three lines; do not rebuild Phase 2.
+
+1. /code-review over ALL of src/ and tests/, running every search pattern in code-review.md; report the patterns run and every hit with its verdict. Fix every Blocker and Major.
+2. Three consecutive full runs, strictly sequential, one browser. Keep each run's raw output under deliverables/05-automation/runs/<date-time>/ (JSON, step output, list output, failure screenshots). Read the raw results: a retry-only pass is a healing candidate.
+3. /heal every failure per heal.md; each entry cites the retained run output for its timestamp and raw error. ENV_INSTABILITY: record, do not patch; no timeout inflation without a named readiness signal.
+4. healing_process.md: the whole milestone's experiment log with the root-cause summary.
+5. automation_execution_report.html: template plus data generated from the retained output, known-defect section generated from Linked_Bug.
+
+Report the verdict, the runs (duration, retries), heal entries by class, and the W1-vs-tests set difference. Stop at G5.
+```
+
+---
+
+### L-08 — Any — Resume a milestone after an interruption
+
+**Parameters:** {{MILESTONE}}, {{PROGRESS_FILE}}
+
+**Built from (original prompts):** #29, #30, #31, #36, #37
+
+```
+Resume {{MILESTONE}}. Do NOT re-execute or rebuild anything already completed.
+
+1. Read {{PROGRESS_FILE}} and every result file; list what exists on disk. Report in two lines: what is complete and what is next.
+2. Any batch or file with no results on disk counts as not done, however far it got.
+3. If the interruption happened mid-action on the shared demo, damage-check that screen live (no non-owned record missing, no leftover e2e_ data, global settings still at their saved state) before anything else.
+4. For build milestones, run a set difference between what should exist and what does, and report the gaps.
+5. Continue from the next item under all standing rules. Strictly sequential, one browser. Stop at a clean boundary and say where.
+```
+
+---
+
+### L-09 — Any gate — Gate verification and cascading changed figures
+
+**Parameters:** {{GATE}}, {{MODULE_CODE}}
+
+**Built from (original prompts):** #7, #19, #24, #40
+
+```
+Verify Gate {{GATE}} from disk and report raw output:
+1. The milestone's DoD from tasks.md, line by line.
+2. prd.md/spec.md id parity (US- and EPIC- ids): the diff and its exit code.
+3. For the CSV: header byte-exact, no duplicate TC_IDs, no No without a reason, no Yes without an Automation_ID, no orphan Story_IDs, no P0 outside Wave 1.
+4. For the suite: W1-vs-test-title set difference, both directions.
+5. Figures: for every figure this gate changed, list every artifact that shows it and update them in the same change; leave historical run records as written.
+Report and stop for sign-off.
+```
+
+---
+
+### L-10 — Post-G5 — Summary deliverables built from the sources
+
+**Parameters:** {{MODULE}}
+
+**Built from (original prompts):** #40, #42, #43
+
+```
+Build the summary deliverables from what is on disk, with no typed-in numbers:
+- implementation_summary.xlsx (milestone summary, artifacts, metrics, defects, decisions): every figure computed by a kept build script from its source file, with the source and computation date beside it.
+- solution_flow.html: self-contained, offline, light and dark, SVG diagrams of the pipeline, gates, feedback loops, framework layers and the reuse path.
+- prompts archive (.md and .xlsx, identical): every prompt from the transcripts verbatim; any that ends mid-sentence marked [partial]; both formats compared programmatically.
+Verify offline behaviour (zero network requests, measured) and list anything that could not be sourced.
+```
 
 ---
