@@ -16,6 +16,19 @@ verdicts are explained as justified, not silently closed, per the command's rule
 > document exactly. Scenario coverage: 170/170. Every W1 `Automation_ID` (52) has exactly
 > one test title, with none unimplemented and no orphan tests. Figures below are updated to match.
 
+> **Who decides `valid in scope` and `needs automation`.** These two assignment-mandated
+> columns exist so a human can check whether the AI understood the requirements. The
+> intended workflow is: the AI produces suggested values with a reason for every `No`, and
+> the human reviews and ratifies them. The values in `test_design.csv` are the AI's
+> suggestions. The human review runs through
+> [`scope_review.xlsx`](scope_review.xlsx): each case shows the AI suggestion and reason
+> beside blank cells for the human's own decision, with the decision criteria and the 17
+> current out-of-scope cases as worked examples.
+> **Status (2026-09-26): review pending.** The worksheet has been issued unfilled and
+> `test_design.csv` is unchanged. When the filled sheet comes back, the human's decisions
+> will be reconciled into the CSV, the agreement rate recorded here, and this status
+> changed to ratified.
+
 ## 1. Structural validation
 
 | Check | Result |
