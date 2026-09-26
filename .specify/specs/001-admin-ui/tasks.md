@@ -68,7 +68,7 @@ TC_ID,Epic_ID,Story_ID,Module,Sub_Module,Title,Preconditions,Test_Steps,Test_Dat
 
 **Definition of Done:**
 - [x] Every `Story_ID` in `spec.md` appears at least once, with positive, negative, and
-      boundary cases — 100% story coverage (33/33), 100% scenario coverage (168/168)
+      boundary cases — 100% story coverage (34/34; 33/33 at G3, before US-07-08 was added on 2026-09-26 from FIND-005), 100% scenario coverage (170/170; 168/168 at G3), 0 orphan rows
       after the `/coverage` audit closed 5 gaps
 - [x] `valid in scope` (`Yes`/`No`) populated for every row — 203 rows, 186 Yes / 17 No
 - [x] `needs automation` (`Yes`/`No`) populated for every row — 136 Yes / 67 No

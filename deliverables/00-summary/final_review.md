@@ -14,6 +14,7 @@
 > 52/52 passed, 50 on the first attempt and 2 on automatic retry (ENV_INSTABILITY, `HEAL-028`/`029`).
 > A later re-review (`code_review.md`, 2026-09-26) found and fixed violation classes this audit
 > did not examine (raw oxd- selectors in tests, weak toast assertions, swallowed errors).
+> LDAP Configuration is now specified as `US-07-08` (34 stories, 0 orphan test-design rows).
 > See `healing_process.md`, `code_review.md` and `test_design_coverage.md` §8.5 for the
 > current, authoritative state.
 

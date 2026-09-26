@@ -12,6 +12,11 @@ story below now has automated coverage for its Wave 1 cases under `tests/admin/`
 the M2 audit trail, and `deliverables/00-summary/final_review.md` for the end-of-project
 review.
 
+Update (2026-09-26): `US-07-08` (LDAP Configuration) added to EPIC-ADM-07. M2 finding
+FIND-005 had recorded the screen, but it had no story, so its two test cases traced to
+the finding id. The story and its two scenarios use only what exploration.md §2.7
+recorded. Story count: 34.
+
 ---
 
 ## 1. Product Vision
@@ -75,7 +80,7 @@ search & collapse, breadcrumb, global toast layer, session timeout, 404/route gu
 | EPIC-ADM-04 | Qualifications Management | Skills, Education, Licenses, Languages, Memberships |
 | EPIC-ADM-05 | Nationalities | Admin → Nationalities |
 | EPIC-ADM-06 | Corporate Branding | Admin → Corporate Branding |
-| EPIC-ADM-07 | Configuration | Email Configuration, Email Subscriptions, Localization, Language Packages, Modules, Social Media Authentication, Register OAuth Client |
+| EPIC-ADM-07 | Configuration | Email Configuration, Email Subscriptions, Localization, Language Packages, Modules, Social Media Authentication, Register OAuth Client, LDAP Configuration |
 | EPIC-ADM-00 | Access, Navigation & Session (cross-cutting) | Login, sidebar, breadcrumbs, session |
 
 ---
@@ -518,6 +523,7 @@ All five screens follow the shared CRUD contract above. Screen-specific stories:
 | US-07-05 | Modules | Enable/disable module toggles and the resulting sidebar change. **High blast radius — revert immediately; likely `valid in scope = No` on shared demo.** |
 | US-07-06 | Social Media Authentication | Add provider form validation (Name*, Provider URL*, client id/secret), URL format. |
 | US-07-07 | Register OAuth Client | Client Name*, Redirect URI*, Client ID, confidential toggle; CRUD + duplicate name. |
+| US-07-08 | LDAP Configuration | Default field inventory: Enable toggle; Server Settings (Host, Port, Encryption, LDAP Implementation), Bind Settings, User Lookup Settings, Data Mapping, Additional Settings; defaults Host `localhost`, Port `389`, LDAP Implementation `Open LDAP v3`, User Name Attribute `cn`, User Search Filter `objectClass=person`, Sync Interval `1`. **Observe only — Enable, Test Connection and Save are never clicked** (on-page data-corruption warning). Added 2026-09-26; provenance FIND-005 (M2 found the screen missing from the original inventory). Field inventory: prd.md §8.1. |
 
 ```gherkin
   Scenario: SMTP fields appear only for the SMTP method
@@ -531,6 +537,19 @@ All five screens follow the shared CRUD contract above. Screen-specific stories:
     When I change the date format and save
     And I reload the page
     Then the selected format is still displayed
+
+  Scenario: LDAP Configuration shows its default field inventory
+    Given I am on Admin > Configuration > LDAP Configuration
+    Then the form shows an Enable toggle and the sections Server Settings, Bind Settings,
+      User Lookup Settings, Data Mapping and Additional Settings
+    And Host is "localhost", Port is "389", LDAP Implementation is "Open LDAP v3",
+      User Name Attribute is "cn", User Search Filter is "objectClass=person"
+      and Sync Interval is "1"
+
+  Scenario: LDAP Configuration is observed, never mutated
+    Given the screen warns that incorrect configuration "may result in corrupted data"
+    Then Enable, Test Connection and Save are observed only and never clicked on the
+      shared instance (Constitution VI.3, Risk R3; exploration.md §9)
 ```
 
 ---

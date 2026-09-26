@@ -5,15 +5,16 @@
 | Field | Value |
 |---|---|
 | Title | OrangeHRM Web Application — Functional PRD |
-| Version | 2.1 (tier consolidation + explicit API-scope decision — refines v2.0 scope-expansion rewrite, which itself supersedes v1.0 Admin-only technical PRD) |
+| Version | 2.2 (adds `US-07-08` LDAP Configuration from M2 finding FIND-005; Open Questions preamble) — 2.1 (tier consolidation + explicit API-scope decision — refines v2.0 scope-expansion rewrite, which itself supersedes v1.0 Admin-only technical PRD) |
 | Status | Approved for current QA cycle (M2–M5, Admin) · specification-only for all other modules |
 | Owner (role) | Lead Product Analyst, in partnership with the Senior QA Automation Architect |
-| Last updated | 2026-09-20 |
+| Last updated | 2026-09-26 |
 | Source system | OrangeHRM, public demo build — `https://opensource-demo.orangehrmlive.com/` |
 | Governing constitution | `.specify/memory/constitution.md` v1.0 |
 | Companion QA artifacts | `.specify/specs/001-admin-ui/spec.md`, `plan.md`, `tasks.md` |
 | Change summary vs. v1.0 | v1.0 specified the Admin module only, at test-strategy depth. v2.0 expands **product scope** to all twelve modules plus cross-cutting surfaces, written as a business-facing functional specification. The Admin module is retained as the exhaustive (Tier 1) chapter, matching where the **current QA execution cycle** (M2–M5) is actually running. All prior `EPIC-ADM-*`, `US-nn-yy`, and `NFR-nn` ids are unchanged in meaning. Technical/automation content is relocated to Appendix A. |
 | Change summary vs. v2.0 | v2.1 collapses the depth model to exactly two tiers — Tier 1 (Admin, exhaustive) and Tier 3 (every other module, functional overview) — removing the intermediate Tier 2 that six module chapters previously used, so every non-Admin chapter now reads at a uniform depth. v2.1 also adds an explicit, stakeholder-visible statement (Section 6.2, Assumption A4) that API endpoint coverage is a deliberate scoping decision for this cycle, not an oversight, in response to the originating assignment naming both UI and API coverage. |
+| Change summary vs. v2.1 | v2.2 closes a traceability gap left by M2. Finding FIND-005 recorded an 8th Configuration screen, **LDAP Configuration**, that this document never listed, so its two test cases had no user story to trace to. v2.2 adds it to the `EPIC-ADM-07` inventory as Tier 1 story `US-07-08`, with a field inventory and acceptance criteria written only from what exploration.md §2.7 recorded (§8.1, §10.1, audit row in §13.1). It also adds a preamble to §13 stating that every remaining `TO CONFIRM` marker belongs to a module not in the current cycle. |
 
 **ID conventions.** Admin retains its legacy, unprefixed ids for backward compatibility with
 existing QA artifacts: epics as `EPIC-ADM-nn`, stories as `US-nn-yy`. Every other module
@@ -341,7 +342,7 @@ self-service surface; everything here is configuration, not personal data.
 | `EPIC-ADM-04` | Qualifications → Skills, Education, Licenses, Languages, Memberships |
 | `EPIC-ADM-05` | Nationalities |
 | `EPIC-ADM-06` | Corporate Branding |
-| `EPIC-ADM-07` | Configuration → Email Configuration, Email Subscriptions, Localization, Language Packages, Modules, Social Media Authentication, Register OAuth Client |
+| `EPIC-ADM-07` | Configuration → Email Configuration, Email Subscriptions, Localization, Language Packages, Modules, Social Media Authentication, Register OAuth Client, LDAP Configuration (added v2.2 — FIND-005) |
 
 **Field inventory — System Users (`EPIC-ADM-01`, the highest-traffic Admin screen):**
 
@@ -368,6 +369,38 @@ self-service surface; everything here is configuration, not personal data.
 | Languages | `US-04-04` | Name | Text | Yes | The language's controlled-vocabulary label |
 | Memberships | `US-04-05` | Name | Text | Yes | The membership type's controlled-vocabulary label |
 | Nationalities | `US-05-01` | Name | Text | Yes | The nationality's controlled-vocabulary label, referenced from an employee's Personal Details in PIM |
+
+**Field inventory — LDAP Configuration (`EPIC-ADM-07`, `US-07-08`; added v2.2 from FIND-005):**
+
+Written only from what exploration.md §2.7 recorded during M2. The screen was observed and
+never submitted, so anything M2 did not record is marked *not recorded* rather than
+inferred.
+
+| Element | Type | Mandatory | Default observed on this build | Business meaning |
+|---|---|---|---|---|
+| Enable | Toggle | not recorded | not recorded | Turns the LDAP directory integration on or off |
+| Server Settings (section) | Section | — | — | Groups Host, Port, Encryption and LDAP Implementation |
+| Host | not recorded | not recorded | `localhost` | The directory server's address |
+| Port | not recorded | not recorded | `389` | The directory server's port |
+| Encryption | not recorded | not recorded | not recorded | Transport encryption for the directory connection |
+| LDAP Implementation | Dropdown (`oxd-select`) | not recorded | `Open LDAP v3` | Which directory product the server runs |
+| Bind Settings (section) | Section | — | — | Credentials used to connect to the directory (fields not recorded) |
+| User Lookup Settings (section) | Section | — | — | How users are located in the directory |
+| User Name Attribute | not recorded | not recorded | `cn` | The directory attribute holding the login name |
+| User Search Filter | not recorded | not recorded | `objectClass=person` | Which directory entries count as users |
+| Data Mapping (section) | Table | — | — | Maps directory attributes to employee fields (rows not recorded) |
+| Additional Settings (section) | Section | — | — | Further options, including the sync interval |
+| Sync Interval | not recorded | not recorded | `1` | How often directory data is synchronised (unit not recorded) |
+| Test Connection, Save | Buttons | — | — | Verify and persist the configuration. **Never clicked in M2** |
+
+The section in which exploration.md placed User Name Attribute, User Search Filter and Sync
+Interval is not recorded; the grouping above follows the section names only where M2
+stated it. The screen shows its own warning, verbatim: *"Before activating the LDAP
+service, make sure that all LDAP settings are functioning properly since incorrect
+configuration may result in corrupted data. As a precaution, we recommend you to create a
+backup of your database before continuing."* On the shared demo the screen is therefore
+observe-only, in the same risk class as Modules (Constitution VI.3, Risk R3; exploration.md
+§9).
 
 **Module-specific business rules** (see §9 for the full global contract; rules specific
 to Admin beyond the global set):
@@ -1396,6 +1429,12 @@ configuration cannot be saved malformed. *(Priority: Low · Depends on: BR-01, B
 CRUD and duplicate-name protection, so that external client registrations stay unique
 and well-formed. *(Priority: Low · Depends on: BR-01–BR-10)*
 
+**US-07-08** — As a System Administrator, I want to see **LDAP Configuration**'s settings
+and their current defaults before anything is changed, so that directory integration is
+never switched on blind against a live instance. *(Priority: Low · Tier 1 · Added v2.2 —
+provenance: FIND-005, M2 found this screen missing from the original inventory · Observe-
+only on the shared demo — Constitution VI.3, Risk R3; field inventory in §8.1)*
+
 ```gherkin
 Feature: Configuration screens
 
@@ -1421,6 +1460,19 @@ Feature: Configuration screens
     Given Configuration > Modules can enable or disable an entire module's sidebar entry
     Then this screen is exercised manually and observed only, never automated against
       the shared instance (Constitution VI.3, Risk R3)
+
+  Scenario: LDAP Configuration shows its default field inventory
+    Given I am on Admin > Configuration > LDAP Configuration
+    Then the form shows an Enable toggle and the sections Server Settings, Bind Settings,
+      User Lookup Settings, Data Mapping and Additional Settings
+    And Host is "localhost", Port is "389", LDAP Implementation is "Open LDAP v3",
+      User Name Attribute is "cn", User Search Filter is "objectClass=person"
+      and Sync Interval is "1"
+
+  Scenario: LDAP Configuration is observed, never mutated
+    Given the screen warns that incorrect configuration "may result in corrupted data"
+    Then Enable, Test Connection and Save are observed only and never clicked on the
+      shared instance (Constitution VI.3, Risk R3; exploration.md §9)
 ```
 
 ### 10.2 PIM (`EPIC-PIM`) — QA CYCLE: not in current cycle
@@ -1775,6 +1827,28 @@ so that I never see a broken authenticated screen. *(Priority: High · Depends o
 
 ## 13. Open Questions
 
+**Remaining `TO CONFIRM` markers are unresolved by design.** Every `TO CONFIRM
+(Exploration)` marker still in this document sits in a Tier 3 chapter for a module marked
+**"not in current cycle"** in the §7 Product Map (and in its own chapter header). None is unfinished work from this cycle. They stay open
+because those modules were never explored: this cycle explored and executed Admin only,
+and filling a marker without exploration would break the rule that no requirement is
+written by assumption (Constitution Article V). Together they are the **entry backlog for
+whichever module runs next via `/new-module`**, whose M2 exploration resolves that
+module's markers first. Every Admin (current-cycle) marker was resolved in M2 (OQ-01 to
+OQ-05, §13.1). The nine remaining markers, by module:
+
+| Module (§7 status) | Where | Marker (what is unconfirmed) | Open Question |
+|---|---|---|---|
+| PIM — not in current cycle | §8.2 | Whether Data Import is all-or-nothing or tolerates partial rows | OQ-06 |
+| Leave — not in current cycle | §8.3 | Effect of reducing an entitlement below already-approved leave | OQ-07 |
+| Time — not in current cycle | §8.4 | Whether employees can edit their own Attendance records after submission | OQ-08 |
+| Recruitment — not in current cycle | §8.5 | Whether a Hire can be reversed, and what happens to the PIM record | OQ-09 |
+| My Info — not in current cycle | §8.6 | The exact view/edit split per tab for the ESS employee | OQ-10 |
+| Performance — not in current cycle | §8.7 | The exact named states of a review's lifecycle | OQ-11 |
+| Dashboard — not in current cycle | §8.8 | Whether widget visibility varies by role | OQ-13 |
+| Directory — not in current cycle | §8.9 | Whether search includes terminated employees | OQ-14 |
+| Buzz — not in current cycle | §8.12 | Whether an Administrator can moderate other users' posts | OQ-12 |
+
 | Id | Question | Module | Why it matters | Resolution path | Status |
 |---|---|---|---|---|---|
 | OQ-01 | Which of HR Manager, Line Manager, Recruiter, and Auditor are truly distinct, separately-assignable roles on this build, versus conventions layered over Admin/ESS? | Admin, cross-cutting | The Actor × Module Access Matrix (§5) is only as accurate as the real role model | Manual exploration of Admin > User Management > Users' actual Role options | **RESOLVED (M2).** Only `Admin` and `ESS` exist; confirmed in both the Add User form and the search filter dropdown. |
@@ -1816,11 +1890,12 @@ verified against the live build, not guessed.
 | §10.1 `US-02-05` Work Shift overnight scenario | OQ-02 | Converted from an observation scenario to an asserted scenario stating the exact rejection message, the computed `0.00` duration, and the blocked Save. |
 | §10.1 `US-05-01` Nationalities deletion scenario | OQ-03 / BUG-001 | Converted from an observation scenario to an asserted scenario describing the product's actual (defective) behaviour, explicitly annotated `KNOWN DEFECT: BUG-001` rather than written as if the desired BR-11-compliant behaviour were the requirement. |
 | §10.1 `US-06-01` Corporate Branding "unsupported type" scenario | OQ-04 / BUG-002 | The PRD previously asserted "a file-type validation error is displayed" — a message that does not exist on this build. Corrected to assert the actual (wrong) message "Attachment Size Exceeded" and annotated `KNOWN DEFECT: BUG-002`, since the original assertion would never pass against the real product. |
+| §8.1 `EPIC-ADM-07` inventory, new LDAP field inventory; §10.1 new `US-07-08` (added v2.2, 2026-09-26) | FIND-005 | M2 found an 8th Configuration screen this document never listed, so its two test cases (`TC_ADM_CFG_018`/`019`) traced to a finding id instead of a story. Added the screen to the inventory and specified it as Tier 1 story `US-07-08`, with field inventory and two scenarios written only from exploration.md §2.7. Unrecorded details are marked *not recorded*. |
 | §13 Open Questions table | OQ-01–OQ-05 | Added a `Status` column; all five Admin/current-cycle questions marked `RESOLVED (M2)` with a one-line answer. OQ-06–OQ-14 marked `Open — future cycle` (unchanged in substance, now explicit). |
 
-Corrected-requirement count: **7** (excluding the Open Questions table entry itself,
-which is a status update rather than a requirement change; including it, **8** document
-locations were edited).
+Corrected-requirement count: **8**: the 7 original M2 corrections plus the `US-07-08`
+addition from FIND-005 (v2.2). This excludes the Open Questions table entry, which is a
+status update rather than a requirement change; including it, **9** rows.
 
 ---
 

@@ -304,7 +304,7 @@
         <dt>Steps</dt>
         <dd class="steps"><ol>
           <li>Inventory all 12 UI modules, classify P0&ndash;P2.</li>
-          <li>Write Admin deep-dive: 8 Epics &rarr; 33 User Stories &rarr; Gherkin AC.</li>
+          <li>Write Admin deep-dive: 8 Epics &rarr; 33 User Stories &rarr; Gherkin AC (34 since <span class="mono">US-07-08</span>, LDAP Configuration, was added post-G5 from FIND-005).</li>
           <li>Seed traceability ids (EPIC &rarr; US &rarr; TC &rarr; Automation_ID &rarr; BUG).</li>
           <li>Write unresolved behaviour as Article V "observation scenarios," never guessed.</li>
         </ol></dd>
@@ -345,7 +345,7 @@
         <dd><span class="path">exploration.md</span>'s resolved behaviour; CLAUDE.md §6's exact 18-column CSV header.</dd>
         <dt>Steps</dt>
         <dd class="steps"><ol>
-          <li>Author 203 cases across all 33 stories (positive/negative/boundary).</li>
+          <li>Author 203 cases across all 33 stories (positive/negative/boundary); now 34 stories, 0 orphan rows, after the two LDAP rows moved from FIND-005 to <span class="mono">US-07-08</span>.</li>
           <li>Run <span class="cmd-pill">/coverage</span>; close 5 structural gaps, fix 1 duplicate id.</li>
           <li>Classify <span class="mono">valid in scope</span> / <span class="mono">needs automation</span>, reason on every "No".</li>
           <li>Sequence 136 "Yes" cases into Wave 1 (47) / Wave 2 (89) &mdash; scheduled, not descoped (now 52 / 84 after the post-G5 P0 promotion, &sect;8.5).</li>

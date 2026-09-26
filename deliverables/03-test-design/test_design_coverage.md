@@ -6,6 +6,16 @@ placeholder note that the audit had not been run. Five structural/content gaps w
 closed (new cases added, one Type mis-tag corrected); the remaining eight `Partial` story
 verdicts are explained as justified, not silently closed, per the command's rule.
 
+> **Re-run 2026-09-26 (after `US-07-08` was added).** M2 finding FIND-005 had recorded an
+> undocumented LDAP Configuration screen, and its two cases (`TC_ADM_CFG_018`/`019`) traced
+> to that finding id because no story existed. The screen is now specified as `US-07-08`
+> in prd.md and spec.md, and both rows point at it. Re-run results, checked mechanically:
+> prd.md/spec.md id parity holds (34 `US-` ids and 8 `EPIC-ADM-` ids in each, none on only
+> one side). Structure is unchanged and clean. **Orphans: 0.** Forward matrix: 25 Full /
+> 9 Partial / 0 None of 34, and every one of the 33 pre-existing story rows matched this
+> document exactly. Scenario coverage: 170/170. Every W1 `Automation_ID` (52) has exactly
+> one test title, with none unimplemented and no orphan tests. Figures below are updated to match.
+
 ## 1. Structural validation
 
 | Check | Result |
@@ -63,13 +73,14 @@ measures (execution feasibility is M4's concern).
 | US-07-05 | 3 | ✓ | — | n/a | **Partial*** |
 | US-07-06 | 2 | ✓ | ✓ | n/a | **Full** |
 | US-07-07 | 2 | ✓ | ✓ | n/a | **Full** |
+| US-07-08 | 2 | ✓ | — | n/a | **Partial*** |
 
-**Full: 25 / 33 · Partial: 8 / 33 · None: 0 / 33.**
+**Full: 25 / 34 · Partial: 9 / 34 · None: 0 / 34.**
 
 ### Every `Partial` verdict, justified (not silently closed)
 
 Per the command's rule — "if a gap is genuinely justified, say why in the row rather than
-closing it silently" — none of these 8 got a fabricated case:
+closing it silently" — none of these 9 got a fabricated case:
 
 | Story | Why it's Partial and why that's correct |
 |---|---|
@@ -80,19 +91,25 @@ closing it silently" — none of these 8 got a fabricated case:
 | US-06-03 | The one case here (`TC_ADM_BRD_007`) is `valid in scope = No`: the social-media-link URL fields it would validate were never observed in Corporate Branding's M2 screen inventory (exploration.md §2.6) — presence on build 5.9 is unconfirmed. Adding a fabricated "positive URL accepted" case for a field that may not exist would itself be the kind of unverified assertion Constitution Article V forbids. |
 | US-07-03 | spec.md's only Localization scenario is the positive persistence check. No negative scenario is specified for this story. |
 | US-07-04 | prd.md's story text mentions "download/empty state," but Language Packages is a system-derived, non-admin-editable list (not CRUD) — there's no admin action that would empty it to exercise a genuine negative/empty case against. |
+| US-07-08 | LDAP Configuration (added 2026-09-26 from FIND-005) is observe-only: the screen warns that incorrect configuration "may result in corrupted data", so Enable, Test Connection and Save were never clicked in M2 (`TC_ADM_CFG_019` is `valid in scope = No` for that reason). With no submission, there is no validation behaviour to observe, and writing a negative case would assert something never seen (Constitution Article V). |
 | US-07-05 | Modules is a checkbox-state inventory screen with no validation-message dimension. The only "negative" angle — actually toggling a module off — is `valid in scope = No` by explicit blast-radius policy (this session's ruling, and exploration.md §9), so no in-scope negative case is available to add. |
 
 ## 3. Reverse matrix — orphans
 
-Every `TC_ID`'s `Story_ID` was checked against the 33 `US-nn-yy` ids in spec.md/prd.md.
-**201 of 203 rows map to a real story.** Two do not:
+Every `TC_ID`'s `Story_ID` was checked against the 34 `US-nn-yy` ids in spec.md/prd.md.
+**203 of 203 rows map to a real story. Orphans: 0.**
+
+History: until 2026-09-26, two rows traced to a finding id instead of a story. They are kept
+here as the record of how that was resolved:
 
 | TC_ID | Story_ID | Disposition |
 |---|---|---|
 | `TC_ADM_CFG_018` | `FIND-005` | Justified, not scope creep. LDAP Configuration is an 8th Configuration screen discovered live during M2 that isn't in prd.md's original 7-screen inventory (`FIND-005`). No `US-` id was ever assigned to it because spec.md is authoritative and not being rewritten mid-cycle; `FIND-005` is the closest traceable id and is used consistently on both LDAP rows rather than left blank. |
 | `TC_ADM_CFG_019` | `FIND-005` | Same as above (the "never mutate LDAP" case). |
 
-No other orphans — every other row traces to a real story.
+**Resolved 2026-09-26:** LDAP Configuration is now specified as `US-07-08` (prd.md §8.1 field
+inventory and §10.1; spec.md EPIC-ADM-07), and both rows' `Story_ID` is `US-07-08`. FIND-005
+is kept as the provenance note in each row's Preconditions.
 
 ## 4. Depth check — per CRUD screen
 
@@ -167,17 +184,18 @@ search/empty-state/reset needed 1 row each):**
 
 | Metric | Value | Definition |
 |---|---|---|
-| **Story coverage** | **100.0%** (33/33) | Every `US-nn-yy` story in spec.md has ≥1 representing `TC_ID`. |
-| **Scenario coverage** | **168/168 (100.0%)** after this audit's fixes | Denominator = every distinct scenario unit in spec.md: 132 explicit Gherkin instances (30 standalone `Scenario:` blocks + 102 `Scenario Outline:` × Examples-row instances, including the shared 7-outline × 11-screen CRUD contract table counted once per outline) + 36 prose-derived scenario units for stories spec.md describes only in prose (Locations' CRUD+search, Structure's lazy-load, Configuration's per-screen behaviors, etc.). **The 36 prose-derived units involved reasonable-judgment counting, not mechanical parsing — this number should be spot-checked by an independent `/coverage` re-run or reviewer if stronger assurance is needed before G5.** Before this audit's fixes, the count was 163/168 (97.0%); the 5 gaps closed in §4/§5 bring it to 168/168. |
+| **Story coverage** | **100.0%** (34/34) | Every `US-nn-yy` story in spec.md has ≥1 representing `TC_ID`. |
+| **Scenario coverage** | **170/170 (100.0%)** (168/168 before `US-07-08`'s 2 scenarios were added on 2026-09-26; both are represented, by `TC_ADM_CFG_018` and `TC_ADM_CFG_019`) | Denominator = every distinct scenario unit in spec.md: 134 explicit Gherkin instances (32 standalone `Scenario:` blocks + 102 `Scenario Outline:` × Examples-row instances, including the shared 7-outline × 11-screen CRUD contract table counted once per outline) + 36 prose-derived scenario units for stories spec.md describes only in prose (Locations' CRUD+search, Structure's lazy-load, Configuration's per-screen behaviors, etc.). **The 36 prose-derived units involved reasonable-judgment counting, not mechanical parsing — this number should be spot-checked by an independent `/coverage` re-run or reviewer if stronger assurance is needed before G5.** Before this audit's fixes, the count was 163/168 (97.0%); the 5 gaps closed in §4/§5 bring it to 168/168. |
 | **Automation coverage** | **73.1%** (136/186) | `needs automation = Yes` ÷ `valid in scope = Yes`. (Against the full 203-row population instead: 136/203 = 67.0% — reported both ways since the command doesn't fix a denominator; the in-scope-only figure is the more meaningful one, since out-of-scope cases were never automation candidates.) |
 
 ## 7. Audit verdict
 
 **PASS, with 5 cases added and 1 correction — no unjustified gaps remain.** Structural
 validation is clean (0 duplicates, 0 ragged rows, 0 missing required reasons, 0 missing
-Automation_IDs). Story coverage is 100%. All 8 `Partial` story verdicts are individually
-justified in §2 with a stated reason, not silently accepted. The 2 orphan rows are justified
-(`FIND-005`, an undocumented screen, not scope creep). The depth-check's genuine gaps (Users
+Automation_IDs). Story coverage is 100%. All `Partial` story verdicts are individually
+justified in §2 with a stated reason, not silently accepted (9 since the 2026-09-26 re-run
+added `US-07-08`). There are no orphan rows: the 2 that traced to `FIND-005` now trace to
+`US-07-08`. The depth-check's genuine gaps (Users
 boundary length; Locations search/empty-state/reset) are closed; every other apparent gap in
 that table is an N/A backed by a specific exploration.md citation, not a silent pass.
 
