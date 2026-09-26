@@ -11,7 +11,7 @@ Last updated: 2026-09-26
 | 0 | Create this backlog file | ✅ Done |
 | 1 | Redesign both HTML reports (`agent_execution_report.html`, `automation_execution_report.html`) | ✅ Done 2026-09-26: one shared inline template, data objects byte-identical; measured 1 network request each, all sections and screenshots present, 0 console errors, theme/print/storage-blocked checks passed |
 | 2 | Prompts archive: improved prompts + "What the improvement fixes" + "Reusable prompt library" | ✅ Done 2026-09-26: 43 improved prompts with grounded fixes, 11 reusable templates; .md and .xlsx verified identical (0 mismatches); original text unchanged |
-| 3 | `deliverables/00-summary/code_standards.md` | ⬜ Not started |
+| 3 | `deliverables/00-summary/code_standards.md` | ✅ Done 2026-09-26: written from the code with verified excerpts; 12 deviations documented (incl. re-authentication helper never wired in, no logger, config allows 2 workers) |
 | 4 | `deliverables/00-summary/system_sequence_diagram.html` | ⬜ Not started |
 | 5 | `BOOTSTRAP.md` at the repo root + README "Reusing on another system / module" | ⬜ Not started |
 
