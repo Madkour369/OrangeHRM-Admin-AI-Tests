@@ -26,21 +26,11 @@ async function ensureUserDeleted(userPage: UserManagementPage, username: string)
  */
 async function goToPageContaining(userPage: UserManagementPage, username: string): Promise<void> {
   await userPage.goto();
-  if ((await userPage.table.row(username).count()) > 0) return;
-
-  const paginationVisible = await userPage.table.pagination.isVisible().catch(() => false);
-  if (!paginationVisible) return;
-
-  const pageButtons = userPage.table.pagination.getByRole('button');
-  const buttonCount = await pageButtons.count();
-  for (let i = 0; i < buttonCount; i++) {
-    const label = ((await pageButtons.nth(i).textContent()) ?? '').trim();
-    if (!/^\d+$/.test(label)) continue;
-    const n = parseInt(label, 10);
-    if (n === 1) continue;
-    await userPage.table.goToPage(n);
-    if ((await userPage.table.row(username).count()) > 0) return;
-  }
+  // OxdTable.findRowAcrossPages checks the current page first, then walks the
+  // numbered pages. Its pagination check is count-based and cannot throw (2026-09-26
+  // review: the previous inline `isVisible().catch(() => false)` swallowed every
+  // failure, not just a missing pagination bar).
+  await userPage.table.findRowAcrossPages(username);
 }
 
 /**
@@ -53,19 +43,9 @@ async function collectAllUserRows(
   userPage: UserManagementPage,
 ): Promise<Array<{ username: string; role: string; status: string }>> {
   const rows = await userPage.allRowValues();
-  const paginationVisible = await userPage.table.pagination.isVisible().catch(() => false);
-  if (!paginationVisible) return rows;
-
-  const pageButtons = userPage.table.pagination.getByRole('button');
-  const buttonCount = await pageButtons.count();
-  const pageNumbers: number[] = [];
-  for (let i = 0; i < buttonCount; i++) {
-    const label = ((await pageButtons.nth(i).textContent()) ?? '').trim();
-    if (/^\d+$/.test(label)) pageNumbers.push(parseInt(label, 10));
-  }
-
+  // pageNumbers() is [] when there is no pagination bar. Count-based, cannot throw.
   const all = [...rows];
-  for (const n of pageNumbers) {
+  for (const n of await userPage.table.pageNumbers()) {
     if (n === 1) continue;
     await userPage.table.goToPage(n);
     all.push(...(await userPage.allRowValues()));
@@ -122,7 +102,7 @@ test.describe('Admin > User Management > Users', () => {
     });
 
     await expect(userPage.fieldError('Username')).toHaveText('Already exists');
-    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+    expect(await userPage.toast.successToastCount()).toBe(0);
 
     await userPage.goto();
     await userPage.searchByUsername(username);
@@ -140,7 +120,7 @@ test.describe('Admin > User Management > Users', () => {
     await userPage.submitAddFormWithEmptyField('User Role', username);
 
     await expect(userPage.fieldError('User Role')).toHaveText('Required');
-    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+    expect(await userPage.toast.successToastCount()).toBe(0);
 
     await userPage.goto();
     await userPage.searchByUsername(username);
@@ -166,7 +146,7 @@ test.describe('Admin > User Management > Users', () => {
     await userPage.submitAddFormWithEmptyField('Status', username);
 
     await expect(userPage.fieldError('Status')).toHaveText('Required');
-    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+    expect(await userPage.toast.successToastCount()).toBe(0);
 
     await userPage.goto();
     await userPage.searchByUsername(username);
@@ -184,7 +164,7 @@ test.describe('Admin > User Management > Users', () => {
     await userPage.submitAddFormWithEmptyField('Username', username);
 
     await expect(userPage.fieldError('Username')).toHaveText('Required');
-    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+    expect(await userPage.toast.successToastCount()).toBe(0);
 
     await userPage.goto();
     await userPage.searchByUsername(username);
@@ -202,7 +182,7 @@ test.describe('Admin > User Management > Users', () => {
     await userPage.submitAddFormWithEmptyField('Password', username);
 
     await expect(userPage.fieldError('Password')).toHaveText('Required');
-    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+    expect(await userPage.toast.successToastCount()).toBe(0);
 
     await userPage.goto();
     await userPage.searchByUsername(username);
@@ -295,7 +275,8 @@ test.describe('Admin > User Management > Users', () => {
     const toastText = await userPage.toast.waitForSuccess(async () => {
       await userPage.dialog.confirm();
     });
-    expect(toastText.length).toBeGreaterThan(0);
+    // Verbatim, observed live in M5 on 2026-09-26 (exploration.md Addendum A).
+    expect(toastText).toBe('Successfully Deleted');
 
     await userPage.goto();
     await userPage.searchByUsername(username);
@@ -336,7 +317,8 @@ test.describe('Admin > User Management > Users', () => {
     const toastText = await userPage.toast.waitForSuccess(async () => {
       await userPage.dialog.confirm();
     });
-    expect(toastText.length).toBeGreaterThan(0);
+    // Verbatim, observed live in M5 on 2026-09-26 (exploration.md Addendum A).
+    expect(toastText).toBe('Successfully Deleted');
 
     // Assert on the two records this test actually created, not a global count —
     // the unfiltered total is shared with concurrent real users on this demo

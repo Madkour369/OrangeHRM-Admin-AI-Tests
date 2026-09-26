@@ -1,0 +1,111 @@
+
+Running 52 tests using 1 worker
+
+  ok  1 [chromium] › tests\admin\brd.spec.ts:8:7 › Admin > Corporate Branding › TC_ADM_BRD_001 - upload of an unsupported file type — KNOWN DEFECT BUG-002 (5.2s)
+  ok  2 [chromium] › tests\admin\brd.spec.ts:28:7 › Admin > Corporate Branding › TC_ADM_BRD_002 - oversized image upload is rejected (5.9s)
+  ok  3 [chromium] › tests\admin\brd.spec.ts:37:7 › Admin > Corporate Branding › TC_ADM_BRD_006 - Social Media Images toggle default state (8.7s)
+  ok  4 [chromium] › tests\admin\cfg.spec.ts:8:9 › Admin > Configuration › Email Configuration › TC_ADM_CFG_001 - SMTP fields appear only for the SMTP method (8.0s)
+  ok  5 [chromium] › tests\admin\cfg.spec.ts:29:9 › Admin > Configuration › Email Configuration › TC_ADM_CFG_003 - mandatory SMTP fields blocked when left empty (10.8s)
+  ok  6 [chromium] › tests\admin\cfg.spec.ts:50:7 › Admin > Configuration › TC_ADM_CFG_008 - Date Format dropdown shows a live example matching the selected format (10.5s)
+  ok  7 [chromium] › tests\admin\cfg.spec.ts:61:7 › Admin > Configuration › TC_ADM_CFG_011 - Admin and Pim modules are locked enabled (checked and disabled) (6.4s)
+  ok  8 [chromium] › tests\admin\job.spec.ts:28:7 › Admin > Job > Job Titles › TC_ADM_JOB_001 - create a Job Titles record (8.9s)
+  ok  9 [chromium] › tests\admin\job.spec.ts:43:7 › Admin > Job > Job Titles › TC_ADM_JOB_002 - mandatory validation, Job Title empty (5.7s)
+  ok 10 [chromium] › tests\admin\job.spec.ts:54:7 › Admin > Job > Job Titles › TC_ADM_JOB_006 - edit an existing Job Titles record (14.2s)
+  ok 11 [chromium] › tests\admin\job.spec.ts:79:7 › Admin > Job > Job Titles › TC_ADM_JOB_007 - Cancel discards changes on Job Titles (7.4s)
+  ok 12 [chromium] › tests\admin\job.spec.ts:93:7 › Admin > Job > Job Titles › TC_ADM_JOB_008 - delete a Job Titles record with confirmation (9.8s)
+  ok 13 [chromium] › tests\admin\job.spec.ts:124:7 › Admin > Job > Job Titles › TC_ADM_JOB_009 - cancelling delete preserves the Job Titles record (9.5s)
+  ok 14 [chromium] › tests\admin\job.spec.ts:146:7 › Admin > Job > Pay Grades › TC_ADM_JOB_023 - Currency Minimum Salary must not exceed Maximum Salary (9.3s)
+  ok 15 [chromium] › tests\admin\job.spec.ts:168:7 › Admin > Job > Work Shifts › TC_ADM_JOB_049 - overnight Work Shift time ordering is rejected (8.4s)
+  ok 16 [chromium] › tests\admin\nat.spec.ts:39:7 › Admin > Nationalities › TC_ADM_NAT_001 - create a Nationalities record (11.6s)
+  ok 17 [chromium] › tests\admin\nat.spec.ts:55:7 › Admin > Nationalities › TC_ADM_NAT_002 - mandatory validation, Name empty (6.3s)
+  ok 18 [chromium] › tests\admin\nat.spec.ts:66:7 › Admin > Nationalities › TC_ADM_NAT_003 - duplicate Name is rejected (6.3s)
+  ok 19 [chromium] › tests\admin\nat.spec.ts:81:7 › Admin > Nationalities › TC_ADM_NAT_010 - deleting an in-use Nationality — KNOWN DEFECT BUG-001 (19.5s)
+  ok 20 [chromium] › tests\admin\nat.spec.ts:123:7 › Admin > Nationalities › TC_ADM_NAT_011 - pagination integrity across Nationalities pages (5.1s)
+  ok 21 [chromium] › tests\admin\org.spec.ts:15:7 › Admin > Organization › TC_ADM_ORG_001 - General Information fields are read-only until Edit is toggled (4.7s)
+  ok 22 [chromium] › tests\admin\org.spec.ts:31:9 › Admin > Organization › Locations › TC_ADM_ORG_006 - create a Locations record (10.2s)
+  ok 23 [chromium] › tests\admin\org.spec.ts:47:9 › Admin > Organization › Locations › TC_ADM_ORG_007 - mandatory validation, Name empty (6.5s)
+  ok 24 [chromium] › tests\admin\org.spec.ts:59:7 › Admin > Organization › TC_ADM_ORG_019 - lazy-loaded child nodes expand on demand (Structure) (5.0s)
+  ok 25 [chromium] › tests\admin\qua.spec.ts:12:7 › Admin > Qualifications > Skills › TC_ADM_QUA_001 - create a Skills record (10.9s)
+  ok 26 [chromium] › tests\admin\qua.spec.ts:27:7 › Admin > Qualifications > Skills › TC_ADM_QUA_002 - mandatory validation, Name empty (6.1s)
+  ok 27 [chromium] › tests\admin\qua.spec.ts:38:7 › Admin > Qualifications > Skills › TC_ADM_QUA_006 - edit an existing Skills record (14.0s)
+  ok 28 [chromium] › tests\admin\qua.spec.ts:62:7 › Admin > Qualifications > Skills › TC_ADM_QUA_007 - Cancel discards changes on Skills (8.2s)
+  ok 29 [chromium] › tests\admin\qua.spec.ts:76:7 › Admin > Qualifications > Skills › TC_ADM_QUA_008 - delete a Skills record with confirmation (14.1s)
+  ok 30 [chromium] › tests\admin\qua.spec.ts:107:7 › Admin > Qualifications > Skills › TC_ADM_QUA_009 - cancelling delete preserves the Skills record (11.2s)
+  x  31 [chromium] › tests\admin\qua.spec.ts:127:7 › Admin > Qualifications > Skills › TC_ADM_QUA_010 - long Description is retained in full on edit (30.3s)
+  ok 32 [chromium] › tests\admin\qua.spec.ts:127:7 › Admin > Qualifications > Skills › TC_ADM_QUA_010 - long Description is retained in full on edit (retry #1) (13.5s)
+  x  33 [chromium] › tests\admin\usr.spec.ts:57:7 › Admin > User Management > Users › TC_ADM_USR_001 - add a valid ESS system user (30.3s)
+  ok 34 [chromium] › tests\admin\usr.spec.ts:57:7 › Admin > User Management > Users › TC_ADM_USR_001 - add a valid ESS system user (retry #1) (30.1s)
+  ok 35 [chromium] › tests\admin\usr.spec.ts:79:7 › Admin > User Management > Users › TC_ADM_USR_002 - username uniqueness is enforced (20.9s)
+  ok 36 [chromium] › tests\admin\usr.spec.ts:112:7 › Admin > User Management > Users › TC_ADM_USR_003 - mandatory field blocks submission when User Role is empty (11.8s)
+  ok 37 [chromium] › tests\admin\usr.spec.ts:138:7 › Admin > User Management > Users › TC_ADM_USR_005 - mandatory field blocks submission when Status is empty (12.2s)
+  ok 38 [chromium] › tests\admin\usr.spec.ts:156:7 › Admin > User Management > Users › TC_ADM_USR_006 - mandatory field blocks submission when Username is empty (14.8s)
+  ok 39 [chromium] › tests\admin\usr.spec.ts:174:7 › Admin > User Management > Users › TC_ADM_USR_007 - mandatory field blocks submission when Password is empty (14.0s)
+  ok 40 [chromium] › tests\admin\usr.spec.ts:192:7 › Admin > User Management > Users › TC_ADM_USR_009 - password policy feedback for a too-short password (7.6s)
+  ok 41 [chromium] › tests\admin\usr.spec.ts:202:7 › Admin > User Management > Users › TC_ADM_USR_013 - search filter Username = Admin returns a consistent result set (6.9s)
+  ok 42 [chromium] › tests\admin\usr.spec.ts:216:7 › Admin > User Management > Users › TC_ADM_USR_018 - edit a system user's role (15.8s)
+  ok 43 [chromium] › tests\admin\usr.spec.ts:250:7 › Admin > User Management > Users › TC_ADM_USR_020 - delete a single user with confirmation (14.7s)
+  ok 44 [chromium] › tests\admin\usr.spec.ts:286:7 › Admin > User Management > Users › TC_ADM_USR_022 - bulk delete via row checkboxes (23.8s)
+  ok 45 [chromium] › tests\admin\usr.spec.ts:333:7 › Admin > User Management > Users › TC_ADM_USR_024 - row action icons are ordered delete-then-edit (FIND-004 regression guard) (14.1s)
+  ok 46 [chromium] › tests\admin\nav.spec.ts:19:7 › Login / Session / Navigation › TC_ADM_NAV_001 - successful login routes to Dashboard (5.9s)
+  ok 47 [chromium] › tests\admin\nav.spec.ts:37:7 › Login / Session / Navigation › TC_ADM_NAV_002 - invalid credentials rejected without leaking which field is wrong (4.7s)
+  ok 48 [chromium] › tests\admin\nav.spec.ts:47:7 › Login / Session / Navigation › TC_ADM_NAV_003 - invalid credentials rejected without leaking which field is wrong (nonexistent username) (5.6s)
+  ok 49 [chromium] › tests\admin\nav.spec.ts:61:7 › Login / Session / Navigation › TC_ADM_NAV_004 - invalid credentials rejected without leaking which field is wrong (uppercase username) — KNOWN DEFECT BUG-003 (4.9s)
+  ok 50 [chromium] › tests\admin\nav.spec.ts:83:7 › Login / Session / Navigation › TC_ADM_NAV_005 - required-field validation, Username left empty (2.9s)
+  ok 51 [chromium] › tests\admin\nav.spec.ts:93:7 › Login / Session / Navigation › TC_ADM_NAV_007 - deep link while unauthenticated redirects to login (3.3s)
+  ok 52 [chromium] › tests\admin\nav.spec.ts:99:7 › Login / Session / Navigation › TC_ADM_NAV_008 - Admin top-tab "User Management" navigates to System Users (6.4s)
+  ok 53 [chromium] › tests\admin\nav.spec.ts:124:7 › Login / Session / Navigation › TC_ADM_NAV_015 - logout invalidates the session (8.7s)
+  ok 54 [chromium] › tests\admin\nav.spec.ts:139:7 › Login / Session / Navigation › TC_ADM_NAV_016 - back-navigation after logout does not expose authenticated screens (16.2s)
+
+
+  1) [chromium] › tests\admin\qua.spec.ts:127:7 › Admin > Qualifications > Skills › TC_ADM_QUA_010 - long Description is retained in full on edit 
+
+    TimeoutError: page.goto: Timeout 30000ms exceeded.
+    Call log:
+      - navigating to "https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index", waiting until "load"
+
+
+       at ..\src\fixtures\page.fixture.ts:19
+
+      17 |   page: async ({ authenticatedPage }, use) => {
+      18 |     if (!/dashboard/.test(authenticatedPage.url())) {
+    > 19 |       await authenticatedPage.goto('/web/index.php/dashboard/index');
+         |                               ^
+      20 |     }
+      21 |     await expect(authenticatedPage.getByRole('navigation', { name: 'Sidepanel' })).toBeVisible();
+      22 |     await waitForIdle(authenticatedPage);
+        at Object.page (C:\Users\Moustafa Madkour\Desktop\OrangeHRM-Admin-AI-Tests\src\fixtures\page.fixture.ts:19:31)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-qua-Admin-Qualificat-69c6f-is-retained-in-full-on-edit-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-qua-Admin-Qualificat-69c6f-is-retained-in-full-on-edit-chromium\error-context.md
+
+  2) [chromium] › tests\admin\usr.spec.ts:57:7 › Admin > User Management > Users › TC_ADM_USR_001 - add a valid ESS system user 
+
+    TimeoutError: page.goto: Timeout 30000ms exceeded.
+    Call log:
+      - navigating to "https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index", waiting until "load"
+
+
+       at ..\src\fixtures\page.fixture.ts:19
+
+      17 |   page: async ({ authenticatedPage }, use) => {
+      18 |     if (!/dashboard/.test(authenticatedPage.url())) {
+    > 19 |       await authenticatedPage.goto('/web/index.php/dashboard/index');
+         |                               ^
+      20 |     }
+      21 |     await expect(authenticatedPage.getByRole('navigation', { name: 'Sidepanel' })).toBeVisible();
+      22 |     await waitForIdle(authenticatedPage);
+        at Object.page (C:\Users\Moustafa Madkour\Desktop\OrangeHRM-Admin-AI-Tests\src\fixtures\page.fixture.ts:19:31)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-usr-Admin-User-Manag-527dc-add-a-valid-ESS-system-user-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-usr-Admin-User-Manag-527dc-add-a-valid-ESS-system-user-chromium\error-context.md
+
+  2 flaky
+    [chromium] › tests\admin\qua.spec.ts:127:7 › Admin > Qualifications > Skills › TC_ADM_QUA_010 - long Description is retained in full on edit 
+    [chromium] › tests\admin\usr.spec.ts:57:7 › Admin > User Management > Users › TC_ADM_USR_001 - add a valid ESS system user 
+  50 passed (10.6m)

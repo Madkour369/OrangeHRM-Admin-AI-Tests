@@ -5,6 +5,11 @@
 4 fixtures, 2 base pages, 13 admin page objects, 8 test specs).
 **Authority:** the constitution's Playwright Design Standards (`.claude/commands/code-review.md`).
 
+> **Superseded in part by the 2026-09-26 re-review at the end of this file.** That review found
+> violation classes this one marked clean (raw oxd- selectors in test files, weak toast
+> assertions, swallowed `.catch(() => false)` errors, a substring-plus-`.first()` row
+> lookup). The 2026-09-25 text below is kept as the record of what was checked then.
+
 This review found real issues — not a formality pass. Every Blocker and Major
 below was fixed before this document was finalized; the findings table shows
 both the original violation and the fix applied, and every fix was re-verified
@@ -213,3 +218,68 @@ review — recorded here for continuity into that step.
   came back clean.
 
 **Typecheck after every fix:** `npx tsc --noEmit` — 0 errors.
+
+---
+
+# Re-review — 2026-09-26 (full, post-G5)
+
+**Scope:** everything under `src/` and `tests/` after the 5 P0 cases were promoted (52
+tests; 2 new PIM page objects added by this review's fixes).
+**Method:** every checklist clause was run as a mechanical search over all files, not
+only page objects, and each hit was then read in context.
+
+## Why the 2026-09-25 review missed these
+
+- **A3, raw oxd- selectors:** that review searched page objects (and found 6) but not
+  `tests/`. There were 17 live raw selectors in 5 of the 8 spec files.
+- **C5, swallowed failures:** it saw every `.isVisible().catch(() => false)` and judged
+  them "returning a boolean default, not swallowing". That was wrong. The catch turns
+  *any* error (strict-mode violation, detached frame, closed page) into `false`, not
+  just "element absent".
+- **D5, weak assertions:** it searched only for `toBeTruthy`. `expect(text.length)
+  .toBeGreaterThan(0)` is the same weakness in a different form.
+
+## Findings
+
+| ID | Severity | File:line (before fix) | Clause | Issue | Fix applied |
+|---|---|---|---|---|---|
+| R1 | **Blocker** | `usr.spec.ts` 125/143/169/187/205, `job.spec.ts:51`, `qua.spec.ts:35`, `org.spec.ts:55`, `nat.spec.ts` 95/110/136 | A3 | Raw `.oxd-toast-content--success` in test files (11 lines) | New `OxdToast.successToastCount()`; tests call it through each page object's `toast` |
+| R2 | **Blocker** | `nat.spec.ts` 40/45/56/133/167/172 | A3, B2, B3 | Inline PIM helpers with raw table and form selectors, `.first()`, positional `.nth(i)…nth(2)` column click, and raw `nth-child(2)` inside `evaluateAll` | New `src/pages/pim/EmployeeListPage.ts` and `PersonalDetailsPage.ts`; new `OxdTable.cell(row, header)` / `columnTexts(header)` resolve columns by header text |
+| R3 | Major | `src/pages/base/LoginPage.ts:45` | A3 | Raw `.oxd-input-field-error-message` in a page object, under a self-granted waiver the checklist does not provide for | Moved to `fieldFactory.allFieldErrors(scope)` |
+| R4 | Major | `usr.spec.ts:298`, `usr.spec.ts:339`, `job.spec.ts:115`, `qua.spec.ts:98`, `nat.spec.ts:148` | D5 | `expect(toastText.length).toBeGreaterThan(0)` passes on any wording | Observed live and asserted verbatim: `toBe('Successfully Deleted')` (exploration.md Addendum A). `OxdToast` now returns the message line, not the title+message concatenation |
+| R5 | Major | `OxdTable.ts` 66/187/234, `usr.spec.ts` 31/56 | C5 | `.isVisible().catch(() => false)` swallows every failure | Count-based `OxdTable.isEmpty()` / `hasPagination()`, which cannot throw. The equivalence with `isVisible()` was checked live: both elements are detached, not hidden, when absent |
+| R6 | Major | `OxdTable.ts:110` `row()` | B3, CLAUDE.md §5.1 | `filter({ hasText }).first()`: substring match with strict mode silenced. `row('e2e_x')` also matched `e2e_x_edited`, so an "original still exists" check would pass even if an edit had wrongly been saved | Exact whole-cell match (`getByText(text, { exact: true })`), no `.first()`. An exact duplicate now fails loudly |
+| R7 | Major | same lines as R1 | D5 | `await expect(toast).toHaveCount(0)` retries for up to 10 s, and toasts auto-dismiss in ~3–5 s. A success toast that *did* appear would still pass once it faded | `successToastCount()` is a single non-retrying read, taken after the field error is already asserted visible |
+| R8 | Minor | `usr.spec.ts` `goToPageContaining` / `collectAllUserRows` | E4 | Re-implemented the pagination walk that `OxdTable` already owns | Use `table.findRowAcrossPages()` and the new `table.pageNumbers()` |
+| R9 | Minor (open) | `OxdTree.ts` 32/37/42/52 | B3 | `.first()` after exact-label filters. `node()` filters `.oxd-tree-node` by a descendant wrapper, so ancestor `<li>`s also match and `.first()` picks the outermost | **Not changed.** A correct direct-child selector needs live DOM verification first (manual-first rule). Child lookups still match an exact label, so no false pass is possible today |
+| R10 | Minor (open) | `fieldFactory.ts` 63/79/84/89/99, `OxdCheckbox.ts` 21/78 | B3 | `.first()` after exact-label or pre-narrowed scoping | Not changed. None is known to resolve an ambiguity in this suite. Revisit if a duplicate label is ever observed |
+| R11 | Minor (open) | `nav.spec.ts:115` | A2 | Raw `getByRole('banner')…heading.first()` readiness wait in a test | Not changed. It should become a `BasePage` method next time `nav.spec.ts` is touched |
+
+**Accepted by design (not findings):** `OxdAutocomplete.selectFirstSuggestion()` picks
+the first hint on purpose, because any employee will do. `OxdTable.waitForListRendered()`
+and `UserManagementPage` (FIND-004 guard) use `rows.first()` because "the first row" is
+the intent there. The `.nth()` hits are row iteration or header-derived column indexes.
+`fieldFactory.ts` contains oxd- selectors because CLAUDE.md §5.1 mandates the
+label-anchored factory there. The `try/catch` in `TestDataRegistry.teardownAll()`
+collects every error and rethrows them together, so it swallows nothing.
+
+## Clean on re-check
+
+No `expect` in page objects. No raw oxd- selectors in `tests/`, `src/pages/` or
+`src/fixtures/`. No module-specific knowledge in shared layers. No XPath,
+`waitForTimeout`, `networkidle` or `isVisible()` guards. No `test.skip`/`only`/`fixme`.
+No `any`, non-null `!` or `console.*`. All 52 titles start with their TC_ID.
+
+## Verification
+
+- `npx tsc --noEmit`: 0 errors.
+- Targeted run of the 15 tests on changed code paths (`--workers=1 --retries=0`):
+  **15/15 passed** (JOB_007/008, QUA_002/008, NAT_002/003/010/011, ORG_007,
+  USR_002/003/013/020/022, NAV_005).
+- The full 52-test run follows; its result is recorded in PROGRESS.md and in
+  `deliverables/05-automation/runs/`.
+
+## Verdict: **APPROVED WITH MINORS**
+
+Both Blockers and all 5 Majors are fixed and verified. The 3 open Minors (R9–R11) do not
+weaken any assertion today, and each has a stated condition for revisiting it.

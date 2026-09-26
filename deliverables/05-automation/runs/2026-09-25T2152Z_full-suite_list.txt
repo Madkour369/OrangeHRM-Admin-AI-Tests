@@ -1,0 +1,110 @@
+
+Running 52 tests using 1 worker
+
+  ok  1 [chromium] › tests\admin\brd.spec.ts:8:7 › Admin > Corporate Branding › TC_ADM_BRD_001 - upload of an unsupported file type — KNOWN DEFECT BUG-002 (4.5s)
+  ok  2 [chromium] › tests\admin\brd.spec.ts:28:7 › Admin > Corporate Branding › TC_ADM_BRD_002 - oversized image upload is rejected (4.5s)
+  ok  3 [chromium] › tests\admin\brd.spec.ts:37:7 › Admin > Corporate Branding › TC_ADM_BRD_006 - Social Media Images toggle default state (4.9s)
+  ok  4 [chromium] › tests\admin\cfg.spec.ts:8:9 › Admin > Configuration › Email Configuration › TC_ADM_CFG_001 - SMTP fields appear only for the SMTP method (5.0s)
+  ok  5 [chromium] › tests\admin\cfg.spec.ts:29:9 › Admin > Configuration › Email Configuration › TC_ADM_CFG_003 - mandatory SMTP fields blocked when left empty (6.1s)
+  ok  6 [chromium] › tests\admin\cfg.spec.ts:50:7 › Admin > Configuration › TC_ADM_CFG_008 - Date Format dropdown shows a live example matching the selected format (5.3s)
+  ok  7 [chromium] › tests\admin\cfg.spec.ts:61:7 › Admin > Configuration › TC_ADM_CFG_011 - Admin and Pim modules are locked enabled (checked and disabled) (7.5s)
+  ok  8 [chromium] › tests\admin\job.spec.ts:28:7 › Admin > Job > Job Titles › TC_ADM_JOB_001 - create a Job Titles record (11.9s)
+  ok  9 [chromium] › tests\admin\job.spec.ts:43:7 › Admin > Job > Job Titles › TC_ADM_JOB_002 - mandatory validation, Job Title empty (9.5s)
+  ok 10 [chromium] › tests\admin\job.spec.ts:54:7 › Admin > Job > Job Titles › TC_ADM_JOB_006 - edit an existing Job Titles record (18.5s)
+  ok 11 [chromium] › tests\admin\job.spec.ts:79:7 › Admin > Job > Job Titles › TC_ADM_JOB_007 - Cancel discards changes on Job Titles (8.0s)
+  ok 12 [chromium] › tests\admin\job.spec.ts:93:7 › Admin > Job > Job Titles › TC_ADM_JOB_008 - delete a Job Titles record with confirmation (13.1s)
+  ok 13 [chromium] › tests\admin\job.spec.ts:123:7 › Admin > Job > Job Titles › TC_ADM_JOB_009 - cancelling delete preserves the Job Titles record (13.4s)
+  ok 14 [chromium] › tests\admin\job.spec.ts:145:7 › Admin > Job > Pay Grades › TC_ADM_JOB_023 - Currency Minimum Salary must not exceed Maximum Salary (15.4s)
+  ok 15 [chromium] › tests\admin\job.spec.ts:167:7 › Admin > Job > Work Shifts › TC_ADM_JOB_049 - overnight Work Shift time ordering is rejected (9.0s)
+  ok 16 [chromium] › tests\admin\nat.spec.ts:71:7 › Admin > Nationalities › TC_ADM_NAT_001 - create a Nationalities record (11.6s)
+  ok 17 [chromium] › tests\admin\nat.spec.ts:87:7 › Admin > Nationalities › TC_ADM_NAT_002 - mandatory validation, Name empty (7.1s)
+  ok 18 [chromium] › tests\admin\nat.spec.ts:98:7 › Admin > Nationalities › TC_ADM_NAT_003 - duplicate Name is rejected (7.0s)
+  ok 19 [chromium] › tests\admin\nat.spec.ts:113:7 › Admin > Nationalities › TC_ADM_NAT_010 - deleting an in-use Nationality — KNOWN DEFECT BUG-001 (20.5s)
+  ok 20 [chromium] › tests\admin\nat.spec.ts:160:7 › Admin > Nationalities › TC_ADM_NAT_011 - pagination integrity across Nationalities pages (6.8s)
+  ok 21 [chromium] › tests\admin\org.spec.ts:15:7 › Admin > Organization › TC_ADM_ORG_001 - General Information fields are read-only until Edit is toggled (6.3s)
+  ok 22 [chromium] › tests\admin\org.spec.ts:31:9 › Admin > Organization › Locations › TC_ADM_ORG_006 - create a Locations record (11.3s)
+  ok 23 [chromium] › tests\admin\org.spec.ts:47:9 › Admin > Organization › Locations › TC_ADM_ORG_007 - mandatory validation, Name empty (8.2s)
+  ok 24 [chromium] › tests\admin\org.spec.ts:59:7 › Admin > Organization › TC_ADM_ORG_019 - lazy-loaded child nodes expand on demand (Structure) (5.7s)
+  ok 25 [chromium] › tests\admin\qua.spec.ts:12:7 › Admin > Qualifications > Skills › TC_ADM_QUA_001 - create a Skills record (9.8s)
+  ok 26 [chromium] › tests\admin\qua.spec.ts:27:7 › Admin > Qualifications > Skills › TC_ADM_QUA_002 - mandatory validation, Name empty (7.0s)
+  ok 27 [chromium] › tests\admin\qua.spec.ts:38:7 › Admin > Qualifications > Skills › TC_ADM_QUA_006 - edit an existing Skills record (14.0s)
+  ok 28 [chromium] › tests\admin\qua.spec.ts:62:7 › Admin > Qualifications > Skills › TC_ADM_QUA_007 - Cancel discards changes on Skills (9.3s)
+  ok 29 [chromium] › tests\admin\qua.spec.ts:76:7 › Admin > Qualifications > Skills › TC_ADM_QUA_008 - delete a Skills record with confirmation (11.3s)
+  ok 30 [chromium] › tests\admin\qua.spec.ts:106:7 › Admin > Qualifications > Skills › TC_ADM_QUA_009 - cancelling delete preserves the Skills record (9.7s)
+  ok 31 [chromium] › tests\admin\qua.spec.ts:126:7 › Admin > Qualifications > Skills › TC_ADM_QUA_010 - long Description is retained in full on edit (14.8s)
+  ok 32 [chromium] › tests\admin\usr.spec.ts:77:7 › Admin > User Management > Users › TC_ADM_USR_001 - add a valid ESS system user (13.7s)
+  ok 33 [chromium] › tests\admin\usr.spec.ts:99:7 › Admin > User Management > Users › TC_ADM_USR_002 - username uniqueness is enforced (20.7s)
+  ok 34 [chromium] › tests\admin\usr.spec.ts:132:7 › Admin > User Management > Users › TC_ADM_USR_003 - mandatory field blocks submission when User Role is empty (11.5s)
+  ok 35 [chromium] › tests\admin\usr.spec.ts:158:7 › Admin > User Management > Users › TC_ADM_USR_005 - mandatory field blocks submission when Status is empty (11.4s)
+  ok 36 [chromium] › tests\admin\usr.spec.ts:176:7 › Admin > User Management > Users › TC_ADM_USR_006 - mandatory field blocks submission when Username is empty (11.5s)
+  ok 37 [chromium] › tests\admin\usr.spec.ts:194:7 › Admin > User Management > Users › TC_ADM_USR_007 - mandatory field blocks submission when Password is empty (14.7s)
+  ok 38 [chromium] › tests\admin\usr.spec.ts:212:7 › Admin > User Management > Users › TC_ADM_USR_009 - password policy feedback for a too-short password (12.3s)
+  ok 39 [chromium] › tests\admin\usr.spec.ts:222:7 › Admin > User Management > Users › TC_ADM_USR_013 - search filter Username = Admin returns a consistent result set (10.5s)
+  ok 40 [chromium] › tests\admin\usr.spec.ts:236:7 › Admin > User Management > Users › TC_ADM_USR_018 - edit a system user's role (26.3s)
+  ok 41 [chromium] › tests\admin\usr.spec.ts:270:7 › Admin > User Management > Users › TC_ADM_USR_020 - delete a single user with confirmation (13.7s)
+  x  42 [chromium] › tests\admin\usr.spec.ts:305:7 › Admin > User Management > Users › TC_ADM_USR_022 - bulk delete via row checkboxes (1.1m)
+  ok 43 [chromium] › tests\admin\usr.spec.ts:305:7 › Admin > User Management > Users › TC_ADM_USR_022 - bulk delete via row checkboxes (retry #1) (27.2s)
+  ok 44 [chromium] › tests\admin\usr.spec.ts:351:7 › Admin > User Management > Users › TC_ADM_USR_024 - row action icons are ordered delete-then-edit (FIND-004 regression guard) (12.6s)
+  ok 45 [chromium] › tests\admin\nav.spec.ts:19:7 › Login / Session / Navigation › TC_ADM_NAV_001 - successful login routes to Dashboard (4.6s)
+  ok 46 [chromium] › tests\admin\nav.spec.ts:37:7 › Login / Session / Navigation › TC_ADM_NAV_002 - invalid credentials rejected without leaking which field is wrong (5.0s)
+  ok 47 [chromium] › tests\admin\nav.spec.ts:47:7 › Login / Session / Navigation › TC_ADM_NAV_003 - invalid credentials rejected without leaking which field is wrong (nonexistent username) (3.6s)
+  ok 48 [chromium] › tests\admin\nav.spec.ts:61:7 › Login / Session / Navigation › TC_ADM_NAV_004 - invalid credentials rejected without leaking which field is wrong (uppercase username) — KNOWN DEFECT BUG-003 (4.8s)
+  ok 49 [chromium] › tests\admin\nav.spec.ts:83:7 › Login / Session / Navigation › TC_ADM_NAV_005 - required-field validation, Username left empty (3.9s)
+  ok 50 [chromium] › tests\admin\nav.spec.ts:93:7 › Login / Session / Navigation › TC_ADM_NAV_007 - deep link while unauthenticated redirects to login (3.2s)
+  ok 51 [chromium] › tests\admin\nav.spec.ts:99:7 › Login / Session / Navigation › TC_ADM_NAV_008 - Admin top-tab "User Management" navigates to System Users (6.1s)
+  ok 52 [chromium] › tests\admin\nav.spec.ts:124:7 › Login / Session / Navigation › TC_ADM_NAV_015 - logout invalidates the session (6.1s)
+  ok 53 [chromium] › tests\admin\nav.spec.ts:139:7 › Login / Session / Navigation › TC_ADM_NAV_016 - back-navigation after logout does not expose authenticated screens (6.3s)
+
+
+  1) [chromium] › tests\admin\usr.spec.ts:305:7 › Admin > User Management > Users › TC_ADM_USR_022 - bulk delete via row checkboxes 
+
+    TimeoutError: locator.waitFor: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('.oxd-toast-content--success') to be visible
+
+
+       at ..\src\components\OxdToast.ts:25
+
+      23 |   async waitForSuccess(action: () => Promise<void>): Promise<string> {
+      24 |     const toast = this.variantLocator('success');
+    > 25 |     await Promise.all([toast.waitFor({ state: 'visible' }), action()]);
+         |                              ^
+      26 |     return (await toast.textContent()) ?? '';
+      27 |   }
+      28 |
+        at OxdToast.waitForSuccess (C:\Users\Moustafa Madkour\Desktop\OrangeHRM-Admin-AI-Tests\src\components\OxdToast.ts:25:30)
+        at C:\Users\Moustafa Madkour\Desktop\OrangeHRM-Admin-AI-Tests\tests\admin\usr.spec.ts:336:44
+
+    Error: One or more test-data cleanups failed:
+    Cleanup failed for "user e2e_bulk_muhi7j4esabl": locator.waitFor: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for getByRole('navigation', { name: 'Sidepanel' }) to be visible
+
+    Cleanup failed for "user e2e_bulk_muhi7j4e4sb9": locator.waitFor: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for getByRole('navigation', { name: 'Sidepanel' }) to be visible
+
+
+       at ..\src\fixtures\data.fixture.ts:39
+
+      37 |     this.cleanups.length = 0;
+      38 |     if (errors.length) {
+    > 39 |       throw new Error(`One or more test-data cleanups failed:\n${errors.join('\n')}`);
+         |             ^
+      40 |     }
+      41 |   }
+      42 | }
+        at TestDataRegistry.teardownAll (C:\Users\Moustafa Madkour\Desktop\OrangeHRM-Admin-AI-Tests\src\fixtures\data.fixture.ts:39:13)
+        at Object.testData (C:\Users\Moustafa Madkour\Desktop\OrangeHRM-Admin-AI-Tests\src\fixtures\data.fixture.ts:52:5)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-usr-Admin-User-Manag-00b52-k-delete-via-row-checkboxes-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-usr-Admin-User-Manag-00b52-k-delete-via-row-checkboxes-chromium\error-context.md
+
+  1 flaky
+    [chromium] › tests\admin\usr.spec.ts:305:7 › Admin > User Management > Users › TC_ADM_USR_022 - bulk delete via row checkboxes 
+  51 passed (10.2m)
+
+[exited with code 0]

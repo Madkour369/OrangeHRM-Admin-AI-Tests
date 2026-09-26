@@ -890,19 +890,20 @@ reaches the dashboard. It is annotated as a known-defect guard, the same treatme
 - Report-build run (JSON + step reporters, workers 1, started 2026-09-25T22:15:06Z,
   477.0 s): **52/52 passed, 0 retries**. `automation_execution_report.html` was rebuilt
   from this run. The assembly script aborts unless exactly 52 results join to W1 rows.
-- A separate full-suite run: 51 clean, 1 flaky (`TC_ADM_USR_022`, passed on its automatic
+- A separate full-suite run (launched 2026-09-25T21:52:04Z, 10.2 min): 51 clean, 1 flaky (`TC_ADM_USR_022`, passed on its automatic
   retry). This was diagnosed as ENV_INSTABILITY in `HEAL-027` (3/3 clean in isolation,
   and an unrelated navigation check failed in the same window). There was no code change.
 - All 5 promoted tests passed on the first attempt in both runs.
-- The raw JSON output of neither run was kept on disk. The embedded data in the report
-  is the surviving record of the report-build run.
+- The report-build run's raw JSON was not kept; the embedded data in the report is its
+  surviving record. The flaky run's raw list output did survive and is retained at
+  `deliverables/05-automation/runs/2026-09-25T2152Z_full-suite_list.txt`.
 
 **Cascade completed this session (resumed after a rate-limit interruption):** checked on
 disk first. The tests, the CSV promotion, the run, `HEAL-027` and the report rebuild were
 already done and were not redone. Still-stale figures were then updated to 52 / 84 in:
 `implementation_summary.xlsx`, `plan.md`, `tasks.md` (plus heal count 25 → 27),
 `ci_cd.md` and `solution_flow.html`. `HEAL-027`'s own text said the two ENV_INSTABILITY
-incidents were "months apart"; they are a day apart, and that was corrected. Historical
+incidents were "months apart"; they are about 19 hours apart (both 2026-09-25), and that was corrected. Historical
 47-test records (Phase 2/3 runs, `code_review.md`, `prompts_used.md`, the
 pre-promotion narrative in `test_design_coverage.md`) were left as written, because
 they accurately describe what happened at the time.
@@ -910,5 +911,69 @@ they accurately describe what happened at the time.
 **Checks done this session:** `npx playwright test --list` lists 52 tests.
 `test_design.csv` has W1 = 52, W2 = 84, and all 17 P0 rows are W1 (0 exceptions). The
 5 promoted rows have `automation_wave = W1` and `Automation_ID` equal to their `TC_ID`.
+
+---
+
+### 2026-09-26 16:00–16:45 UTC — HEAL-027 timestamp resolved; 3 violation classes fixed; full re-review; retained 52-test run
+
+**1. HEAL-027's timestamp.** The header said "2026-09-26 ~10:15 UTC", which matched no
+recorded run. Evidence was found for the real run: the interrupted session's transcript
+records the launch at 2026-09-25T21:52:04Z (`npx playwright test tests/admin --workers=1
+--reporter=list`) and the result read back at 22:02:27Z ("1 flaky … 51 passed (10.2m)").
+The entry itself was written at 22:05:14Z. That run's raw list output survived in the old
+session's task folder and is now committed at
+`deliverables/05-automation/runs/2026-09-25T2152Z_full-suite_list.txt`. HEAL-027 was
+corrected to "2026-09-25 21:52–22:02 UTC", with a timestamp note citing both sources.
+This also showed that HEAL-022 and HEAL-027 are about 19 hours apart on the same day, not
+a day apart; that wording was corrected too.
+
+**2. Violations found by a full search, not only in the spots first reported.**
+- Raw oxd- selectors in test files: 17 lines across `usr`, `job`, `qua`, `org` and `nat`
+  specs, plus one in `LoginPage.ts`. Fixed with `OxdToast.successToastCount()`,
+  `fieldFactory.allFieldErrors()`, new `src/pages/pim/EmployeeListPage.ts` and
+  `PersonalDetailsPage.ts`, and a header-based `OxdTable.cell()` / `columnTexts()`.
+- Weak `toastText.length > 0` assertions: 5 (USR_020, USR_022, JOB_008, QUA_008,
+  NAT_010). Fixed by observing the delete toasts live and asserting them verbatim.
+- `.isVisible().catch(() => false)`: 5 (3 in `OxdTable`, 2 in `usr.spec.ts`). Replaced
+  with count-based `isEmpty()` / `hasPagination()` / `pageNumbers()`, after live checks
+  confirmed both elements are detached, not hidden, when absent.
+- Found by the re-review: `OxdTable.row()` used substring `hasText` plus `.first()`.
+  It now matches a whole cell exactly, with no `.first()`.
+
+**Delete toast, observed live 2026-09-26 16:14–16:17Z** (self-created `e2e_m5toast_*`
+records, one browser, UI login). Every flow shows title `Success` and message
+**`Successfully Deleted`**. That covers User Management single delete, User Management
+bulk delete of 2 (one toast, same wording, not pluralised), Job Titles, Skills and
+Nationalities. Recorded in exploration.md Addendum A (marked M5-sourced) with 3
+screenshots. The Expected_Result cells for USR_020, USR_022, JOB_008, QUA_008 and
+NAT_010 in `test_design.csv` now quote it.
+
+**3. `/code-review` re-run in full.** 2 Blockers and 5 Majors were fixed. 3 Minors are
+left open with stated conditions: `OxdTree` `.first()` (needs live DOM verification
+before changing), `.first()` after exact labels in `fieldFactory` / `OxdCheckbox`, and a
+raw readiness wait at `nav.spec.ts:115`. Verdict: APPROVED WITH MINORS
+(`code_review.md`, re-review section). `npx tsc --noEmit`: 0 errors. A targeted run of
+the 15 tests on changed code paths passed 15/15 with 0 retries.
+
+**4. Official full-suite run, output retained.** Launched 2026-09-26T16:28:24Z with
+`--workers=1` and the configured retries (1). Record:
+`deliverables/05-automation/runs/2026-09-26_full-suite/` (`list-output.txt`,
+`playwright-run.json`, `playwright-steps.json`, and both failure screenshots).
+- **Result: 52/52 passed. 50 passed on the first attempt and 2 were flaky, 0 failed,
+  636.7 s.**
+- `TC_ADM_QUA_010` and `TC_ADM_USR_001` failed their first attempts back-to-back
+  (16:33:01Z, 16:33:57Z), both with `page.goto: Timeout 30000ms exceeded` in the shared
+  page fixture's dashboard navigation, before any test code ran. Both screenshots are
+  blank pages. Both passed on retry.
+- `/heal`: each reproduced 3/3 clean in isolation (`--retries=0 --trace=on`).
+  Classified ENV_INSTABILITY with no code change: `HEAL-028` and `HEAL-029`. Raising the
+  navigation timeout was considered and rejected as timeout inflation without a
+  readiness signal.
+- None of the tests touched by today's changes failed in the run.
+
+**5. Report rebuilt** from that retained run (`automation_execution_report.html`: data
+object swapped, template unchanged). It shows 52 executed, 50 Pass, 2 Flaky, 0 Fail,
+with healing ENV_INSTABILITY = 4. Rendered offline in headless Chromium with 0 console
+errors.
 
 ---

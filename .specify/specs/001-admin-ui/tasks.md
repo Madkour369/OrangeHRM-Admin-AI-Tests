@@ -124,7 +124,7 @@ scheduled for a future cycle, not descoped — see the M3 note above)
 - Playwright POM suite: `src/pages/`, `src/components/`, `src/fixtures/`, `src/utils/`,
   `src/data/`, `tests/admin/*.spec.ts` (CLAUDE.md §4 repository contract) — 52 tests,
   52/52 green
-- `deliverables/05-automation/healing_process.md` (27 entries, `HEAL-001..027`)
+- `deliverables/05-automation/healing_process.md` (29 entries, `HEAL-001..029`)
 - `deliverables/05-automation/code_review.md` (`/code-review` verdict: APPROVED)
 - `deliverables/05-automation/automation_execution_report.html` (self-contained,
   reuses the M4 report's template/CSS)

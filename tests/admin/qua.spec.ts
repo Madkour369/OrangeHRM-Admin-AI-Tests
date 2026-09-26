@@ -32,7 +32,7 @@ test.describe('Admin > Qualifications > Skills', () => {
     await skillsPage.submitEmptyName();
 
     await expect(skillsPage.fieldError('Name')).toHaveText('Required');
-    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+    expect(await skillsPage.toast.successToastCount()).toBe(0);
   });
 
   test('TC_ADM_QUA_006 - edit an existing Skills record', async ({ page, testData }) => {
@@ -95,7 +95,8 @@ test.describe('Admin > Qualifications > Skills', () => {
     const toastText = await skillsPage.toast.waitForSuccess(async () => {
       await skillsPage.dialog.confirm();
     });
-    expect(toastText.length).toBeGreaterThan(0);
+    // Verbatim, observed live in M5 on 2026-09-26 (exploration.md Addendum A).
+    expect(toastText).toBe('Successfully Deleted');
 
     await skillsPage.goto();
     await expect(skillsPage.table.row(name)).toHaveCount(0);

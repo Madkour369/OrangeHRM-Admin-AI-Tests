@@ -391,3 +391,59 @@ Every trap CLAUDE.md §5.2 named was actually encountered this session, with one
 1. **BUG-001** (Nationality delete silently orphans employee data) — if M3 doesn't deliberately encode this as a known-defect assertion, the natural instinct to write "delete is blocked when in use" will produce a test that fails against real, confirmed behaviour.
 2. **FIND-002** (no upper-case password requirement, contradicting the PRD's own Gherkin) — this is the single clearest case in the whole exploration of "the source-of-truth spec assumes something the live app doesn't do"; left uncorrected, M3 will encode an assertion that can never pass.
 3. **FIND-004 / the delete-then-edit action-icon order** — a small thing that will silently break any locator written from the natural "edit icon comes first" assumption, across every list screen in Admin, not just one.
+
+---
+
+## Addendum A — M5-sourced observations (2026-09-26)
+
+**Source: M5, not M2.** These were observed live after Gate G5, during a review that
+found five automated delete tests asserting only that the success toast was non-empty
+(`toastText.length > 0`). M2 never recorded the delete-toast wording, so there was no
+verbatim string to assert. Everything below was captured in one browser session against
+the live demo (login through the form as `Admin`), using self-created `e2e_m5toast_*`
+records that were deleted as part of the observation itself.
+
+### A.1 Delete success toast — verbatim
+
+| Flow | Record deleted | Observed at (UTC) | Toast title | Toast message | Evidence |
+|---|---|---|---|---|---|
+| Job Titles, single delete | `e2e_m5toast_job_muilbl0p` | 2026-09-26T16:14:50Z | `Success` | `Successfully Deleted` | `evidence/m5_toast_delete_job_title.png` |
+| User Management, single delete | `e2e_m5toast_del_muilbzxw` | 2026-09-26T16:15:32Z | `Success` | `Successfully Deleted` | `evidence/m5_toast_delete_user_single.png` |
+| User Management, bulk delete of 2 (row checkboxes → Delete Selected) | `e2e_m5toast_bulk_muilczola`, `e2e_m5toast_bulk_muilczolb` | 2026-09-26T16:16:41Z | `Success` | `Successfully Deleted` | `evidence/m5_toast_delete_user_bulk.png` |
+| Skills, single delete | `e2e_m5toast_skill_*` | 2026-09-26T16:17:35Z (batch end) | `Success` | `Successfully Deleted` | not separately captured |
+| Nationalities, single delete | `e2e_m5toast_nat_*` | 2026-09-26T16:17:35Z (batch end) | `Success` | `Successfully Deleted` | not separately captured |
+
+- **Bulk delete produces exactly one toast with the same wording as single delete.** It is
+  not pluralised and there is no count ("Successfully Deleted", one toast attached while
+  it was shown). This matches FIND-003's observation that the bulk confirm dialog reuses
+  the singular dialog text. That was re-read in this session as "Are you Sure? / The
+  selected record will be permanently deleted. Are you sure you want to continue? /
+  No, Cancel / Yes, Delete", after the header had shown `(2) Records Selected`.
+- After every delete, the record was confirmed gone: row count 0 (exact-match search for
+  users; list scan for Job Titles / Nationalities).
+
+### A.2 Toast DOM structure
+
+`.oxd-toast-content--success` contains two `<p>` elements:
+`.oxd-text--toast-title` (`Success`) and `.oxd-text--toast-message` (e.g. `Successfully
+Deleted`, `Successfully Saved`). The container's own textContent is the concatenation
+`SuccessSuccessfully Deleted`. `OxdToast` now returns the message element's text, so a
+test can assert the verbatim message with `toBe()`.
+
+### A.3 Presence semantics used by count-based checks
+
+- **Pagination nav** (`role="navigation"`, name `Pagination Navigation`): **not rendered at
+  all** (count 0) on a single-page list (User Management, unfiltered, this session), and
+  present and visible (count 1; buttons `1 2 3 4` plus next) on Nationalities. A
+  `count() > 0` check is therefore equivalent to the previous `isVisible()` check.
+- **Empty state** (`No Records Found` inside `.orangehrm-paper-container`): count 0 on a
+  populated list (Skills), count 1 on a zero-result search (User Management). It is
+  detached rather than hidden when records exist, so `count() > 0` again equals
+  `isVisible()`.
+
+### A.4 Table headers (for header-based column lookup)
+
+- Nationalities: `["", "Nationality", "Actions"]`.
+- PIM Employee List: header cells include sort-icon text, e.g. `"Last NameAscendingDescending"`
+  and `"First (& Middle) NameAscendingDescending"`. This is why `OxdTable` matches a
+  column label as a prefix rather than exactly.

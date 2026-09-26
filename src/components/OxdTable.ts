@@ -63,7 +63,7 @@ export class OxdTable {
    * zero-result state, so this checks the empty state first.
    */
   async recordCount(): Promise<number> {
-    if (await this.emptyState.isVisible().catch(() => false)) return 0;
+    if (await this.isEmpty()) return 0;
     const text = (await this.recordCountHeader.textContent()) ?? '';
     const m = text.match(/\((\d+)\)/);
     return m ? parseInt(m[1], 10) : NaN;
@@ -78,6 +78,17 @@ export class OxdTable {
    */
   get emptyState(): Locator {
     return this.listContainer.getByText('No Records Found', { exact: true });
+  }
+
+  /**
+   * Count-based, so it cannot throw. The previous `isVisible().catch(() => false)`
+   * turned ANY failure (including a strict-mode violation) into "not empty". Live-
+   * checked 2026-09-26: this div is detached, not hidden, when records exist (count 0
+   * on a populated Skills list, 1 on a zero-result search), so count > 0 means the
+   * same thing isVisible() did.
+   */
+  async isEmpty(): Promise<boolean> {
+    return (await this.emptyState.count()) > 0;
   }
 
   /**
@@ -105,9 +116,52 @@ export class OxdTable {
     return row.locator('.oxd-table-cell').allTextContents();
   }
 
-  /** A row identified by its visible cell text — never `.nth()` on business data. */
+  /**
+   * Column index for a header label, so no caller hard-codes a column position.
+   * Header cells can carry trailing sort-icon text (live-inspected 2026-09-26: PIM's
+   * "Last NameAscendingDescending"), so this matches the label as a prefix and
+   * requires exactly one match. A missing or ambiguous header throws rather than
+   * silently picking a column.
+   */
+  private async columnIndex(header: string): Promise<number> {
+    const labels = (await this.root.locator('.oxd-table-header .oxd-table-header-cell').allTextContents()).map((s) =>
+      s.trim(),
+    );
+    const matches = labels.flatMap((label, i) => (label.startsWith(header) ? [i] : []));
+    if (matches.length !== 1) {
+      throw new Error(`Expected exactly one column headed "${header}", found ${matches.length} in [${labels.join(' | ')}]`);
+    }
+    return matches[0];
+  }
+
+  /** A row's cell under the named column. The index comes from the header, never from business data. */
+  async cell(row: Locator, header: string): Promise<Locator> {
+    return row.locator('.oxd-table-cell').nth(await this.columnIndex(header));
+  }
+
+  /** Every data row's text in the named column, in DOM order. */
+  async columnTexts(header: string): Promise<string[]> {
+    const index = await this.columnIndex(header);
+    return this.rows.evaluateAll(
+      (rows, i) => rows.map((r) => r.querySelectorAll('.oxd-table-cell')[i]?.textContent?.trim() ?? ''),
+      index,
+    );
+  }
+
+  /**
+   * The row with a cell whose whole text is exactly `cellText`. Never `.nth()` on
+   * business data, and no `.first()`.
+   *
+   * Changed 2026-09-26 (/code-review): this used to be `filter({ hasText }).first()`,
+   * a substring match with strict mode silenced. That is the pattern CLAUDE.md §5.1
+   * forbids ("`:has-text` on values that are also substrings of other rows"). For
+   * example, `row('e2e_x')` also matched a row named `e2e_x_edited`, so a check that the
+   * original record still exists would pass even if an edit had wrongly been saved.
+   * An exact duplicate now fails loudly as a strict-mode violation instead of being
+   * silently resolved.
+   */
   row(cellText: string): Locator {
-    return this.rows.filter({ hasText: cellText }).first();
+    return this.rows.filter({ has: this.page.locator('.oxd-table-cell').getByText(cellText, { exact: true }) });
   }
 
   /** Delete (trash) action button within a row — resolved by icon class, never position. */
@@ -184,7 +238,7 @@ export class OxdTable {
     // later. Found live 2026-09-25 (post-HEAL-023/024/025 regression check): searches
     // for an already-deleted/nonexistent username hit exactly this hang.
     await expect(async () => {
-      if (await this.emptyState.isVisible().catch(() => false)) return;
+      if (await this.isEmpty()) return;
       const firstRow = this.rows.first();
       if ((await firstRow.count()) === 0) {
         throw new Error('list is not in the empty state but no row is attached yet');
@@ -211,6 +265,27 @@ export class OxdTable {
     return this.page.getByRole('navigation', { name: 'Pagination Navigation' });
   }
 
+  /**
+   * Count-based, so it cannot throw (replaces `isVisible().catch(() => false)`, which
+   * hid every failure, not just "no pagination"). Live-checked 2026-09-26: the nav is
+   * not rendered at all on a single-page list (count 0) and is present and visible on
+   * Nationalities' 4-page list (count 1), so count > 0 means the same thing
+   * isVisible() did.
+   */
+  async hasPagination(): Promise<boolean> {
+    return (await this.pagination.count()) > 0;
+  }
+
+  /** The numbered page buttons' values (e.g. [1, 2, 3, 4]); [] when there is no pagination. */
+  async pageNumbers(): Promise<number[]> {
+    if (!(await this.hasPagination())) return [];
+    const labels = await this.pagination.getByRole('button').allTextContents();
+    return labels
+      .map((l) => l.trim())
+      .filter((l) => /^\d+$/.test(l))
+      .map((l) => parseInt(l, 10));
+  }
+
   async goToPage(n: number): Promise<void> {
     await this.pagination.getByRole('button', { name: String(n), exact: true }).click();
     // Content-based wait, not just spinner-gone — same race class as
@@ -231,15 +306,8 @@ export class OxdTable {
     let row = this.row(cellText);
     if ((await row.count()) > 0) return row;
 
-    const paginationVisible = await this.pagination.isVisible().catch(() => false);
-    if (!paginationVisible) return row;
-
-    const pageButtons = this.pagination.getByRole('button');
-    const buttonCount = await pageButtons.count();
-    for (let i = 0; i < buttonCount; i++) {
-      const label = ((await pageButtons.nth(i).textContent()) ?? '').trim();
-      if (!/^\d+$/.test(label)) continue;
-      await this.goToPage(parseInt(label, 10));
+    for (const n of await this.pageNumbers()) {
+      await this.goToPage(n);
       row = this.row(cellText);
       if ((await row.count()) > 0) return row;
     }

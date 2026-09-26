@@ -311,7 +311,7 @@ Prevention rule: A selector confirmed correct once against a live demo is not as
 Test:            TC_ADM_USR_002 (username uniqueness is enforced)
 Symptom:         First attempt of an official Step 2 full-suite run timed out waiting for the post-save success toast; passed on Playwright's own automatic retry
 Raw error:       `TimeoutError: locator.waitFor: Timeout 15000ms exceeded` — `waiting for locator('.oxd-toast-content--success') to be visible`, at `src/components/OxdToast.ts:25`, inside `OxdToast.waitForSuccess()`, called from `UserManagementPage.createUser()` at line 80, called from `usr.spec.ts:107` — the test's FIRST (legitimate, non-duplicate) user-creation call, using fresh `testData.unique('dup')` data
-Attempts:        Full-suite run 2 of 3: failed attempt 1 (41.0s), passed attempt 2 (35.2s, automatic retry). Isolated reproduction immediately after: 3/3 clean, single-worker, `--retries=0`, `--trace=on` (21.7s, 21.3s, 23.4s) — no flake in isolation
+Attempts:        Full-suite run 2 of 3: failed attempt 1 (41.0s), passed attempt 2 (35.2s, automatic retry). Isolated reproduction immediately after (results read back 22:03:19Z / 22:03:57Z / 22:04:37Z): 3/3 clean, single-worker, `--retries=0`, `--trace=on` (21.7s, 21.3s, 23.4s) — no flake in isolation
 Hypothesis:      Not state pollution (fresh unique data every run, first non-duplicate call, `testData.track()` cleanup runs after the test not before); not a locator defect (the same `.oxd-toast-content--success` locator that failed here is the one already exercised cleanly by every other Save flow across the whole suite, including 2/3 official full-suite runs and 3/3 isolated reruns of this exact test). The run in which this failed was independently and broadly slower across entirely unrelated screens (e.g. `TC_ADM_QUA_001` 35.2s vs. 11.6s/13.1s in the clean runs; `TC_ADM_CFG_001` 18.4s vs. 6.6s/6.0s), pointing to a real, transient shared-demo slowdown during that run's specific time window, not a defect isolated to this test or component
 Root cause:      ENV_INSTABILITY — evidence: (1) the failure disappeared completely across 3/3 clean isolated reruns under normal conditions immediately afterward, ruling out a deterministic script defect; (2) the failing run showed a uniform ~2–3x slowdown across unrelated screens and unrelated component code (BRD/CFG/JOB/QUA, not just USR), which a single test's own defect cannot explain; (3) the specific failure is a generic 15s wait-timeout on a Save action already proven reliable everywhere else in the project — consistent with CLAUDE.md §5.3's own documented reality of rate limiting/slowness under load on this shared public demo
 Fix layer:       none — per `heal.md`'s ENV_INSTABILITY branch, no code change is prescribed
@@ -388,17 +388,46 @@ Prevention rule: A `toPass()`/manual-poll predicate must re-derive every piece o
 
 ---
 
-### HEAL-027 | 2026-09-26 ~10:15 UTC (found during the mandatory full-suite run after promoting 5 P0 cases from Wave 2 to Wave 1)
+### HEAL-027 | 2026-09-25 21:52–22:02 UTC (found during the mandatory full-suite run after promoting 5 P0 cases from Wave 2 to Wave 1)
+Timestamp note:  Corrected 2026-09-26. The original header said "2026-09-26 ~10:15 UTC", which matched no recorded run. Evidence for the corrected window: (1) the run's raw list-reporter output survives and is now retained at `deliverables/05-automation/runs/2026-09-25T2152Z_full-suite_list.txt` ("Running 52 tests using 1 worker" … "1 flaky … 51 passed (10.2m)"; file last written 22:02:19Z); (2) the originating session transcript records the launch (`npx playwright test tests/admin --workers=1 --reporter=list`) at 21:52:04Z and the result read back at 22:02:27Z, and this entry was written at 22:05:14Z. This is a different run from the 22:15Z report-build run, in which `TC_ADM_USR_022` passed on its first attempt
 Test:            TC_ADM_USR_022 (bulk delete via row checkboxes) — not one of the 5 newly-promoted cases; all 5 of those (`TC_ADM_NAV_003`, `NAV_004`, `TC_ADM_USR_005`, `USR_006`, `USR_007`) passed clean on their first attempt in this same run
 Symptom:         First attempt of the official 52-test full-suite run timed out waiting for the bulk-delete confirmation's success toast; passed on Playwright's own automatic retry
 Raw error:       `TimeoutError: locator.waitFor: Timeout 15000ms exceeded` — `waiting for locator('.oxd-toast-content--success') to be visible`, at `src/components/OxdToast.ts:25`, inside `OxdToast.waitForSuccess()`, called from `usr.spec.ts:336` (the bulk-delete confirm click). The same failed attempt also threw a cascading `TestDataRegistry.teardownAll` error: both of the test's own cleanup calls additionally timed out waiting for `getByRole('navigation', {name:'Sidepanel'})` to become visible — a plain post-login navigation check, unrelated to toasts or bulk-delete specifically
-Attempts:        Full-suite run (this session): failed attempt 1 (1.1m), passed attempt 2/automatic retry (27.2s). Isolated reproduction immediately after: 3/3 clean, single-worker, `--retries=0`, `--trace=on` (26.4s, 25.3s, 24.2s) — no flake in isolation
+Attempts:        Full-suite run (21:52Z, retained log above): failed attempt 1 (1.1m), passed attempt 2/automatic retry (27.2s). Isolated reproduction immediately after: 3/3 clean, single-worker, `--retries=0`, `--trace=on` (26.4s, 25.3s, 24.2s) — no flake in isolation
 Hypothesis:      Not a locator defect (`.oxd-toast-content--success` is the same selector proven reliable across every other Save/Delete flow in this suite, including this exact test's own 3/3 clean isolated reruns). Not state pollution (fresh `e2e_bulk_` data each run, standard bulk-delete flow, no prior test leaves the page in an unusual state). The cascading Sidepanel-visibility timeout in the cleanup phase — a completely different, simple action — failing in the same window is the key evidence: it points to the whole page/demo being briefly unresponsive to any request during that specific window, not a defect confined to the bulk-delete action or component
 Root cause:      ENV_INSTABILITY — evidence: (1) 3/3 clean in isolation immediately afterward under normal conditions, ruling out a deterministic script defect; (2) a second, unrelated action (a bare post-login navigation check in the cleanup phase) failed in the identical window, which a bug in the bulk-delete/toast code specifically cannot explain — only a broader, transient unresponsiveness can; (3) consistent with CLAUDE.md §5.3's documented reality of rate limiting/slowness under load on this shared public demo, and the same class already established by `HEAL-022` (`TC_ADM_USR_002`)
 Fix layer:       none — per `heal.md`'s ENV_INSTABILITY branch, no code change is prescribed
 Change:          No code change. Workers already at the project minimum (1, this run's own configuration). Recorded here as an accepted environmental risk, not quarantined — the test reproduces cleanly under normal load, and Playwright's own `retries` configuration already absorbed this exact transient failure without masking it (the run correctly reported it as `flaky`, not silently `ok`)
 Verification:    3/3 consecutive clean isolated reruns (26.4s / 25.3s / 24.2s) stand in for the "3 consecutive green" requirement, since no code changed to verify. The full 52-test suite (this run) otherwise completed 51/52 clean with only this one flake; no other test in the run showed any timing anomaly
 Prevention rule: Same as `HEAL-022`: a single `flaky`-flagged test in an official run, with clean isolated reproduction, no locator/state signature, and — new corroborating evidence this time — a second, unrelated action failing in the identical window, is diagnosed as ENV_INSTABILITY and recorded, not chased with a code change that would only mask the real cause
+
+---
+
+### HEAL-028 | 2026-09-26 16:33:01Z (first attempt; official full-suite run launched 16:28:24Z, retained at `deliverables/05-automation/runs/2026-09-26_full-suite/`)
+Test:            TC_ADM_QUA_010 (long Description is retained in full on edit)
+Symptom:         First attempt timed out in the shared page fixture navigating to the dashboard; passed on Playwright's automatic retry
+Raw error:       `TimeoutError: page.goto: Timeout 30000ms exceeded.` Call log: `navigating to "https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index", waiting until "load"`, at `src/fixtures/page.fixture.ts:19` (`await authenticatedPage.goto('/web/index.php/dashboard/index')`). Screenshot: `deliverables/05-automation/runs/2026-09-26_full-suite/TC_ADM_QUA_010-attempt1-failed.png` (blank page)
+Attempts:        Full-suite run: attempt 1 failed (30.3 s), retry #1 passed (13.5 s). Isolated reproduction immediately after (`--workers=1 --retries=0 --trace=on`, finished 16:40:21Z / 16:41:00Z / 16:41:37Z): 3/3 clean (12.8 s, 12.6 s, 11.4 s)
+Hypothesis:      Not a locator, timing or data problem in this test: the failure is inside the shared `page` fixture (`src/fixtures/page.fixture.ts:19`), before any test code or page object runs. That fixture was not changed in this session's edits (the edits touched OxdToast, OxdTable, fieldFactory, LoginPage, the new PIM page objects and spec assertions). The page's `load` event never fired and the failure screenshot is a completely blank page, with no app shell or sidebar, which means the server did not deliver the page. The very next test in the run, `TC_ADM_USR_001`, failed the same way seconds later (HEAL-029).
+Root cause:      ENV_INSTABILITY — evidence: (1) the failure is in a plain authenticated `goto` shared by every test, not in anything specific to this test; (2) two unrelated tests failed back-to-back with the identical signature and duration inside one ~90 s window (16:33:01Z–16:34:28Z), while the tests either side ran at normal speed (QUA_009 11.2 s before; USR_002 20.9 s and USR_003 11.8 s after); (3) `TC_ADM_USR_001`'s passing retry inside the same window still took 30.1 s, against 12.9 s / 15.5 s / 16.9 s in isolation straight afterwards; (4) 3/3 clean isolated reproductions; (5) consistent with CLAUDE.md §5.3 (shared public demo, rate limiting / slowness under load) and the same class as `HEAL-022` and `HEAL-027`
+Fix layer:       none — per `heal.md`'s ENV_INSTABILITY branch, no code change is prescribed
+Change:          No code change. Workers already at 1 for this run. Not quarantined: reproduces cleanly under normal load. Raising the navigation timeout was considered and rejected: it is timeout inflation without a named readiness signal, which `heal.md` forbids, and a blank page after 30 s is a server that is not answering, not a slow-but-progressing load
+Verification:    3/3 consecutive clean isolated reruns (see Attempts) stand in for "3 consecutive green", since no code changed. The same full-suite run otherwise completed with 50/52 passing on the first attempt, and this test passed on Playwright's automatic retry, correctly reported as `flaky`, not `ok`
+Prevention rule: A failure inside the shared page fixture's navigation, with a blank-page screenshot, a matching failure in an adjacent unrelated test, and clean isolated reproduction, is ENV_INSTABILITY: record it, do not patch it. Escalation note (`heal.md` §7): this is the 4th ENV_INSTABILITY entry, but each is on a different test and none repeated on the same test, so the "same test heals twice" design-defect trigger is not met. If any single test reaches a second ENV_INSTABILITY entry, stop and review whether its flow is unusually sensitive to demo slowness
+
+---
+
+### HEAL-029 | 2026-09-26 16:33:57Z (first attempt; same official full-suite run as HEAL-028)
+Test:            TC_ADM_USR_001 (add a valid ESS system user)
+Symptom:         First attempt timed out in the shared page fixture navigating to the dashboard; passed on Playwright's automatic retry, which itself was unusually slow
+Raw error:       `TimeoutError: page.goto: Timeout 30000ms exceeded.` Call log: `navigating to "https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index", waiting until "load"`, at `src/fixtures/page.fixture.ts:19`. Screenshot: `deliverables/05-automation/runs/2026-09-26_full-suite/TC_ADM_USR_001-attempt1-failed.png` (blank page)
+Attempts:        Full-suite run: attempt 1 failed (30.3 s), retry #1 passed (30.1 s). Isolated reproduction immediately after (same three invocations as HEAL-028): 3/3 clean (12.9 s, 15.5 s, 16.9 s)
+Hypothesis:      Not a locator, timing or data problem in this test: the failure is inside the shared `page` fixture (`src/fixtures/page.fixture.ts:19`), before any test code or page object runs. That fixture was not changed in this session's edits (the edits touched OxdToast, OxdTable, fieldFactory, LoginPage, the new PIM page objects and spec assertions). The page's `load` event never fired and the failure screenshot is a completely blank page, with no app shell or sidebar, which means the server did not deliver the page. The test immediately before it in the run, `TC_ADM_QUA_010`, failed the same way under a minute earlier (HEAL-028).
+Root cause:      ENV_INSTABILITY — evidence: (1) the failure is in a plain authenticated `goto` shared by every test, not in anything specific to this test; (2) two unrelated tests failed back-to-back with the identical signature and duration inside one ~90 s window (16:33:01Z–16:34:28Z), while the tests either side ran at normal speed (QUA_009 11.2 s before; USR_002 20.9 s and USR_003 11.8 s after); (3) `TC_ADM_USR_001`'s passing retry inside the same window still took 30.1 s, against 12.9 s / 15.5 s / 16.9 s in isolation straight afterwards; (4) 3/3 clean isolated reproductions; (5) consistent with CLAUDE.md §5.3 (shared public demo, rate limiting / slowness under load) and the same class as `HEAL-022` and `HEAL-027`
+Fix layer:       none — per `heal.md`'s ENV_INSTABILITY branch, no code change is prescribed
+Change:          No code change. Workers already at 1 for this run. Not quarantined: reproduces cleanly under normal load. Raising the navigation timeout was considered and rejected: it is timeout inflation without a named readiness signal, which `heal.md` forbids, and a blank page after 30 s is a server that is not answering, not a slow-but-progressing load
+Verification:    3/3 consecutive clean isolated reruns (see Attempts) stand in for "3 consecutive green", since no code changed. The same full-suite run otherwise completed with 50/52 passing on the first attempt, and this test passed on Playwright's automatic retry, correctly reported as `flaky`, not `ok`
+Prevention rule: A failure inside the shared page fixture's navigation, with a blank-page screenshot, a matching failure in an adjacent unrelated test, and clean isolated reproduction, is ENV_INSTABILITY: record it, do not patch it. Escalation note (`heal.md` §7): this is the 4th ENV_INSTABILITY entry, but each is on a different test and none repeated on the same test, so the "same test heals twice" design-defect trigger is not met. If any single test reaches a second ENV_INSTABILITY entry, stop and review whether its flow is unusually sensitive to demo slowness
 
 ---
 
@@ -409,7 +438,7 @@ Prevention rule: Same as `HEAL-022`: a single `flaky`-flagged test in an officia
 | TIMING | 11 | HEAL-001, 006, 010, 012, 013, 014, 015, 019, 023, 024, 025 |
 | LOCATOR_DRIFT | 10 | HEAL-002, 003, 004, 005, 007, 008, 009, 017, 018, 021 |
 | TEST_LOGIC | 4 | HEAL-011, 016, 020, 026 |
-| ENV_INSTABILITY | 2 | HEAL-022, 027 |
+| ENV_INSTABILITY | 4 | HEAL-022, 027, 028, 029 |
 | STATE_POLLUTION | 0 | — |
 | PRODUCT_BUG | 0 (by design — see below) | — |
 
@@ -429,15 +458,15 @@ none of these is. **Zero `test.fixme()` calls exist anywhere in this suite.**
 
 ## Quarantined tests
 
-**None.** `TC_ADM_USR_002` (HEAL-022) and `TC_ADM_USR_022` (HEAL-027) were each
-evaluated for quarantine and explicitly NOT quarantined: both reproduce cleanly
-under normal load (3/3 isolated each time), workers are already at the project
-minimum, and both failure signatures match this shared demo's own documented
-instability (CLAUDE.md §5.3), not a defect in either test. Two independent
-ENV_INSTABILITY incidents on two different tests, a day apart (2026-09-25 and 2026-09-26)
-but both against the same demo, is itself consistent with — not contradictory
-to — this being a real, ongoing environmental characteristic rather than a
-one-off.
+**None.** `TC_ADM_USR_002` (HEAL-022), `TC_ADM_USR_022` (HEAL-027),
+`TC_ADM_QUA_010` (HEAL-028) and `TC_ADM_USR_001` (HEAL-029) were each evaluated
+for quarantine and explicitly NOT quarantined: each reproduces cleanly under normal
+load (3/3 isolated every time), workers are already at the project minimum, and each
+failure signature matches this shared demo's own documented instability (CLAUDE.md
+§5.3), not a defect in the test. Four ENV_INSTABILITY entries on four different tests,
+across three runs on 2026-09-25 and 2026-09-26, all against the same demo, point to a
+real, ongoing environmental characteristic rather than a one-off. No single test has
+repeated.
 
 ## Residual risk
 

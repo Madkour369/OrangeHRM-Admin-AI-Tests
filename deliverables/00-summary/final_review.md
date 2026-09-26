@@ -9,8 +9,13 @@
 > audit did not touch found and closed a real gap: a confirmed defect (`BUG-003`) sitting
 > at P0 with no automated regression guard. That work promoted 5 cases from Wave 2 to Wave
 > 1 and added the rule "every P0 case is Wave 1" (`test_design_coverage.md` §8.5). **Current
-> totals: 52 automated tests (52/52 green), 27 `healing_process.md` entries** — see that
-> file and §8.5 for the current, authoritative state.
+> totals: 52 automated tests, 29 `healing_process.md` entries.** Latest full run
+> (2026-09-26 16:28Z, raw output retained in `deliverables/05-automation/runs/2026-09-26_full-suite/`):
+> 52/52 passed, 50 on the first attempt and 2 on automatic retry (ENV_INSTABILITY, `HEAL-028`/`029`).
+> A later re-review (`code_review.md`, 2026-09-26) found and fixed violation classes this audit
+> did not examine (raw oxd- selectors in tests, weak toast assertions, swallowed errors).
+> See `healing_process.md`, `code_review.md` and `test_design_coverage.md` §8.5 for the
+> current, authoritative state.
 
 **Method:** every check below was actually run against the live repo and the live CI
 run's raw data (not assumed from memory of having built it). Where a finding was

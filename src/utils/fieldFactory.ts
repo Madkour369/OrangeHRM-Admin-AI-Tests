@@ -99,6 +99,15 @@ export function fieldError(scope: Page | Locator, label: string): Locator {
   return labelledContainer(scope, label).locator('.oxd-input-field-error-message, .oxd-input-group__message').first();
 }
 
+/**
+ * Every field-level error message within `scope` at once, for callers that count
+ * them across a whole form rather than reading one field's message (the Login form,
+ * whose two fields have no `.oxd-input-group` label anchor for `fieldError`).
+ */
+export function allFieldErrors(scope: Page | Locator): Locator {
+  return scope.locator('.oxd-input-field-error-message');
+}
+
 /** A label-anchored `.oxd-select-text` dropdown, wrapped as a component (not a native <select> — CLAUDE.md §5.2). */
 export function dropdown(scope: Page | Locator, label: string): OxdDropdown {
   return new OxdDropdown(labelledContainer(scope, label));

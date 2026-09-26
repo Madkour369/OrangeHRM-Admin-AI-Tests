@@ -48,7 +48,7 @@ test.describe('Admin > Job > Job Titles', () => {
     await jobPage.submitEmptyJobTitle();
 
     await expect(jobPage.fieldError('Job Title')).toHaveText('Required');
-    await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+    expect(await jobPage.toast.successToastCount()).toBe(0);
   });
 
   test('TC_ADM_JOB_006 - edit an existing Job Titles record', async ({ page, testData }) => {
@@ -112,7 +112,8 @@ test.describe('Admin > Job > Job Titles', () => {
     const toastText = await jobPage.toast.waitForSuccess(async () => {
       await jobPage.dialog.confirm();
     });
-    expect(toastText.length).toBeGreaterThan(0);
+    // Verbatim, observed live in M5 on 2026-09-26 (exploration.md Addendum A).
+    expect(toastText).toBe('Successfully Deleted');
 
     await jobPage.goto();
     await expect(jobPage.table.row(jobTitle)).toHaveCount(0);

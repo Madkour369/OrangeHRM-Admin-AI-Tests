@@ -1,4 +1,5 @@
 import { Page, Locator } from '@playwright/test';
+import { allFieldErrors } from '../../utils/fieldFactory';
 
 /**
  * The login screen. Deliberately does NOT extend BasePage — it is the one screen
@@ -11,14 +12,9 @@ import { Page, Locator } from '@playwright/test';
  *   `.oxd-alert-content-text`.
  * - Field-level errors: `.oxd-input-field-error-message` (e.g. "Required").
  *
- * `requiredFieldErrors` below is a reviewed, narrow exception to "raw oxd-
- * selectors live only in components" (/code-review, 2026-09-25): it deliberately
- * returns however many error messages are visible ACROSS the whole 2-field form
- * at once (a caller counts them), not one field's own message — the shape
- * `fieldFactory.fieldError(scope, label)` is built for. This screen also
- * pre-dates `fieldFactory` (Phase 1) and has no `.oxd-input-group` wrapper on its
- * two fields for that helper to anchor to regardless. Wedging it into a
- * per-field helper it doesn't fit would be worse than this one documented line.
+ * `requiredFieldErrors` delegates to `fieldFactory.allFieldErrors` (2026-09-26): the
+ * raw oxd- selector that used to live here under a documented waiver now sits in the
+ * shared helper layer, so this page object holds none.
  */
 export class LoginPage {
   constructor(private readonly page: Page) {}
@@ -40,9 +36,9 @@ export class LoginPage {
     return this.page.getByRole('alert');
   }
 
-  /** Field-level "Required" messages, confirmed class `.oxd-input-field-error-message`. */
+  /** Field-level "Required" messages across the whole form (a caller counts them). */
   get requiredFieldErrors(): Locator {
-    return this.page.locator('.oxd-input-field-error-message');
+    return allFieldErrors(this.page);
   }
 
   async goto(): Promise<void> {

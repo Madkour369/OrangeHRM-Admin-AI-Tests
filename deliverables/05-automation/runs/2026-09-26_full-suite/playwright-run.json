@@ -1,0 +1,2133 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config=playwright.report.config.ts",
+      "--workers=1"
+    ],
+    "configFile": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\playwright.report.config.ts",
+    "rootDir": "C:/Users/Moustafa Madkour/Desktop/OrangeHRM-Admin-AI-Tests/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/Moustafa Madkour/Desktop/OrangeHRM-Admin-AI-Tests/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/Moustafa Madkour/Desktop/OrangeHRM-Admin-AI-Tests/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "deliverables/05-automation/runs/2026-09-26_full-suite/playwright-run.json"
+        }
+      ],
+      [
+        "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\report-build\\step-reporter.cjs",
+        {
+          "outputFile": "deliverables/05-automation/runs/2026-09-26_full-suite/playwright-steps.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "admin\\brd.spec.ts",
+      "file": "admin/brd.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin > Corporate Branding",
+          "file": "admin/brd.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_BRD_001 - upload of an unsupported file type — KNOWN DEFECT BUG-002",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5229,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:28:27.835Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5cac21385da7ad0573ee-50dc5341e61b8a5edc6d",
+              "file": "admin/brd.spec.ts",
+              "line": 8,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_BRD_002 - oversized image upload is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5862,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:28:38.309Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5cac21385da7ad0573ee-7af1f7df497c96c8c09b",
+              "file": "admin/brd.spec.ts",
+              "line": 28,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_BRD_006 - Social Media Images toggle default state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8668,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:28:44.189Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5cac21385da7ad0573ee-a38f7b2f7ddeeab330a6",
+              "file": "admin/brd.spec.ts",
+              "line": 37,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin\\cfg.spec.ts",
+      "file": "admin/cfg.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin > Configuration",
+          "file": "admin/cfg.spec.ts",
+          "line": 6,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_CFG_008 - Date Format dropdown shows a live example matching the selected format",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10548,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:29:11.788Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a54e2a1f95761927154f-04f10f00460c6eaa7a41",
+              "file": "admin/cfg.spec.ts",
+              "line": 50,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_CFG_011 - Admin and Pim modules are locked enabled (checked and disabled)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6380,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:29:22.353Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a54e2a1f95761927154f-1da4bc52feb95e848eba",
+              "file": "admin/cfg.spec.ts",
+              "line": 61,
+              "column": 7
+            }
+          ],
+          "suites": [
+            {
+              "title": "Email Configuration",
+              "file": "admin/cfg.spec.ts",
+              "line": 7,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "TC_ADM_CFG_001 - SMTP fields appear only for the SMTP method",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 90000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 8029,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-09-26T16:28:52.882Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "a54e2a1f95761927154f-61d314186999e4f1db38",
+                  "file": "admin/cfg.spec.ts",
+                  "line": 8,
+                  "column": 9
+                },
+                {
+                  "title": "TC_ADM_CFG_003 - mandatory SMTP fields blocked when left empty",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 90000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 10834,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-09-26T16:29:00.929Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "a54e2a1f95761927154f-2eec62575adf957cda65",
+                  "file": "admin/cfg.spec.ts",
+                  "line": 29,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin\\job.spec.ts",
+      "file": "admin/job.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin > Job > Job Titles",
+          "file": "admin/job.spec.ts",
+          "line": 27,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_JOB_001 - create a Job Titles record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8917,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:29:28.765Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-a31dccc939a7915b2e6f",
+              "file": "admin/job.spec.ts",
+              "line": 28,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_JOB_002 - mandatory validation, Job Title empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5681,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:29:37.697Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-d2c991d9f01397b2b776",
+              "file": "admin/job.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_JOB_006 - edit an existing Job Titles record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14205,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:29:43.398Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-4e10396d21319340fa53",
+              "file": "admin/job.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_JOB_007 - Cancel discards changes on Job Titles",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7354,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:29:57.619Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-aa5567184fa2dd66bcb5",
+              "file": "admin/job.spec.ts",
+              "line": 79,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_JOB_008 - delete a Job Titles record with confirmation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9791,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:30:04.988Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-ac0d75bb281befcc802f",
+              "file": "admin/job.spec.ts",
+              "line": 93,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_JOB_009 - cancelling delete preserves the Job Titles record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9456,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:30:14.804Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-e0b0cf99a651aa424e77",
+              "file": "admin/job.spec.ts",
+              "line": 124,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Admin > Job > Pay Grades",
+          "file": "admin/job.spec.ts",
+          "line": 145,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_JOB_023 - Currency Minimum Salary must not exceed Maximum Salary",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9314,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:30:24.275Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-1a232ff9357a49b9582c",
+              "file": "admin/job.spec.ts",
+              "line": 146,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Admin > Job > Work Shifts",
+          "file": "admin/job.spec.ts",
+          "line": 167,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_JOB_049 - overnight Work Shift time ordering is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8384,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:30:33.607Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9b63d676edc11c0efce4-9b86bf5f46aecebddb30",
+              "file": "admin/job.spec.ts",
+              "line": 168,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin\\nat.spec.ts",
+      "file": "admin/nat.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin > Nationalities",
+          "file": "admin/nat.spec.ts",
+          "line": 38,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_NAT_001 - create a Nationalities record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11593,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:30:42.023Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2b42376e1150e5054aaf-b50b895481e7a9379a30",
+              "file": "admin/nat.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAT_002 - mandatory validation, Name empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6256,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:30:53.637Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2b42376e1150e5054aaf-c1ef667334883858b8d2",
+              "file": "admin/nat.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAT_003 - duplicate Name is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6284,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:30:59.906Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2b42376e1150e5054aaf-2a2ba41f6fadf82d474c",
+              "file": "admin/nat.spec.ts",
+              "line": 66,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAT_010 - deleting an in-use Nationality — KNOWN DEFECT BUG-001",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 19456,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:31:06.203Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2b42376e1150e5054aaf-4f397cd0941767a1be70",
+              "file": "admin/nat.spec.ts",
+              "line": 81,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAT_011 - pagination integrity across Nationalities pages",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5067,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:31:25.673Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2b42376e1150e5054aaf-91fd12b24d16bbd9fc9f",
+              "file": "admin/nat.spec.ts",
+              "line": 123,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin\\nav.spec.ts",
+      "file": "admin/nav.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Login / Session / Navigation",
+          "file": "admin/nav.spec.ts",
+          "line": 18,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_NAV_001 - successful login routes to Dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5912,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:04.654Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-16b14c4f65827bbf7be7",
+              "file": "admin/nav.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_002 - invalid credentials rejected without leaking which field is wrong",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4692,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:10.745Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-a40366a996e8501c17ce",
+              "file": "admin/nav.spec.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_003 - invalid credentials rejected without leaking which field is wrong (nonexistent username)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5633,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:15.455Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-93f39be646aba9118a9c",
+              "file": "admin/nav.spec.ts",
+              "line": 47,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_004 - invalid credentials rejected without leaking which field is wrong (uppercase username) — KNOWN DEFECT BUG-003",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4868,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:21.107Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-960c8910c5217f5c3994",
+              "file": "admin/nav.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_005 - required-field validation, Username left empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2947,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:25.998Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-0294dce549a12cef7b2f",
+              "file": "admin/nav.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_007 - deep link while unauthenticated redirects to login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3255,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:28.968Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-a085c7b16ac3ce9e3067",
+              "file": "admin/nav.spec.ts",
+              "line": 93,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_008 - Admin top-tab \"User Management\" navigates to System Users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6441,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:32.244Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-83f4911eb55c1ac278af",
+              "file": "admin/nav.spec.ts",
+              "line": 99,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_015 - logout invalidates the session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8715,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:38.704Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-5ca7d37eadd4e8181206",
+              "file": "admin/nav.spec.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_NAV_016 - back-navigation after logout does not expose authenticated screens",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16188,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:38:47.438Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "03f3cafe211306ddaf1e-7eac23d34b04d08ee32b",
+              "file": "admin/nav.spec.ts",
+              "line": 139,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin\\org.spec.ts",
+      "file": "admin/org.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin > Organization",
+          "file": "admin/org.spec.ts",
+          "line": 14,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_ORG_001 - General Information fields are read-only until Edit is toggled",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4697,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:31:30.764Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1cc7be0cb30fecdde608-5595c31bf0472d2434ce",
+              "file": "admin/org.spec.ts",
+              "line": 15,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_ORG_019 - lazy-loaded child nodes expand on demand (Structure)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5033,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:31:52.174Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1cc7be0cb30fecdde608-3163040aa7e300808576",
+              "file": "admin/org.spec.ts",
+              "line": 59,
+              "column": 7
+            }
+          ],
+          "suites": [
+            {
+              "title": "Locations",
+              "file": "admin/org.spec.ts",
+              "line": 30,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "TC_ADM_ORG_006 - create a Locations record",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 90000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 10152,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-09-26T16:31:35.473Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1cc7be0cb30fecdde608-e5bc89270235222b723a",
+                  "file": "admin/org.spec.ts",
+                  "line": 31,
+                  "column": 9
+                },
+                {
+                  "title": "TC_ADM_ORG_007 - mandatory validation, Name empty",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 90000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6525,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-09-26T16:31:45.637Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "1cc7be0cb30fecdde608-f04c695375691edf50c7",
+                  "file": "admin/org.spec.ts",
+                  "line": 47,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin\\qua.spec.ts",
+      "file": "admin/qua.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin > Qualifications > Skills",
+          "file": "admin/qua.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_QUA_001 - create a Skills record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10930,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:31:57.226Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8d21fb16bd3c49bf31a3-425f555578f36d85a7d1",
+              "file": "admin/qua.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_QUA_002 - mandatory validation, Name empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6055,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:32:08.169Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8d21fb16bd3c49bf31a3-5830eae0f5d967f53343",
+              "file": "admin/qua.spec.ts",
+              "line": 27,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_QUA_006 - edit an existing Skills record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14044,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:32:14.235Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8d21fb16bd3c49bf31a3-e311c74ff27abf54cd44",
+              "file": "admin/qua.spec.ts",
+              "line": 38,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_QUA_007 - Cancel discards changes on Skills",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8170,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:32:28.296Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8d21fb16bd3c49bf31a3-603fa32dcd8d5e8214af",
+              "file": "admin/qua.spec.ts",
+              "line": 62,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_QUA_008 - delete a Skills record with confirmation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14056,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:32:36.484Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8d21fb16bd3c49bf31a3-892e42b1f31335161f55",
+              "file": "admin/qua.spec.ts",
+              "line": 76,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_QUA_009 - cancelling delete preserves the Skills record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11170,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:32:50.559Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8d21fb16bd3c49bf31a3-8168b96866a3ef44034b",
+              "file": "admin/qua.spec.ts",
+              "line": 107,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_QUA_010 - long Description is retained in full on edit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 30303,
+                      "error": {
+                        "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index\", waiting until \"load\"\u001b[22m\n\n    at Object.page (C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts:19:31)",
+                        "location": {
+                          "file": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts",
+                          "column": 31,
+                          "line": 19
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39m..\\src\\fixtures\\page.fixture.ts:19\n\n\u001b[0m \u001b[90m 17 |\u001b[39m   page\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }\u001b[33m,\u001b[39m use) \u001b[33m=>\u001b[39m {\n \u001b[90m 18 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39m\u001b[35m/dashboard/\u001b[39m\u001b[33m.\u001b[39mtest(authenticatedPage\u001b[33m.\u001b[39murl())) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m       \u001b[36mawait\u001b[39m authenticatedPage\u001b[33m.\u001b[39mgoto(\u001b[32m'/web/index.php/dashboard/index'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     }\n \u001b[90m 21 |\u001b[39m     \u001b[36mawait\u001b[39m expect(authenticatedPage\u001b[33m.\u001b[39mgetByRole(\u001b[32m'navigation'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'Sidepanel'\u001b[39m }))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m waitForIdle(authenticatedPage)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts",
+                            "column": 31,
+                            "line": 19
+                          },
+                          "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index\", waiting until \"load\"\u001b[22m\n\n\n   at ..\\src\\fixtures\\page.fixture.ts:19\n\n  17 |   page: async ({ authenticatedPage }, use) => {\n  18 |     if (!/dashboard/.test(authenticatedPage.url())) {\n> 19 |       await authenticatedPage.goto('/web/index.php/dashboard/index');\n     |                               ^\n  20 |     }\n  21 |     await expect(authenticatedPage.getByRole('navigation', { name: 'Sidepanel' })).toBeVisible();\n  22 |     await waitForIdle(authenticatedPage);\n    at Object.page (C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts:19:31)"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:33:01.744Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\test-results\\admin-qua-Admin-Qualificat-69c6f-is-retained-in-full-on-edit-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\test-results\\admin-qua-Admin-Qualificat-69c6f-is-retained-in-full-on-edit-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts",
+                        "column": 31,
+                        "line": 19
+                      }
+                    },
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13525,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-09-26T16:33:32.897Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\test-results\\admin-qua-Admin-Qualificat-69c6f-is-retained-in-full-on-edit-chromium-retry1\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "flaky"
+                }
+              ],
+              "id": "8d21fb16bd3c49bf31a3-d337496140fabe024ae1",
+              "file": "admin/qua.spec.ts",
+              "line": 127,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin\\usr.spec.ts",
+      "file": "admin/usr.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin > User Management > Users",
+          "file": "admin/usr.spec.ts",
+          "line": 56,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC_ADM_USR_001 - add a valid ESS system user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 30315,
+                      "error": {
+                        "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index\", waiting until \"load\"\u001b[22m\n\n    at Object.page (C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts:19:31)",
+                        "location": {
+                          "file": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts",
+                          "column": 31,
+                          "line": 19
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39m..\\src\\fixtures\\page.fixture.ts:19\n\n\u001b[0m \u001b[90m 17 |\u001b[39m   page\u001b[33m:\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }\u001b[33m,\u001b[39m use) \u001b[33m=>\u001b[39m {\n \u001b[90m 18 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39m\u001b[35m/dashboard/\u001b[39m\u001b[33m.\u001b[39mtest(authenticatedPage\u001b[33m.\u001b[39murl())) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m       \u001b[36mawait\u001b[39m authenticatedPage\u001b[33m.\u001b[39mgoto(\u001b[32m'/web/index.php/dashboard/index'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     }\n \u001b[90m 21 |\u001b[39m     \u001b[36mawait\u001b[39m expect(authenticatedPage\u001b[33m.\u001b[39mgetByRole(\u001b[32m'navigation'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'Sidepanel'\u001b[39m }))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[36mawait\u001b[39m waitForIdle(authenticatedPage)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts",
+                            "column": 31,
+                            "line": 19
+                          },
+                          "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index\", waiting until \"load\"\u001b[22m\n\n\n   at ..\\src\\fixtures\\page.fixture.ts:19\n\n  17 |   page: async ({ authenticatedPage }, use) => {\n  18 |     if (!/dashboard/.test(authenticatedPage.url())) {\n> 19 |       await authenticatedPage.goto('/web/index.php/dashboard/index');\n     |                               ^\n  20 |     }\n  21 |     await expect(authenticatedPage.getByRole('navigation', { name: 'Sidepanel' })).toBeVisible();\n  22 |     await waitForIdle(authenticatedPage);\n    at Object.page (C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts:19:31)"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:33:57.850Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\test-results\\admin-usr-Admin-User-Manag-527dc-add-a-valid-ESS-system-user-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\test-results\\admin-usr-Admin-User-Manag-527dc-add-a-valid-ESS-system-user-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\src\\fixtures\\page.fixture.ts",
+                        "column": 31,
+                        "line": 19
+                      }
+                    },
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 30101,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-09-26T16:34:28.958Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\Moustafa Madkour\\Desktop\\OrangeHRM-Admin-AI-Tests\\test-results\\admin-usr-Admin-User-Manag-527dc-add-a-valid-ESS-system-user-chromium-retry1\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "flaky"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-77c751e13a1642416d3f",
+              "file": "admin/usr.spec.ts",
+              "line": 57,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_002 - username uniqueness is enforced",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 20899,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:35:27.206Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-cf9acd49200665ff1087",
+              "file": "admin/usr.spec.ts",
+              "line": 79,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_003 - mandatory field blocks submission when User Role is empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11790,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:35:48.119Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-2150d24bffefa89990f7",
+              "file": "admin/usr.spec.ts",
+              "line": 112,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_005 - mandatory field blocks submission when Status is empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12190,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:35:59.926Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-d4436d2e5ca160199e4b",
+              "file": "admin/usr.spec.ts",
+              "line": 138,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_006 - mandatory field blocks submission when Username is empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14802,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:36:12.136Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-a83085d21195d58ccf12",
+              "file": "admin/usr.spec.ts",
+              "line": 156,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_007 - mandatory field blocks submission when Password is empty",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14032,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:36:26.951Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-98ca003f6c6eaccc1ab0",
+              "file": "admin/usr.spec.ts",
+              "line": 174,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_009 - password policy feedback for a too-short password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7613,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:36:40.998Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-d37f74a4135a6ab21b5c",
+              "file": "admin/usr.spec.ts",
+              "line": 192,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_013 - search filter Username = Admin returns a consistent result set",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6864,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:36:48.627Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-dae325af52ca19a93ab5",
+              "file": "admin/usr.spec.ts",
+              "line": 202,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_018 - edit a system user's role",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 15820,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:36:55.512Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-762368606ff8a7cab5de",
+              "file": "admin/usr.spec.ts",
+              "line": 216,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_020 - delete a single user with confirmation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14657,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:37:11.344Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-37514541e906f2395506",
+              "file": "admin/usr.spec.ts",
+              "line": 250,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_022 - bulk delete via row checkboxes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23781,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:37:26.016Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-46ea1bd8dac9b8fb7c1a",
+              "file": "admin/usr.spec.ts",
+              "line": 286,
+              "column": 7
+            },
+            {
+              "title": "TC_ADM_USR_024 - row action icons are ordered delete-then-edit (FIND-004 regression guard)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14071,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-26T16:37:49.811Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "47f8cbf57f34e542b759-e3299d8e0db757921b37",
+              "file": "admin/usr.spec.ts",
+              "line": 333,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T16:28:27.084Z",
+    "duration": 636676.016,
+    "expected": 50,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 2
+  }
+}

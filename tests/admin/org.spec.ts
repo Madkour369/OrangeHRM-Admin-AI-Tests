@@ -52,7 +52,7 @@ test.describe('Admin > Organization', () => {
       await locationsPage.submitEmptyName();
 
       await expect(locationsPage.fieldError('Name')).toHaveText('Required');
-      await expect(page.locator('.oxd-toast-content--success')).toHaveCount(0);
+      expect(await locationsPage.toast.successToastCount()).toBe(0);
     });
   });
 
